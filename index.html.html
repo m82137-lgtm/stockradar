@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>強勢股新聞雷達</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --bg2: #ffffff;
+    --bg3: #f0f2f5;
+    --bg4: #e8ebf0;
+    --border: #e2e5eb;
+    --border2: #c8cdd8;
+    --text: #1a1d24;
+    --text2: #5a6276;
+    --text3: #9aa0b2;
+    --green: #00a651;
+    --green2: #008a44;
+    --green-bg: rgba(0,166,81,0.07);
+    --green-bg2: rgba(0,166,81,0.13);
+    --red: #d9363e;
+    --red2: #b52c33;
+    --red-bg: rgba(217,54,62,0.07);
+    --red-bg2: rgba(217,54,62,0.13);
+    --amber: #c47d00;
+    --amber-bg: rgba(196,125,0,0.09);
+    --blue: #1a6fcc;
+    --blue-bg: rgba(26,111,204,0.08);
+    --accent: #2563eb;
+    --accent-bg: rgba(37,99,235,0.09);
+    --nav-h: 52px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* NAV */
+  nav {
+    height: var(--nav-h);
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 4px;
+  }
+
+  .nav-logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.05em;
+    margin-right: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .nav-logo::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: blink 1.5s infinite;
+  }
+
+  @keyframes blink {
+    0%,100% { opacity:1; }
+    50% { opacity:0.2; }
+  }
+
+  .nav-link {
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--text2);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+
+  .nav-link:hover { color: var(--text); background: var(--bg3); }
+
+  .nav-link.active {
+    color: var(--text);
+    background: var(--bg4);
+    border-color: var(--border2);
+  }
+
+  /* MAIN */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px;
+  }
+
+  /* PAGE TITLE */
+  .page-header {
+    margin-bottom: 20px;
+  }
+
+  .page-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .page-desc {
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .page-desc span {
+    color: var(--green);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+
+  /* STATUS BAR */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .status-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .status-dot {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  .dot.green { background: var(--green); }
+  .dot.amber { background: var(--amber); }
+  .dot.red { background: var(--red); }
+
+  .status-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--text);
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .btn:hover { background: var(--bg4); border-color: var(--accent); }
+
+  .btn-primary {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--blue);
+  }
+
+  .btn-primary:hover { background: rgba(91,141,248,0.2); }
+
+  /* SORT BAR */
+  .sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .sort-label { font-size: 12px; color: var(--text3); }
+
+  .sort-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .sort-btn:hover { border-color: var(--border2); color: var(--text); }
+  .sort-btn.active { background: var(--accent-bg); border-color: var(--accent); color: var(--blue); }
+
+  /* STOCK CARD */
+  .stock-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .stock-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: border-color 0.15s;
+    cursor: pointer;
+  }
+
+  .stock-card:hover { border-color: var(--border2); }
+
+  .stock-card.up { border-left: 3px solid var(--green); }
+  .stock-card.limit { border-left: 3px solid var(--red); }
+
+  .stock-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 12px;
+  }
+
+  .stock-id {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .stock-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .stock-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .badge {
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .badge-limit { background: var(--red-bg2); color: var(--red); border: 1px solid rgba(255,68,68,0.3); }
+  .badge-up { background: var(--green-bg2); color: var(--green); border: 1px solid rgba(0,230,118,0.3); }
+  .badge-sector { background: var(--bg4); color: var(--text2); border: 1px solid var(--border2); }
+  .badge-new { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(255,179,0,0.3); }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(79,195,247,0.3); }
+
+  .stock-price-area {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .stock-price {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--green);
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+
+  .stock-price.red { color: var(--red); }
+
+  .stock-change {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--green);
+  }
+
+  .stock-change.red { color: var(--red); }
+
+  .stock-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .meta-val { color: var(--text); font-family: 'JetBrains Mono', monospace; }
+  .meta-val.green { color: var(--green); }
+  .meta-val.amber { color: var(--amber); }
+
+  /* NEWS SNIPPET */
+  .news-snippet {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-top: 8px;
+  }
+
+  .news-snippet-title {
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+
+  .news-snippet-meta {
+    font-size: 11px;
+    color: var(--text3);
+    display: flex;
+    gap: 8px;
+  }
+
+  /* CHART MINI */
+  .mini-chart {
+    height: 36px;
+    width: 80px;
+    flex-shrink: 0;
+  }
+
+  /* EMPTY / LOADING */
+  .loading-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    color: var(--text3);
+    font-size: 13px;
+  }
+
+  /* HOT SECTORS */
+  .sector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .sector-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: border-color 0.15s;
+  }
+
+  .sector-card:hover { border-color: var(--border2); }
+
+  .sector-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .sector-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sector-heat {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    background: var(--amber-bg);
+    border: 1px solid rgba(255,179,0,0.25);
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .sector-stocks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+
+  .sector-stock-chip {
+    padding: 3px 8px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    border-radius: 4px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .sector-stock-chip:hover { border-color: var(--green); color: var(--green); }
+
+  .sector-news {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.5;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+
+  .sector-time {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 4px;
+  }
+
+  /* US STOCKS */
+  .us-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .us-table th {
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .us-table th:hover { color: var(--text2); }
+  .us-table th.active { color: var(--accent); }
+
+  .us-table td {
+    padding: 10px 12px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .us-table tr:hover td { background: var(--bg3); }
+
+  .us-table tr:last-child td { border-bottom: none; }
+
+  .us-rank {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text3);
+    width: 30px;
+  }
+
+  .us-symbol {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .us-name { color: var(--text2); }
+  .us-price { font-family: 'JetBrains Mono', monospace; color: var(--text); }
+  .us-vol { font-family: 'JetBrains Mono', monospace; color: var(--amber); }
+
+  .up-val { color: var(--green); font-family: 'JetBrains Mono', monospace; }
+  .dn-val { color: var(--red); font-family: 'JetBrains Mono', monospace; }
+
+  /* TW NEWS */
+  .news-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .news-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .news-card:hover { border-color: var(--border2); }
+
+  .news-card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  .news-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  .news-source { color: var(--accent); }
+
+  /* GUIDE */
+  .guide-content {
+    max-width: 720px;
+  }
+
+  .guide-hero {
+    background: linear-gradient(135deg, var(--bg3) 0%, var(--bg4) 100%);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+  }
+
+  .guide-hero-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .guide-hero-sub {
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .guide-section {
+    margin-bottom: 24px;
+  }
+
+  .guide-section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .guide-section-title::before {
+    content: '';
+    width: 3px;
+    height: 16px;
+    background: var(--green);
+    border-radius: 2px;
+  }
+
+  .sop-steps { display: flex; flex-direction: column; gap: 10px; }
+
+  .sop-step {
+    display: flex;
+    gap: 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .step-content {}
+
+  .step-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .step-desc {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  .exit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .exit-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    border-top: 2px solid var(--red);
+  }
+
+  .exit-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--red);
+    margin-bottom: 6px;
+  }
+
+  .exit-card-desc {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  /* AFTER HOURS */
+  .after-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .stat-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-value { font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--green); }
+  .stat-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  /* MINI SPARKLINE */
+  canvas.spark { display: block; }
+
+  /* SCROLL */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* TABLE WRAPPER */
+  .table-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    overflow-x: auto;
+  }
+
+  /* SYNC STATUS */
+  .sync-bar {
+    background: var(--green-bg);
+    border: 1px solid rgba(0,230,118,0.2);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .pulse-dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: blink 1.2s infinite;
+    flex-shrink: 0;
+  }
+
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    align-items: center;
+  }
+
+  .filter-btn {
+    padding: 5px 12px;
+    font-size: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .filter-btn:hover { border-color: var(--border2); color: var(--text); }
+  .filter-btn.active { background: var(--green-bg); border-color: rgba(0,230,118,0.4); color: var(--green); }
+
+  .time-label {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+    margin-left: auto;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">飆股雷達</div>
+  <div class="nav-link active" onclick="goto('intraday',this)">盤中警示</div>
+  <div class="nav-link" onclick="goto('after',this)">盤後追蹤</div>
+  <div class="nav-link" onclick="goto('sectors',this)">熱門族群</div>
+  <div class="nav-link" onclick="goto('news',this)">台股新聞</div>
+  <div class="nav-link" onclick="goto('guide',this)">網站說明</div>
+</nav>
+
+<main id="main"></main>
+
+<script>
+// 策略一：起漲k
+const MOCK_QJ = [
+  { code:'3693', name:'營邦', price:285.0, chg:+9.91, vol:15832, k15:'red', ma5:271.3, ma60:248.5, aboveMa5:true, aboveMa60:true, sector:'AI伺服器', limit:true, time:'09:03', news:'子公司獲三大雲端巨頭 AI 伺服器機箱訂單，Q3 出貨量估達 40 萬台', src:'Yahoo 財經', newsTime:'3分鐘前' },
+  { code:'2330', name:'台積電', price:1080, chg:+7.25, vol:98432, k15:'red', ma5:1042.0, ma60:985.0, aboveMa5:true, aboveMa60:true, sector:'晶圓代工', limit:false, time:'09:11', news:'CoWoS 產能翻倍計畫提前，2nm 良率超出預期，大客戶追加訂單', src:'工商時報', newsTime:'8分鐘前' },
+  { code:'6531', name:'愛普', price:142.5, chg:+8.47, vol:12501, k15:'red', ma5:136.2, ma60:121.8, aboveMa5:true, aboveMa60:true, sector:'DRAM封裝', limit:false, time:'09:07', news:'與美光共同開發 HBM4 封裝技術，市場估明年貢獻營收近百億', src:'鉅亨網', newsTime:'12分鐘前' },
+  { code:'3711', name:'日月光投控', price:162.5, chg:+7.82, vol:31201, k15:'red', ma5:155.8, ma60:143.2, aboveMa5:true, aboveMa60:true, sector:'IC封測', limit:false, time:'09:18', news:'CoWoS-S 先進封裝訂單大幅超預期，Q2 法說展望調升', src:'鉅亨網', newsTime:'35分鐘前' },
+  { code:'2379', name:'瑞昱', price:583, chg:+9.56, vol:8741, k15:'red', ma5:562.0, ma60:510.5, aboveMa5:true, aboveMa60:true, sector:'IC設計', limit:true, time:'09:22', news:'Wi-Fi 7 晶片出貨量大爆發，明年 PCIe 5.0 控制器規格確定', src:'Yahoo 財經', newsTime:'1小時前' },
+];
+// 策略二：量增k
+const MOCK_LZ = [
+  { code:'6770', name:'力積電', price:38.2, chg:+4.31, vol:23455, estVol:28900, prevVol:21200, volRatio:136, ma5:36.8, ma60:33.4, aboveMa5:true, aboveMa60:true, sector:'DRAM', prevLimit:true, time:'09:15', news:'日本合作廠商宣布追加投資 5000 億日圓共建先進製程廠', src:'Yahoo 財經', newsTime:'21分鐘前' },
+  { code:'4551', name:'智伸科', price:318, chg:+3.58, vol:5231, estVol:7800, prevVol:5900, volRatio:132, ma5:309.5, ma60:285.0, aboveMa5:true, aboveMa60:true, sector:'精密零件', prevLimit:true, time:'09:08', news:'電動車零件出口創新高，客戶涵蓋特斯拉與 BYD，訂單能見度延伸至明年', src:'鉅亨網', newsTime:'今日' },
+  { code:'6196', name:'帆宣', price:281, chg:+2.92, vol:9812, estVol:13500, prevVol:10200, volRatio:132, ma5:274.0, ma60:251.3, aboveMa5:true, aboveMa60:true, sector:'液冷散熱', prevLimit:true, time:'09:21', news:'液冷散熱系統獲 AWS 認證，預計 H2 開始量產出貨，毛利率估提升至 35%', src:'Yahoo 財經', newsTime:'今日' },
+];
+
+const MOCK_AFTER = [
+  { code:'4551', name:'智伸科', price:315, chg:+9.97, vol:5231, k15:'red', ma5:305.0, ma60:278.0, aboveMa5:true, aboveMa60:true, sector:'精密零件', limit:true, time:'收盤', news:'電動車零件出口創新高，客戶涵蓋特斯拉與 BYD', src:'鉅亨網', newsTime:'今日' },
+  { code:'6196', name:'帆宣', price:278.5, chg:+8.33, vol:9812, k15:'red', ma5:268.0, ma60:245.0, aboveMa5:true, aboveMa60:true, sector:'液冷散熱', limit:false, time:'收盤', news:'液冷散熱系統獲 AWS 認證，預計 H2 開始量產出貨', src:'Yahoo 財經', newsTime:'今日' },
+  { code:'2454', name:'聯發科', price:1205, chg:+6.91, vol:42300, k15:'red', ma5:1168.0, ma60:1080.0, aboveMa5:true, aboveMa60:true, sector:'IC設計', limit:false, time:'收盤', news:'天璣 9400 良率大幅改善，Q4 出貨超預期，AI 手機需求強勁', src:'工商時報', newsTime:'今日' },
+  { code:'3035', name:'智原', price:195, chg:+9.75, vol:7654, k15:'red', ma5:185.0, ma60:168.5, aboveMa5:true, aboveMa60:true, sector:'ASIC', limit:true, time:'收盤', news:'取得多家國際雲端業者 ASIC 設計訂單，合約金額逾 30 億', src:'鉅亨網', newsTime:'今日' },
+];
+
+const MOCK_SECTORS = [
+  {
+    name:'AI 伺服器', heat:'🔥🔥🔥🔥🔥', stocks:['3693','2356','5274','6669','3017'],
+    news:'輝達 GB300 機架需求爆量，台廠散熱、機殼、電源供應器全面拉貨。法人預估 2025 台廠 AI 伺服器出貨量年增逾 150%。',
+    time:'10:32 更新'
+  },
+  {
+    name:'液冷散熱', heat:'🔥🔥🔥🔥', stocks:['6196','1580','3454','8936'],
+    news:'AWS、Azure、GCP 三大雲端業者同步採購液冷系統，台廠訂單能見度延伸至明年 Q3。',
+    time:'10:28 更新'
+  },
+  {
+    name:'HBM / CoWoS', heat:'🔥🔥🔥🔥🔥', stocks:['2330','6531','3711','2303'],
+    news:'HBM4 開發進度超前，CoWoS 月產能估年底突破 1.5 萬片，相關封測廠訂單滿載。',
+    time:'10:41 更新'
+  },
+  {
+    name:'電動車零件', heat:'🔥🔥🔥', stocks:['4551','1590','1723','2634'],
+    news:'特斯拉 Model Q 確定採用台灣精密零件廠商，BYD 也同步詢價，零件廠接單熱度大升。',
+    time:'10:15 更新'
+  },
+  {
+    name:'光通訊', heat:'🔥🔥🔥🔥', stocks:['3491','4967','6285','3605'],
+    news:'AI 資料中心光互聯需求激增，800G 光模組報價走揚，台廠市佔率持續提升。',
+    time:'10:38 更新'
+  },
+  {
+    name:'IC 設計', heat:'🔥🔥🔥', stocks:['2454','2379','3711','6271'],
+    news:'聯發科 AI 手機晶片出貨提速，瑞昱 Wi-Fi 7 / PCIe 5.0 新品即將量產，IC 設計全面受惠。',
+    time:'10:22 更新'
+  },
+];
+
+
+const MOCK_NEWS = [
+  { title:'台積電 CoWoS 2026 月產能估達 3.5 萬片，AI 算力需求帶動封裝技術革命', src:'鉅亨網', time:'09:47', cat:'台積電' },
+  { title:'輝達 GB300 NVL72 機架系統確認採用台廠供應鏈，三大台廠受惠最直接', src:'Yahoo 財經', time:'09:31', cat:'AI 伺服器' },
+  { title:'聯發科天璣 9400 良率達 95%，高通 X85 對決格局底定，Q4 出貨量超預期', src:'工商時報', time:'09:18', cat:'IC 設計' },
+  { title:'美光 HBM4 開始量產，三星跌出供應商名單，台廠封測比重大幅提升', src:'鉅亨網', time:'09:05', cat:'HBM' },
+  { title:'電動車滲透率突破 40%，台灣精密零件廠商訂單能見度創 5 年新高', src:'Yahoo 財經', time:'08:52', cat:'電動車' },
+  { title:'光通訊族群全面上漲，800G 光模組報價月增 12%，台廠市佔持續擴大', src:'工商時報', time:'08:41', cat:'光通訊' },
+  { title:'美聯準會維持利率不變，科技股普遍反彈，台股今日開盤預估高開 150 點', src:'鉅亨網', time:'08:30', cat:'總經' },
+  { title:'日本半導體補貼政策出爐，台積電熊本廠 2nm 投資確認，日本廠望明年獲利', src:'Yahoo 財經', time:'08:15', cat:'台積電' },
+  { title:'散熱族群昨日爆量，籌碼面顯示外資持續佈局，法人看好 Q2 旺季效應', src:'工商時報', time:'08:01', cat:'散熱' },
+  { title:'瑞昱 Wi-Fi 7 晶片取得多國電信認證，出貨預測上調 30%', src:'鉅亨網', time:'07:48', cat:'IC 設計' },
+];
+
+function spark(canvas, up) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const pts = Array.from({length:12},(_,i)=> {
+    const noise = (Math.random()-0.5)*0.3;
+    return up ? 0.7 - i*(0.05+noise) : 0.3 + i*(0.05+noise);
+  }).reverse();
+  const min = Math.min(...pts), max = Math.max(...pts);
+  const range = max - min || 1;
+  ctx.beginPath();
+  pts.forEach((v,i)=>{
+    const x = i/(pts.length-1)*w;
+    const y = h - ((v-min)/range)*(h-4) - 2;
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = up ? '#00e676' : '#ff4444';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+function fmtChg(v) {
+  return (v>0?'+':'')+v.toFixed(2)+'%';
+}
+
+// 條件標籤元件
+function condTag(pass, label) {
+  return `<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:500;border:1px solid ${pass?'rgba(0,166,81,0.3)':'rgba(217,54,62,0.25)'};background:${pass?'rgba(0,166,81,0.07)':'rgba(217,54,62,0.06)'};color:${pass?'var(--green)':'var(--red)'}">
+  ${pass?'✓':'✗'} ${label}
+</span>`;
+}
+
+// 策略一 card：起漲k
+function cardQJ(s, idx) {
+  const newsId = `news-qj-${s.code}`;
+  return `
+<div class="stock-card ${s.limit?'limit':'up'}" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
+  <div class="stock-top">
+    <div class="stock-id">
+      <span class="stock-code">${s.code}</span>
+      <span class="stock-name">${s.name}</span>
+      ${s.limit ? '<span class="badge badge-limit">漲停</span>' : '<span class="badge badge-up">強漲</span>'}
+      <span class="badge badge-sector">${s.sector}</span>
+    </div>
+    <div class="stock-price-area">
+      <div class="stock-price">${s.price.toFixed(1)}</div>
+      <div class="stock-change">${fmtChg(s.chg)}</div>
+    </div>
+  </div>
+
+  <!-- 15分K 獨立參考列 -->
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;padding:6px 10px;background:${s.k15==='red'?'rgba(0,166,81,0.06)':'rgba(217,54,62,0.05)'};border-radius:6px;border:1px solid ${s.k15==='red'?'rgba(0,166,81,0.2)':'rgba(217,54,62,0.2)'};">
+    <span style="font-size:13px;">${s.k15==='red'?'✅':'⬜'}</span>
+    <span style="font-size:12px;font-weight:500;color:${s.k15==='red'?'var(--green)':'var(--text3)'};">09:00–09:15 第一根15分K 紅棒</span>
+  </div>
+
+  <div class="stock-meta" style="margin-bottom:10px;">
+    <div class="meta-item">⏱ 入榜 <span class="meta-val">${s.time}</span></div>
+  </div>
+
+  <!-- Google News 個股新聞區 -->
+  <div id="${newsId}" style="border-top:1px solid var(--border);padding-top:10px;">
+    <div style="font-size:11px;color:var(--text3);">📰 載入個股新聞中...</div>
+  </div>
+</div>`;
+}
+
+// 策略二 card：量增k
+function cardLZ(s, idx) {
+  const volUp = s.estVol > s.prevVol;
+  const newsId = `news-lz-${s.code}`;
+  return `
+<div class="stock-card up" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
+  <div class="stock-top">
+    <div class="stock-id">
+      <span class="stock-code">${s.code}</span>
+      <span class="stock-name">${s.name}</span>
+      <span class="badge badge-limit">前日漲停</span>
+      <span class="badge badge-sector">${s.sector}</span>
+    </div>
+    <div class="stock-price-area">
+      <div class="stock-price">${s.price.toFixed(1)}</div>
+      <div class="stock-change">${fmtChg(s.chg)}</div>
+    </div>
+  </div>
+
+  <!-- 量增k 參考列：預估量 vs 前日量 -->
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;padding:6px 10px;background:${volUp?'rgba(0,166,81,0.06)':'rgba(217,54,62,0.05)'};border-radius:6px;border:1px solid ${volUp?'rgba(0,166,81,0.2)':'rgba(217,54,62,0.2)'};">
+    <span style="font-size:13px;">${volUp?'✅':'⬜'}</span>
+    <span style="font-size:12px;font-weight:500;color:${volUp?'var(--green)':'var(--text3)'};">預估量 ${(s.estVol/1000).toFixed(1)}千張 ＞ 前日 ${(s.prevVol/1000).toFixed(1)}千張</span>
+  </div>
+
+  <div class="stock-meta" style="margin-bottom:10px;">
+    <div class="meta-item">⏱ 入榜 <span class="meta-val">${s.time}</span></div>
+  </div>
+
+  <!-- Google News 個股新聞區 -->
+  <div id="${newsId}" style="border-top:1px solid var(--border);padding-top:10px;">
+    <div style="font-size:11px;color:var(--text3);">📰 載入個股新聞中...</div>
+  </div>
+</div>`;
+}
+
+// 盤後追蹤 card：起漲k 收盤版（四條件全保留）
+function cardAfter(s, idx) {
+  return `
+<div class="stock-card ${s.limit?'limit':'up'}" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
+  <div class="stock-top">
+    <div class="stock-id">
+      <span class="stock-code">${s.code}</span>
+      <span class="stock-name">${s.name}</span>
+      ${s.limit ? '<span class="badge badge-limit">漲停收盤</span>' : '<span class="badge badge-up">強漲收盤</span>'}
+      <span class="badge badge-sector">${s.sector}</span>
+    </div>
+    <div class="stock-price-area">
+      <div class="stock-price">${s.price.toFixed(1)}</div>
+      <div class="stock-change">${fmtChg(s.chg)}</div>
+    </div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">
+    ${condTag(s.chg>=7,   `收盤漲幅 ${s.chg.toFixed(2)}%`)}
+    ${condTag(s.k15==='red', '15分K 紅棒')}
+    ${condTag(s.vol>=5000, `收盤量 ${(s.vol/1000).toFixed(1)}千張`)}
+    ${condTag(s.aboveMa5,  `站上MA5 (${s.ma5})`)}
+    ${condTag(s.aboveMa60, `站上MA60 (${s.ma60})`)}
+  </div>
+  <div class="stock-meta">
+    <div class="meta-item">📅 收盤時間 <span class="meta-val">13:30</span></div>
+    <div class="meta-item">MA5 <span class="meta-val">${s.ma5}</span></div>
+    <div class="meta-item">MA60 <span class="meta-val">${s.ma60}</span></div>
+  </div>
+  <div class="news-snippet">
+    <div class="news-snippet-title">📰 ${s.news}</div>
+    <div class="news-snippet-meta">
+      <span class="news-source">${s.src}</span>
+      <span>${s.newsTime}</span>
+    </div>
+  </div>
+</div>`;
+}
+
+let currentStrategy = 'qj';
+
+const pages = {
+  intraday() {
+    const isQJ = currentStrategy === 'qj';
+    const stocks = isQJ ? MOCK_QJ : MOCK_LZ;
+    return `
+<div class="page-header">
+  <div class="page-title">盤中即時警示</div>
+  <div class="page-desc">依選定策略條件即時篩選，輔以最新新聞輔助決策。最後更新：<span>10:43:17</span></div>
+</div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+  <div class="strategy-tab ${isQJ?'active':''}" onclick="switchStrategy('qj')" id="tab-qj">
+    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">策略一：起漲k</div>
+    <div style="font-size:11px;opacity:0.75;">漲幅>7% ／ 量>5000張 ／ 站上MA5, MA60</div>
+  </div>
+  <div class="strategy-tab ${!isQJ?'active':''}" onclick="switchStrategy('lz')" id="tab-lz">
+    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">策略二：量增k</div>
+    <div style="font-size:11px;opacity:0.75;">前日漲停 ／ 預估量>前日量 ／ 站上MA5,60</div>
+  </div>
+</div>
+
+<div class="status-bar" style="margin-bottom:16px;">
+  <div class="status-info">
+    <div class="status-dot"><div class="dot green"></div>即時偵測中</div>
+    <div class="status-dot"><div class="dot green"></div>符合條件 ${stocks.length} 檔</div>
+    ${isQJ ? `<div class="status-dot"><div class="dot amber"></div>漲停 ${stocks.filter(s=>s.limit).length} 檔</div>` : `<div class="status-dot"><div class="dot amber"></div>量增比平均 ${Math.round(stocks.reduce((a,s)=>a+s.volRatio,0)/stocks.length)}%</div>`}
+  </div>
+  <div class="status-actions">
+    <button class="btn btn-primary">立即整理</button>
+  </div>
+</div>
+
+<div class="sort-bar">
+  <span class="sort-label">排序：</span>
+  <button class="sort-btn active">入榜時間</button>
+  <button class="sort-btn">漲幅</button>
+  <button class="sort-btn">成交量</button>
+</div>
+
+<div class="stock-list" id="strategy-list">
+  ${isQJ
+    ? stocks.map((s,i)=>cardQJ(s,i)).join('')
+    : stocks.map((s,i)=>cardLZ(s,i)).join('')
+  }
+</div>
+<style>
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+.strategy-tab {
+  flex:1; min-width:220px;
+  background:var(--bg2);
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  padding:12px 16px;
+  cursor:pointer;
+  transition:all 0.15s;
+  color:var(--text2);
+}
+.strategy-tab:hover { border-color:var(--border2); color:var(--text); }
+.strategy-tab.active {
+  border-color:var(--accent);
+  background:var(--accent-bg);
+  color:var(--accent);
+}
+</style>`;
+  },
+
+  after() {
+    const limitCount = MOCK_AFTER.filter(s=>s.limit).length;
+    const avgChg = (MOCK_AFTER.reduce((a,s)=>a+s.chg,0)/MOCK_AFTER.length).toFixed(2);
+    const avgVol = Math.round(MOCK_AFTER.reduce((a,s)=>a+s.vol,0)/MOCK_AFTER.length/1000);
+    return `
+<div class="page-header">
+  <div class="page-title">盤後追蹤清單</div>
+  <div class="page-desc">收盤後重新掃描，符合「起漲k」四條件的標的，供隔日開盤前參考。更新時間：<span>15:05</span></div>
+</div>
+
+<div style="background:var(--blue-bg);border:1px solid rgba(26,111,204,0.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--blue);display:flex;gap:6px;align-items:flex-start;">
+  <span>ℹ️</span>
+  <span>篩選條件與盤中起漲k相同：<b>收盤漲幅 &gt; 7%</b>、<b>第一根15分K 紅棒</b>、<b>收盤量 &gt; 5000 張</b>、<b>股價在 MA5 / MA60 以上</b></span>
+</div>
+
+<div class="after-grid">
+  <div class="stat-card">
+    <div class="stat-label">今日入榜</div>
+    <div class="stat-value">${MOCK_AFTER.length}</div>
+    <div class="stat-sub">符合全部條件</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">漲停收盤</div>
+    <div class="stat-value" style="color:var(--red)">${limitCount}</div>
+    <div class="stat-sub">漲停板鎖死</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">平均收盤漲幅</div>
+    <div class="stat-value">${avgChg}%</div>
+    <div class="stat-sub">強勢格局</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">平均成交量</div>
+    <div class="stat-value" style="color:var(--amber)">${avgVol}千</div>
+    <div class="stat-sub">張（均值）</div>
+  </div>
+</div>
+
+<div class="sort-bar">
+  <span class="sort-label">排序：</span>
+  <button class="sort-btn active">漲幅</button>
+  <button class="sort-btn">成交量</button>
+  <button class="sort-btn">入榜時間</button>
+</div>
+
+<div class="stock-list">
+  ${MOCK_AFTER.map((s,i)=>cardAfter(s,i)).join('')}
+</div>
+<style>
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+</style>`;
+  },
+
+  sectors() {
+    // 渲染靜態骨架，mounted 後再執行 fetchSectors()
+    setTimeout(fetchSectors, 0);
+    return `
+<div class="page-header">
+  <div class="page-title">熱門族群情報</div>
+  <div class="page-desc">即時抓取富聯網標題含「熱門族群」的新聞</div>
+</div>
+<div class="sync-bar">
+  <div class="pulse-dot"></div>
+  <span id="sectors-sync-status">正在從富聯網載入熱門族群新聞...</span>
+</div>
+<div id="sectors-content">
+  <div class="loading-card">載入中，請稍候...</div>
+</div>`;
+  },
+
+
+  news() {
+    setTimeout(fetchCnyes, 0);
+    return `
+<div class="page-header">
+  <div class="page-title">台股新聞</div>
+  <div class="page-desc">即時抓取鉅亨網台股新聞</div>
+</div>
+<div class="sync-bar">
+  <div class="pulse-dot"></div>
+  <span id="news-sync-status">正在從鉅亨網載入台股新聞...</span>
+</div>
+<div id="news-content">
+  <div class="loading-card">載入中，請稍候...</div>
+</div>`;
+  },
+
+  guide() {
+    return `
+<div class="guide-content">
+  <div class="guide-hero">
+    <div class="guide-hero-title">⚡ 極限強勢股：短線操作 S.O.P</div>
+    <div class="guide-hero-sub">鎖定市場最強標的，嚴格紀律的進出場指南</div>
+  </div>
+
+  <div class="guide-section">
+    <div class="guide-section-title">短線進場的 4 步 S.O.P</div>
+    <div class="sop-steps">
+      <div class="sop-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">漲幅必須在 7% 以上</div>
+          <div class="step-desc">真正的強勢股一開盤就會劇烈震動並迅速往上拉抬。如果一檔股票只漲 1% 或 4.8%，在成千上萬檔股票中根本排不上號，絕對不是最強的。</div>
+        </div>
+      </div>
+      <div class="sop-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">成交量破萬張</div>
+          <div class="step-desc">必須有足夠的成交量，證明散戶、當沖客等各種龐大資金都已經湧入，形成一種「全民運動」。只有這樣的人氣，才能推動股價短線爆發。</div>
+        </div>
+      </div>
+      <div class="sop-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">檢視「第一根 15 分 K 線」</div>
+          <div class="step-desc">飆股最大的特徵就是「一早就會動」。第一根 15 分鐘的 K 線必須顯示出大戶強烈拉抬的明確痕跡，真正的主力絕對不會拖到中午才發動。</div>
+        </div>
+      </div>
+      <div class="sop-step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">查閱新聞，確認「夢想與期待感」</div>
+          <div class="step-desc">看到股票大漲後立刻去查閱新聞。新聞的內容不能只是平庸的「本業獲利穩定」，必須要有極具爆發力、誇張的「新故事」。你買的是這個「夢」，而不是現有財報數字。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-section">
+    <div class="guide-section-title">出場機制：機械化執行與嚴格紀律</div>
+    <div class="exit-grid">
+      <div class="exit-card">
+        <div class="exit-card-title">絕對的停損點</div>
+        <div class="exit-card-desc">進場前設定好固定的停損比例（如跌破 5% 或 7%）。只要跌破就立刻出場，絕不猶豫！這不是因為股票變壞了，而是「策略失手就必須逃跑」。</div>
+      </div>
+      <div class="exit-card">
+        <div class="exit-card-title">時間合約（時間停損）</div>
+        <div class="exit-card-desc">短線交易沒有給股票無限的時間。散戶的耐心極限大約是 3 天，如果買進後股票沒有如預期飆漲，時間一到就果斷離開。</div>
+      </div>
+      <div class="exit-card">
+        <div class="exit-card-title">避開法說會與財報</div>
+        <div class="exit-card-desc">對靠題材炒作的「黑隊公司」，絕對不要抱著去等法說會或財報公布。財報一翻開，夢想就會破滅，股價通常會崩跌。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-section">
+    <div class="guide-section-title">本站功能說明</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span class="badge badge-up" style="flex-shrink:0;margin-top:2px">盤中警示</span>
+        <span style="font-size:13px;color:var(--text2)">透過富果 API 每分鐘掃描全市場，即時偵測漲幅 7%+ 且成交量破萬張的強勢股，並自動帶入最新新聞。</span>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span class="badge badge-blue" style="flex-shrink:0;margin-top:2px">盤後追蹤</span>
+        <span style="font-size:13px;color:var(--text2)">彙整當日收盤仍維持強勢的標的，供隔日開盤前規劃參考。</span>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span class="badge badge-new" style="flex-shrink:0;margin-top:2px">熱門族群</span>
+        <span style="font-size:13px;color:var(--text2)">系統定時追蹤富聯網族群動態，Cloudflare 伺服器端全域儲存，最新題材一目了然。</span>
+      </div>
+    </div>
+  </div>
+</div>`;
+  }
+};
+
+// ── Google News RSS：個股新聞 ─────────────────────
+const newsCache = {};
+
+async function fetchStockNews(code, name, prefix='qj') {
+  const elId = `news-${prefix}-${code}`;
+  const el = document.getElementById(elId);
+  if (!el) return;
+
+  // 已快取就直接渲染
+  if (newsCache[code]) { renderStockNews(el, newsCache[code]); return; }
+
+  const PROXY = 'https://corsproxy.io/?url=';
+  const query = encodeURIComponent(`${code} ${name}`);
+  const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
+
+  try {
+    const res = await fetch(PROXY + encodeURIComponent(rssUrl));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(text, 'text/xml');
+    const items = Array.from(xml.querySelectorAll('item')).slice(0, 5).map(item => ({
+      title: item.querySelector('title')?.textContent || '',
+      link:  item.querySelector('link')?.textContent || '#',
+      pub:   item.querySelector('pubDate')?.textContent || '',
+      src:   item.querySelector('source')?.textContent || 'Google News',
+    }));
+    newsCache[code] = items;
+    renderStockNews(el, items);
+  } catch(e) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--text3);">⚠️ 新聞載入失敗，請稍後重試</div>';
+  }
+}
+
+function renderStockNews(el, items) {
+  if (!items.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--text3);">目前無相關新聞</div>';
+    return;
+  }
+  el.innerHTML = items.map(n => {
+    // 格式化時間
+    const d = new Date(n.pub);
+    const timeStr = isNaN(d) ? '' : d.toLocaleString('zh-TW', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `
+<a href="${n.link}" target="_blank" rel="noopener" style="text-decoration:none;display:block;margin-bottom:6px;">
+  <div style="padding:8px 10px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
+    <div style="font-size:12px;color:var(--text);line-height:1.4;margin-bottom:3px;">${n.title}</div>
+    <div style="font-size:11px;color:var(--text3);display:flex;gap:8px;">
+      <span style="color:var(--accent);">${n.src}</span>
+      <span>${timeStr}</span>
+    </div>
+  </div>
+</a>`;
+  }).join('');
+}
+
+function loadAllStockNews(stocks, prefix='qj') {
+  // 依序載入避免同時大量請求
+  stocks.forEach((s, i) => {
+    setTimeout(() => fetchStockNews(s.code, s.name, prefix), i * 400);
+  });
+}
+
+// ── 富聯網：熱門族群 ──────────────────────────────
+async function fetchSectors() {
+  const statusEl = document.getElementById('sectors-sync-status');
+  const contentEl = document.getElementById('sectors-content');
+  if (!contentEl) return;
+
+  try {
+    const res = await fetch('https://stockradar-worker.lucastockradar.workers.dev/api/sectors');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const items = await res.json();
+
+    if (!items.length) {
+      contentEl.innerHTML = '<div class="loading-card">目前無熱門族群新聞，請稍後再試</div>';
+      if (statusEl) statusEl.textContent = '富聯網同步完成，目前無熱門族群新聞';
+      return;
+    }
+
+    const now = new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    if (statusEl) statusEl.textContent = `富聯網同步完成 ／ 更新於 ${now} ／ 共 ${items.length} 則熱門族群新聞`;
+
+    contentEl.innerHTML = `
+<div class="news-list">
+  ${items.map((n, i) => `
+  <a href="${n.href}" target="_blank" rel="noopener" style="text-decoration:none;">
+    <div class="news-card" style="animation:fadeIn 0.2s ease ${i * 0.03}s both">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <span class="badge badge-new">熱門族群</span>
+        ${n.time ? `<span style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${n.time}</span>` : ''}
+      </div>
+      <div class="news-card-title">${n.title}</div>
+      <div class="news-card-meta">
+        <span class="news-source">富聯網</span>
+        <span style="color:var(--accent);font-size:11px;">→ 點擊閱讀全文</span>
+      </div>
+    </div>
+  </a>`).join('')}
+</div>
+<style>@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}</style>`;
+
+  } catch (err) {
+    console.error('fetchSectors error:', err);
+    if (statusEl) statusEl.textContent = '載入失敗，請稍後再試';
+    contentEl.innerHTML = `
+<div class="loading-card">
+  ⚠️ 無法載入富聯網資料<br>
+  <span style="font-size:12px;margin-top:6px;display:block;">請稍後再試</span>
+  <button class="btn btn-primary" style="margin-top:12px;" onclick="fetchSectors()">重試</button>
+</div>`;
+  }
+}
+
+// ── 鉅亨網：台股新聞 API ─────────────────────────
+async function fetchCnyes() {
+  const statusEl = document.getElementById('news-sync-status');
+  const contentEl = document.getElementById('news-content');
+  if (!contentEl) return;
+
+  // 鉅亨網有公開的新聞 API（非官方但穩定）
+  try {
+    const res = await fetch('https://stockradar-worker.lucastockradar.workers.dev/api/news');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    const items = (json?.items?.data || []).map(n => ({
+      title: n.title,
+      time: new Date(n.publishAt * 1000).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'}),
+      date: new Date(n.publishAt * 1000).toLocaleDateString('zh-TW', {month:'2-digit', day:'2-digit'}),
+      url: `https://news.cnyes.com/news/id/${n.newsId}`,
+      cats: (n.categoryName || '').split(',').map(c => c.trim()).filter(Boolean),
+    }));
+
+    if (items.length === 0) {
+      contentEl.innerHTML = '<div class="loading-card">目前無新聞資料</div>';
+      return;
+    }
+
+    const now = new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    if (statusEl) statusEl.textContent = `鉅亨網同步完成 ／ 更新於 ${now} ／ 共 ${items.length} 則`;
+
+    contentEl.innerHTML = `
+<div class="news-list">
+  ${items.map((n, i) => `
+  <a href="${n.url}" target="_blank" rel="noopener" style="text-decoration:none;">
+    <div class="news-card" style="animation:fadeIn 0.2s ease ${i * 0.02}s both">
+      <div class="news-card-title">${n.title}</div>
+      <div class="news-card-meta">
+        <span class="news-source">鉅亨網</span>
+        <span style="font-family:'JetBrains Mono',monospace;">${n.date} ${n.time}</span>
+        ${n.cats[0] ? `<span class="badge badge-sector">${n.cats[0]}</span>` : ''}
+        <span style="color:var(--accent);font-size:11px;margin-left:auto;">→ 閱讀全文</span>
+      </div>
+    </div>
+  </a>`).join('')}
+</div>
+<style>@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}</style>`;
+
+  } catch (err) {
+    console.error('fetchCnyes error:', err);
+    if (statusEl) statusEl.textContent = '載入失敗，請稍後再試';
+    contentEl.innerHTML = `
+<div class="loading-card">
+  ⚠️ 無法載入鉅亨網資料<br>
+  <span style="font-size:12px;margin-top:6px;display:block;">可能原因：corsproxy 暫時無法使用</span>
+  <button class="btn btn-primary" style="margin-top:12px;" onclick="fetchCnyes()">重試</button>
+</div>`;
+  }
+}
+
+function goto(page, el) {
+  document.querySelectorAll('.nav-link').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.getElementById('main').innerHTML = pages[page]();
+  window.scrollTo(0,0);
+  if (page === 'intraday') loadAllStockNews(currentStrategy==='qj'?MOCK_QJ:MOCK_LZ, currentStrategy);
+}
+
+function switchStrategy(s) {
+  currentStrategy = s;
+  document.getElementById('main').innerHTML = pages.intraday();
+  if (s === 'qj') loadAllStockNews(MOCK_QJ);
+  if (s === 'lz') loadAllStockNews(MOCK_LZ, 'lz');
+}
+
+function filterNews(btn, cat) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#news-list .news-card').forEach(card=>{
+    card.style.display = (cat==='全部' || card.dataset.cat===cat) ? '' : 'none';
+  });
+}
+
+// Sort buttons behavior
+document.addEventListener('click', e=>{
+  if(e.target.classList.contains('sort-btn')) {
+    const parent = e.target.closest('.sort-bar');
+    if(parent) {
+      parent.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+      e.target.classList.add('active');
+    }
+  }
+  if(e.target.classList.contains('filter-btn') && !e.target.closest('.filter-bar[data-news]')) {
+    const parent = e.target.closest('.filter-bar');
+    if(parent) {
+      parent.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+      e.target.classList.add('active');
+    }
+  }
+});
+
+goto('intraday');
+</script>
+</body>
+</html>
