@@ -1299,25 +1299,25 @@ async function fetchSectors() {
 
     if (!items.length) {
       contentEl.innerHTML = '<div class="loading-card">目前無熱門族群新聞，請稍後再試</div>';
-      if (statusEl) statusEl.textContent = '富聯網同步完成，目前無熱門族群新聞';
+      if (statusEl) statusEl.textContent = '同步完成，目前無熱門族群新聞';
       return;
     }
 
     const now = new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-    if (statusEl) statusEl.textContent = `富聯網同步完成 ／ 更新於 ${now} ／ 共 ${items.length} 則熱門族群新聞`;
+    if (statusEl) statusEl.textContent = `同步完成 ／ 更新於 ${now} ／ 共 ${items.length} 則熱門族群新聞`;
 
     contentEl.innerHTML = `
 <div class="news-list">
   ${items.map((n, i) => `
-  <a href="${n.href}" target="_blank" rel="noopener" style="text-decoration:none;">
+  <a href="${n.url}" target="_blank" rel="noopener" style="text-decoration:none;">
     <div class="news-card" style="animation:fadeIn 0.2s ease ${i * 0.03}s both">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
         <span class="badge badge-new">熱門族群</span>
-        ${n.time ? `<span style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${n.time}</span>` : ''}
+        <span style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${n.time}</span>
       </div>
       <div class="news-card-title">${n.title}</div>
       <div class="news-card-meta">
-        <span class="news-source">富聯網</span>
+        <span class="news-source">${n.src || '富聯網'}</span>
         <span style="color:var(--accent);font-size:11px;">→ 點擊閱讀全文</span>
       </div>
     </div>
@@ -1330,7 +1330,7 @@ async function fetchSectors() {
     if (statusEl) statusEl.textContent = '載入失敗，請稍後再試';
     contentEl.innerHTML = `
 <div class="loading-card">
-  ⚠️ 無法載入富聯網資料<br>
+  ⚠️ 無法載入資料<br>
   <span style="font-size:12px;margin-top:6px;display:block;">請稍後再試</span>
   <button class="btn btn-primary" style="margin-top:12px;" onclick="fetchSectors()">重試</button>
 </div>`;
