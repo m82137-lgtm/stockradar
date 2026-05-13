@@ -1309,19 +1309,17 @@ async function fetchSectors() {
     contentEl.innerHTML = `
 <div class="news-list">
   ${items.map((n, i) => `
-  <a href="${n.url}" target="_blank" rel="noopener" style="text-decoration:none;">
-    <div class="news-card" style="animation:fadeIn 0.2s ease ${i * 0.03}s both">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-        <span class="badge badge-new">熱門族群</span>
-        <span style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${n.time}</span>
-      </div>
-      <div class="news-card-title">${n.title}</div>
-      <div class="news-card-meta">
-        <span class="news-source">${n.src || '富聯網'}</span>
-        <span style="color:var(--accent);font-size:11px;">→ 點擊閱讀全文</span>
-      </div>
+  <div class="news-card" style="animation:fadeIn 0.2s ease ${i * 0.03}s both;cursor:pointer;" onclick="window.open('${n.url}', '_blank')">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <span class="badge badge-new">熱門族群</span>
+      <span style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${n.time}</span>
     </div>
-  </a>`).join('')}
+    <div class="news-card-title">${n.title}</div>
+    <div class="news-card-meta">
+      <span class="news-source">${n.src || '富聯網'}</span>
+      <span style="color:var(--accent);font-size:11px;">→ 點擊閱讀全文</span>
+    </div>
+  </div>`).join('')}
 </div>
 <style>@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}</style>`;
 
