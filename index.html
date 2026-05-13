@@ -1201,6 +1201,9 @@ const pages = {
 // ── Google News RSS：個股新聞 ─────────────────────
 const newsCache = {};
 
+// 指定媒體白名單
+const NEWS_MEDIA = ['工商時報','鉅亨網','Yahoo','經濟日報','中國時報','時報資訊','旺德富','旺得富','富聯網','時報'];
+
 async function fetchStockNews(code, name, prefix='qj') {
   const elId = `news-${prefix}-${code}`;
   const el = document.getElementById(elId);
@@ -1210,7 +1213,7 @@ async function fetchStockNews(code, name, prefix='qj') {
   if (newsCache[code]) { renderStockNews(el, newsCache[code]); return; }
 
   const PROXY = 'https://corsproxy.io/?url=';
-  const query = encodeURIComponent(`${code} ${name}`);
+  const query = encodeURIComponent(`${code} ${name} when:7d`);
   const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
 
   try {
@@ -1219,14 +1222,36 @@ async function fetchStockNews(code, name, prefix='qj') {
     const text = await res.text();
     const parser = new DOMParser();
     const xml = parser.parseFromString(text, 'text/xml');
-    const items = Array.from(xml.querySelectorAll('item')).slice(0, 5).map(item => ({
-      title: item.querySelector('title')?.textContent || '',
-      link:  item.querySelector('link')?.textContent || '#',
-      pub:   item.querySelector('pubDate')?.textContent || '',
-      src:   item.querySelector('source')?.textContent || 'Google News',
-    }));
-    newsCache[code] = items;
-    renderStockNews(el, items);
+
+    const allItems = Array.from(xml.querySelectorAll('item')).map(item => {
+      // 取得來源名稱：先從 source 標籤，再從標題後綴判斷
+      let src = item.querySelector('source')?.textContent || '';
+      const rawTitle = item.querySelector('title')?.textContent || '';
+      if (!src && rawTitle.includes(' - ')) {
+        src = rawTitle.split(' - ').pop().trim();
+      }
+      // 清理標題：去掉尾巴的「 - 媒體名稱」
+      const title = rawTitle.includes(' - ') ? rawTitle.split(' - ').slice(0,-1).join(' - ').trim() : rawTitle;
+      return {
+        title,
+        link: item.querySelector('link')?.textContent || '#',
+        pub:  item.querySelector('pubDate')?.textContent || '',
+        src,
+      };
+    });
+
+    // 過濾指定媒體，最多取 10 則
+    let filtered = allItems.filter(n => NEWS_MEDIA.some(m => n.src.includes(m)));
+    // 若指定媒體不足 10 則，補充其他來源
+    if (filtered.length < 10) {
+      const extra = allItems.filter(n => !NEWS_MEDIA.some(m => n.src.includes(m)));
+      filtered = [...filtered, ...extra].slice(0, 10);
+    } else {
+      filtered = filtered.slice(0, 10);
+    }
+
+    newsCache[code] = filtered;
+    renderStockNews(el, filtered);
   } catch(e) {
     el.innerHTML = '<div style="font-size:11px;color:var(--text3);">⚠️ 新聞載入失敗，請稍後重試</div>';
   }
