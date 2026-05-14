@@ -81,6 +81,9 @@ body {
 /* ══ 桌機版 Sidebar ══════════════════════════ */
 .sidebar { display:none; }
 
+/* 手機隱藏桌機 header */
+.desktop-header { display:none; }
+
 @media (min-width:640px) {
   body { padding-bottom:0; }
 
@@ -172,7 +175,7 @@ body {
 
   [data-theme="light"] .sidebar-link.active { border-color:rgba(0,166,81,0.2); }
 
-  .sidebar-icon { font-size:15px; width:18px; text-align:center; }
+  .sidebar-icon { width:16px; height:16px; flex-shrink:0; }
 
   /* 頂部滿版 header bar（桌機） */
   .desktop-header {
@@ -614,26 +617,31 @@ main {
 
   <div class="sidebar-section-label">台灣市場</div>
   <div class="sidebar-link active" onclick="goto('intraday',this)">
-    <span class="sidebar-icon">📡</span> 盤中警示
+    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M20.49 3.51a12 12 0 0 1 0 16.97"/><path d="M3.51 20.49a12 12 0 0 1 0-16.97"/></svg>
+    盤中警示
   </div>
   <div class="sidebar-link" onclick="goto('after',this)">
-    <span class="sidebar-icon">🌙</span> 盤後追蹤
+    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    盤後追蹤
   </div>
   <div class="sidebar-link" onclick="goto('sectors',this)">
-    <span class="sidebar-icon">🔥</span> 熱門族群
+    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    熱門族群
   </div>
 
   <div class="sidebar-section-label" style="margin-top:8px;">其他</div>
   <div class="sidebar-link" onclick="goto('news',this)">
-    <span class="sidebar-icon">📰</span> 台股新聞
+    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8z"/></svg>
+    台股新聞
   </div>
   <div class="sidebar-link" onclick="goto('guide',this)">
-    <span class="sidebar-icon">📖</span> 網站說明
+    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    網站說明
   </div>
 </div>
 
 <!-- 桌機版頂部 Header -->
-<div class="desktop-header" id="desktop-header" style="display:none;">
+<div class="desktop-header" id="desktop-header">
   <span id="desktop-page-title" class="desktop-header-title">盤中警示</span>
   <div class="desktop-header-right">
     <span id="desktop-clock"></span>
@@ -942,11 +950,11 @@ const pages = {
 <div class="strategy-tabs">
   <div class="strategy-tab ${isQJ?'active':''}" onclick="switchStrategy('qj')">
     <div style="font-size:13px;font-weight:700;margin-bottom:2px;">策略一：起漲K</div>
-    <div style="font-size:11px;opacity:0.75;">漲幅>7% ／ 量>5000張 ／ 站上MA5,MA60</div>
+    <div style="font-size:11px;opacity:0.75;">漲幅>7% ／ 量>5000張</div>
   </div>
   <div class="strategy-tab ${!isQJ?'active':''}" onclick="switchStrategy('lz')">
     <div style="font-size:13px;font-weight:700;margin-bottom:2px;">策略二：量增K</div>
-    <div style="font-size:11px;opacity:0.75;">前日漲停 ／ 預估量>前日量 ／ 站上MA5,MA60</div>
+    <div style="font-size:11px;opacity:0.75;">前日漲停 ／ 預估量>前日量</div>
   </div>
 </div>
 
@@ -1247,16 +1255,6 @@ function switchStrategy(s) {
   document.getElementById('main').innerHTML = pages.intraday();
 }
 
-// ── 桌機 Header 顯示 ───────────────────────────
-window.addEventListener('resize', updateDesktopHeader);
-function updateDesktopHeader() {
-  const h = document.getElementById('desktop-header');
-  if (!h) return;
-  if (window.innerWidth >= 640) { h.style.display='flex'; }
-  else { h.style.display='none'; }
-}
-
-updateDesktopHeader();
 startClock();
 goto('intraday');
 </script>
