@@ -1,0 +1,32 @@
+name: Fetch Hot Sectors
+
+on:
+  schedule:
+    # 台灣時間 每天 09:00, 10:00, 11:00, 12:00, 13:00 執行（UTC+8，所以是 UTC 01,02,03,04,05）
+    - cron: '0 1,2,3,4,5 * * 1-5'
+    # 週末每天 10:00 執行一次（UTC 02:00）
+    - cron: '0 2 * * 0,6'
+  workflow_dispatch:  # 允許手動觸發
+
+jobs:
+  fetch-sectors:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests feedparser
+
+      - name: Fetch and push sectors to Cloudflare KV
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_KV_NAMESPACE_ID: 92fabe69cac1471ea9c22e9ec7ea9a44
+          CF_KV_TOKEN: ${{ secrets.WORKER_KV_WRITE_TOKEN }}
+        run: python fetch_sectors.py
