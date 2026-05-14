@@ -32,7 +32,7 @@
   --accent-bg:rgba(91,141,248,0.12);
   --purple:   #9c6bf4;
   --purple-bg:rgba(156,107,244,0.10);
-  --sidebar-w:200px;
+  --sidebar-w:180px;
 }
 
 /* ══ 亮色主題 ════════════════════════════════ */
@@ -108,13 +108,13 @@ body {
 
   .sidebar-logo {
     font-family:'JetBrains Mono',monospace;
-    font-size:11px;
-    font-weight:600;
+    font-size:14px;
+    font-weight:700;
     color:var(--green);
     display:flex;
     align-items:center;
     gap:7px;
-    margin-bottom:8px;
+    margin-bottom:10px;
   }
 
   .sidebar-logo::before {
@@ -188,7 +188,7 @@ body {
     height:48px;
     background:var(--bg2);
     border-bottom:1px solid var(--border);
-    padding:0 24px;
+    padding:0 60px;
     z-index:90;
     gap:12px;
   }
@@ -210,19 +210,22 @@ body {
   }
 
   main {
-    margin-left:var(--sidebar-w) !important;
-    padding-top:64px !important;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
+    position:fixed;
+    top:48px;
+    left:var(--sidebar-w);
+    right:0;
+    bottom:0;
+    overflow-y:auto;
+    padding:0 !important;
+    margin:0 !important;
+    width:auto !important;
   }
 
-  /* 內容置中，最大寬度限制 */
-  #main > * {
-    width:100%;
+  /* 1920px 螢幕：sidebar 180px，剩餘 1740px，內容置中 */
+  .page-wrap {
     max-width:860px;
-    padding-left:32px;
-    padding-right:32px;
+    margin:0 auto;
+    padding:32px 24px;
     box-sizing:border-box;
   }
 
@@ -953,7 +956,7 @@ const pages = {
     const isQJ = currentStrategy === 'qj';
     setTimeout(fetchAlerts, 0);
     const now = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    return `
+    return `<div class="page-wrap">
 <div class="page-header">
   <div class="page-title">盤中即時警示</div>
   <div class="page-desc">依策略條件即時篩選。最後更新：<span id="alerts-time">${now}</span></div>
@@ -983,12 +986,13 @@ const pages = {
 
 <div class="stock-list" id="strategy-list">
   <div class="loading-card">載入中，請稍候…</div>
+</div>
 </div>`;
   },
 
   after() {
     setTimeout(fetchAfterHours, 0);
-    return `
+    return `<div class="page-wrap">
 <div class="page-header">
   <div class="page-title">盤後追蹤</div>
   <div class="page-desc">更新時間：<span id="after-time">載入中…</span></div>
@@ -1001,12 +1005,13 @@ const pages = {
 
 <div id="after-list">
   <div class="loading-card">載入中，請稍候…</div>
+</div>
 </div>`;
   },
 
   sectors() {
     setTimeout(fetchSectors, 0);
-    return `
+    return `<div class="page-wrap">
 <div class="page-header">
   <div class="page-title">熱門族群情報</div>
   <div class="page-desc">即時抓取富聯網熱門族群新聞，<span>保存 15 天</span></div>
@@ -1018,12 +1023,13 @@ const pages = {
 </div>
 <div id="sectors-content">
   <div class="loading-card">載入中，請稍候...</div>
+</div>
 </div>`;
   },
 
   news() {
     setTimeout(fetchCnyes, 0);
-    return `
+    return `<div class="page-wrap">
 <div class="page-header">
   <div class="page-title">台股新聞</div>
   <div class="page-desc">即時抓取鉅亨網台股新聞，<span>保存 7 天</span></div>
@@ -1035,12 +1041,12 @@ const pages = {
 </div>
 <div id="news-content">
   <div class="loading-card">載入中，請稍候...</div>
+</div>
 </div>`;
   },
 
   guide() {
-    return `
-<div class="guide-content">
+    return `<div class="page-wrap"><div class="guide-content">
   <div class="guide-hero">
     <div class="guide-hero-title">⚡ 極限強勢股：短線操作 S.O.P</div>
     <div class="guide-hero-sub">鎖定市場最強標的，嚴格紀律的進出場指南</div>
