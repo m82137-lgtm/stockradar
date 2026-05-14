@@ -212,6 +212,18 @@ body {
   main {
     margin-left:var(--sidebar-w) !important;
     padding-top:64px !important;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  /* 內容置中，最大寬度限制 */
+  #main > * {
+    width:100%;
+    max-width:860px;
+    padding-left:32px;
+    padding-right:32px;
+    box-sizing:border-box;
   }
 
   .bottom-nav { display:none !important; }
