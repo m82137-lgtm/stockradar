@@ -944,7 +944,6 @@ function cardAfter(s, idx) {
   <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">當日成交量</div>
   <div class="after-vol-row">
     <span class="after-vol-num">${volDisplay} 張</span>
-    <span class="k15-chip loading">🕐 15分K核對中</span>
   </div>
 
   <div class="after-news-hint">— 點擊卡片查看個股資訊</div>
@@ -1344,6 +1343,9 @@ function goto(page, el) {
 
   document.getElementById('main').innerHTML = pages[page]();
   window.scrollTo(0,0);
+
+  // 記住最後一頁
+  try { localStorage.setItem('lastPage', page); } catch(e) {}
 }
 
 function switchStrategy(s) {
@@ -1352,7 +1354,13 @@ function switchStrategy(s) {
 }
 
 startClock();
-goto('intraday');
+// 恢復上次的頁面
+try {
+  const last = localStorage.getItem('lastPage');
+  goto(last && pages[last] ? last : 'intraday');
+} catch(e) {
+  goto('intraday');
+}
 </script>
 </body>
 </html>
