@@ -887,7 +887,7 @@ function cardLZ(s, idx) {
 
 // ── 盤後追蹤 card ──────────────────────────────
 function cardAfter(s, idx) {
-  const volDisplay = s.vol ? (s.vol * 1000).toLocaleString() : '-';
+  const volDisplay = s.vol ? s.vol.toLocaleString() : '-';
   return `
 <div class="after-card ${s.limit?'limit':'up'}" style="animation-delay:${idx*0.04}s"
   onclick="window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')">
