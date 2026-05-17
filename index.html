@@ -195,6 +195,17 @@ body {
   }
   .est-vol-chip { color:var(--amber); }
 
+  /* k15 chip */
+  .k15-chip {
+    font-size:11px;
+    border-radius:6px;
+    padding:3px 8px;
+    white-space:nowrap;
+  }
+  .k15-chip.loading  { background:rgba(255,193,7,0.1);  color:var(--amber); border:1px solid rgba(255,193,7,0.3); }
+  .k15-chip.bullish  { background:rgba(0,200,83,0.1);   color:var(--green); border:1px solid rgba(0,200,83,0.3); }
+  .k15-chip.bearish  { background:rgba(255,82,82,0.1);  color:var(--red);   border:1px solid rgba(255,82,82,0.3); }
+
   /* 整體字體放大 */
   .stock-name { font-size:15px; }
   .stock-meta { font-size:13px; }
@@ -792,11 +803,31 @@ let currentStrategy = 'qj';
 function fmtChg(v) { return (v>0?'+':'')+v.toFixed(2)+'%'; }
 
 function k15Status(s) {
-  // Worker 暫時沒有 k15 欄位，顯示「核對中」
-  if (s.k15 === 'red' && s.k15Chg >= 2 && s.k15Vol >= 5000) {
-    return `<div class="k15-bar bullish">✅ 09:00–09:15 第一根15分K 紅棒 +${s.k15Chg}%，量 ${s.k15Vol} 張</div>`;
+  const now = new Date();
+  const twHour = (now.getUTCHours() + 8) % 24;
+  const twMin  = now.getUTCMinutes();
+  const totalMin = twHour * 60 + twMin;
+  const t915 = 9 * 60 + 15;
+  const t930 = 9 * 60 + 30;
+  const t1330 = 13 * 60 + 30;
+
+  // 盤後：不顯示15分K
+  if (totalMin > t1330) return '';
+
+  // 09:00-09:15 核對中
+  if (totalMin < t915) {
+    return `<span class="k15-chip loading">⏱ 15分K 核對中</span>`;
   }
-  return `<div class="k15-bar loading">🕐 09:00–09:15 第一根15分K 核對中</div>`;
+
+  // 09:15後判斷
+  if (s.k15 === true) {
+    return `<span class="k15-chip bullish">15分K ✅符合</span>`;
+  } else if (s.k15 === false) {
+    return `<span class="k15-chip bearish">15分K ❌不符合</span>`;
+  }
+
+  // 預設核對中（還沒有k15資料）
+  return `<span class="k15-chip loading">⏱ 15分K 核對中</span>`;
 }
 
 function estVolBar(s) {
@@ -815,7 +846,8 @@ function cardQJ(s, idx) {
   const twTime  = s.ts ? new Date(s.ts).toLocaleTimeString('zh-TW', {
     timeZone:'Asia/Taipei', hour:'2-digit', minute:'2-digit', hour12:false
   }) : (s.time || '');
-  const volFull = s.vol ? (s.vol * 1000).toLocaleString() : '-';
+  const volFull = s.vol ? s.vol.toLocaleString() : '-';
+  const estVolStr = s.estVol ? s.estVol.toLocaleString()+'千張' : '-';
   return `
 <div class="stock-card ${s.limit?'limit':'up'}" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
   <div class="stock-top">
@@ -833,7 +865,7 @@ function cardQJ(s, idx) {
 
   <div class="k15-row">
     ${k15Status(s)}
-    <span class="est-vol-chip">📊 預估量 ${s.estVol ? s.estVol.toLocaleString()+'千張' : '-'}</span>
+    <span class="est-vol-chip">📊 預估量 ${estVolStr}</span>
     <span class="vol-chip">成交 ${volFull}張</span>
   </div>
 
@@ -853,7 +885,12 @@ function cardLZ(s, idx) {
   const twTime  = s.ts ? new Date(s.ts).toLocaleTimeString('zh-TW', {
     timeZone:'Asia/Taipei', hour:'2-digit', minute:'2-digit', hour12:false
   }) : (s.time || '');
-  const volFull = s.vol ? (s.vol * 1000).toLocaleString() : '-';
+  const volFull   = s.vol ? s.vol.toLocaleString() : '-';
+  const estVolStr = s.estVol ? s.estVol.toLocaleString()+'千張' : '-';
+  const prevVolStr = s.prevVol ? s.prevVol.toLocaleString()+'千張' : '-';
+  const volCompare = s.estVol && s.prevVol
+    ? (s.estVol > s.prevVol ? '✅量增' : '⚠️量縮')
+    : '';
   return `
 <div class="stock-card up" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
   <div class="stock-top">
@@ -871,12 +908,13 @@ function cardLZ(s, idx) {
 
   <div class="k15-row">
     ${k15Status(s)}
-    <span class="est-vol-chip">📊 預估量 ${s.estVol ? s.estVol.toLocaleString()+'千張' : '-'}</span>
+    <span class="est-vol-chip">📊 預估量 ${estVolStr} ${volCompare}</span>
     <span class="vol-chip">成交 ${volFull}張</span>
   </div>
 
   <div class="stock-meta">
     <div class="meta-item">⏱ 入榜 <span class="meta-val">${twTime}</span></div>
+    <div class="meta-item">昨日量 <span class="meta-val">${prevVolStr}</span></div>
   </div>
 
   <div id="${newsId}" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px;">
