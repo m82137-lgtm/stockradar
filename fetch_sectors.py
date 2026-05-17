@@ -74,10 +74,10 @@ def fetch_sectors():
                 if not src and ' - ' in raw_title:
                     src = raw_title.rsplit(' - ', 1)[-1].strip()
 
-                # 嚴格：只接受富聯網來源
+                # 嚴格：只接受富聯網（money-link）來源
                 if 'money-link' not in entry.get('link', '') and \
                    'money-link' not in src.lower() and \
-                   '富聯' not in src and '時報' not in src:
+                   '富聯' not in src:
                     continue
 
                 # 清理標題
@@ -120,14 +120,15 @@ def main():
     old_items = kv_get('sectors') or []
     print(f'KV 現有 {len(old_items)} 則舊資料')
 
-    # 合併去重，嚴格只保留《熱門族群》且來源是富聯網/時報資訊
+    # 合併去重，嚴格只保留《熱門族群》且來源是富聯網
     item_map = {}
     for n in [*old_items, *new_items]:
         title = n.get('title', '')
         if '《熱門族群》' not in title:
             continue
         src = n.get('src', '')
-        if '富聯' not in src and '時報' not in src and 'money-link' not in n.get('url',''):
+        url = n.get('url', '')
+        if '富聯' not in src and 'money-link' not in url:
             continue
         key = title.strip()
         if key and key not in item_map:
