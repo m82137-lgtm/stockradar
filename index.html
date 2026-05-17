@@ -921,8 +921,9 @@ async function fetchAlerts() {
   try {
     const res  = await fetch(`${WORKER}/api/alerts`);
     const data = await res.json();
-    alertsData.qj = Array.isArray(data) ? data : (data.qj||[]);
-    alertsData.lz = Array.isArray(data) ? [] : (data.lz||[]);
+    const all  = Array.isArray(data) ? data : [];
+    alertsData.qj = all.filter(a => !a.strategy || a.strategy === 'qj');
+    alertsData.lz = all.filter(a => a.strategy === 'lz');
     const now = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
     if (timeEl) timeEl.textContent = now;
     renderAlertsList();
