@@ -170,6 +170,8 @@ body {
     -webkit-tap-highlight-color:transparent;
   }
 
+  .sidebar-icon { width:16px; height:16px; flex-shrink:0; }
+
   .sidebar-link:hover { background:var(--bg3); color:var(--text); }
   .sidebar-link.active { background:var(--green-bg); color:var(--green); border-color:rgba(0,200,83,0.2); }
 
@@ -194,10 +196,11 @@ body {
   .est-vol-chip { color:var(--amber); }
 
   /* 整體字體放大 */
-  body { font-size:15px; }
   .stock-name { font-size:15px; }
   .stock-meta { font-size:13px; }
   .news-item-title { font-size:14px; }
+
+  .sidebar-icon { width:16px; height:16px; flex-shrink:0; }
 
   /* 頂部滿版 header bar（桌機） */
   .desktop-header {
@@ -241,13 +244,13 @@ body {
     padding:0 !important;
     margin:0 !important;
     width:auto !important;
+    box-sizing:border-box;
   }
 
-  /* 1920px 螢幕：sidebar 180px，剩餘 1740px，內容置中 */
+  /* 內容全寬 */
   .page-wrap {
-    max-width:860px;
-    margin:0 auto;
-    padding:32px 24px;
+    width:100%;
+    padding:24px 32px;
     box-sizing:border-box;
   }
 
@@ -338,8 +341,6 @@ body { padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)); }
 
 /* ══ MAIN ═══════════════════════════════════ */
 main {
-  max-width:960px;
-  margin:0 auto;
   padding:16px 14px;
 }
 
