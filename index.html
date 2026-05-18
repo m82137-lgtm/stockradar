@@ -959,7 +959,8 @@ async function fetchAlerts() {
     const res  = await fetch(`${WORKER}/api/alerts`);
     const data = await res.json();
     const all  = Array.isArray(data) ? data : [];
-    alertsData.qj = all.filter(a => !a.strategy || a.strategy === 'qj');
+    // 同一檔可以同時出現在兩個策略，不互相排斥
+    alertsData.qj = all.filter(a => a.strategy === 'qj');
     alertsData.lz = all.filter(a => a.strategy === 'lz');
     const now = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
     if (timeEl) timeEl.textContent = now;
@@ -1184,20 +1185,21 @@ function renderStockNews(el, items) {
     <div style="font-size:11px;color:var(--text3);display:flex;gap:8px;"><span style="color:var(--accent);">${n.src}</span><span>${t}</span></div>
   </div></a>`;
   };
+
   const previewHtml = items.slice(0, PREVIEW).map(renderItem).join('');
   const hasMore = items.length > PREVIEW;
   if (!hasMore) { el.innerHTML = previewHtml; return; }
-  el.innerHTML = previewHtml + `<div onclick="this.previousSibling && Array.from(this.parentElement.querySelectorAll('a')).length; this.outerHTML='${items.slice(PREVIEW).map(renderItem).join('').replace(/'/g,"\\'").replace(/\n/g,'')}'" 
-    style="text-align:center;padding:6px;cursor:pointer;font-size:12px;color:var(--text3);border:1px dashed var(--border);border-radius:6px;margin-top:4px;">
-    還有 ${items.length - PREVIEW} 則新聞 ▼ 點擊展開
-  </div>`;
-  // 改用簡單方法
-  const expandBtn = el.querySelector('div[onclick]');
-  if (expandBtn) {
-    expandBtn.onclick = () => {
-      el.innerHTML = items.map(renderItem).join('');
-    };
-  }
+
+  // 用 data-* 暫存資料，onclick 直接呼叫展開函式，避免 HTML 字串亂碼
+  const expandId = 'expand-' + Math.random().toString(36).slice(2, 8);
+  el.innerHTML = previewHtml + `
+<div id="${expandId}" style="text-align:center;padding:6px;cursor:pointer;font-size:12px;color:var(--text3);border:1px dashed var(--border);border-radius:6px;margin-top:4px;">
+  還有 ${items.length - PREVIEW} 則新聞 ▼ 點擊展開
+</div>`;
+  document.getElementById(expandId).onclick = function() {
+    // 展開全部，直接重渲染整個 el
+    el.innerHTML = items.map(renderItem).join('');
+  };
 }
 
 function loadAllStockNews(stocks, prefix='qj') {
