@@ -852,8 +852,8 @@ function cardQJ(s, idx) {
 <div class="stock-card ${s.limit?'limit':'up'}" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
   <div class="stock-top">
     <div class="stock-id">
-      <span class="stock-code">${s.code}</span>
-      <span class="stock-name">${s.name}</span>
+      <span class="stock-code" onclick="window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;">${s.code}</span>
+      <span class="stock-name" onclick="window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;">${s.name}</span>
       ${s.limit?'<span class="badge badge-limit">漲停</span>':'<span class="badge badge-up">強漲</span>'}
       ${s.market?`<span class="badge badge-sector">${s.market}</span>`:''}
     </div>
@@ -895,8 +895,8 @@ function cardLZ(s, idx) {
 <div class="stock-card up" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
   <div class="stock-top">
     <div class="stock-id">
-      <span class="stock-code">${s.code}</span>
-      <span class="stock-name">${s.name}</span>
+      <span class="stock-code" onclick="window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;">${s.code}</span>
+      <span class="stock-name" onclick="window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;">${s.name}</span>
       <span class="badge badge-limit">前日漲停</span>
       ${s.market?`<span class="badge badge-sector">${s.market}</span>`:''}
     </div>
@@ -925,15 +925,14 @@ function cardLZ(s, idx) {
 
 // ── 盤後追蹤 card ──────────────────────────────
 function cardAfter(s, idx) {
-  const volDisplay  = s.vol ? s.vol.toLocaleString() : '-';
-  const tvDisplay   = s.tradeValue ? (s.tradeValue / 100000000).toFixed(2) + ' 億' : '-';
-  const newsId = `news-after-${s.code}`;
+  const volDisplay = s.vol ? s.vol.toLocaleString() : '-';
   return `
-<div class="after-card ${s.limit?'limit':'up'}" style="animation-delay:${idx*0.04}s">
+<div class="after-card ${s.limit?'limit':'up'}" style="animation-delay:${idx*0.04}s"
+  onclick="window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')">
   <div class="after-card-top">
-    <div class="after-code-area" onclick="window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;">
+    <div class="after-code-area">
       <span class="after-code">${s.code}</span>
-      <span class="after-name" style="text-decoration:underline dotted;text-underline-offset:3px;">${s.name}</span>
+      <span class="after-name">${s.name}</span>
       <span class="after-market">${s.market||'台股'}</span>
     </div>
     <div class="after-price-area">
@@ -942,16 +941,12 @@ function cardAfter(s, idx) {
     </div>
   </div>
 
+  <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">當日成交量</div>
   <div class="after-vol-row">
-    <span style="font-size:12px;color:var(--text2);">成交值</span>
-    <span class="after-vol-num">${tvDisplay}</span>
-    <span style="font-size:12px;color:var(--text2);margin-left:12px;">成交量</span>
-    <span class="after-vol-num" style="font-size:14px;">${volDisplay} 張</span>
+    <span class="after-vol-num">${volDisplay} 張</span>
   </div>
 
-  <div id="${newsId}" style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
-    <div style="font-size:11px;color:var(--text3);">📰 載入個股新聞中...</div>
-  </div>
+  <div class="after-news-hint">— 點擊卡片查看個股資訊</div>
 </div>`;
 }
 
@@ -1008,7 +1003,6 @@ async function fetchAfterHours() {
       return;
     }
     listEl.innerHTML = data.map((s,i)=>cardAfter(s,i)).join('');
-    loadAllStockNews(data, 'after');
   } catch(err) {
     if (listEl) listEl.innerHTML = `<div class="loading-card">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchAfterHours()">重試</button></div>`;
   }
@@ -1181,32 +1175,31 @@ async function fetchStockNews(code, name, prefix='qj') {
 function renderStockNews(el, items) {
   if (!items.length) { el.innerHTML = '<div style="font-size:11px;color:var(--text3);">目前無相關新聞</div>'; return; }
   const PREVIEW = 3;
-
-  const renderItem = (n, hidden) => {
+  const renderItem = n => {
     const d = new Date(n.pub);
     const t = isNaN(d) ? '' : d.toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-    const display = hidden ? 'none' : 'block';
-    const cls = hidden ? ' news-extra' : '';
-    return `<a href="${n.link}" target="_blank" rel="noopener" class="news-item${cls}" style="text-decoration:none;display:${display};margin-bottom:6px;"><div style="padding:8px 10px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);"><div style="font-size:12px;color:var(--text);line-height:1.4;margin-bottom:3px;">${n.title}</div><div style="font-size:11px;color:var(--text3);display:flex;gap:8px;"><span style="color:var(--accent);">${n.src}</span><span>${t}</span></div></div></a>`;
+    return `<a href="${n.link}" target="_blank" rel="noopener" style="text-decoration:none;display:block;margin-bottom:6px;">
+  <div style="padding:8px 10px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);">
+    <div style="font-size:12px;color:var(--text);line-height:1.4;margin-bottom:3px;">${n.title}</div>
+    <div style="font-size:11px;color:var(--text3);display:flex;gap:8px;"><span style="color:var(--accent);">${n.src}</span><span>${t}</span></div>
+  </div></a>`;
   };
-
-  const allHtml = items.map((n, i) => renderItem(n, i >= PREVIEW)).join('');
-
-  if (items.length <= PREVIEW) {
-    el.innerHTML = allHtml;
-    return;
+  const previewHtml = items.slice(0, PREVIEW).map(renderItem).join('');
+  const hasMore = items.length > PREVIEW;
+  if (!hasMore) { el.innerHTML = previewHtml; return; }
+  el.innerHTML = previewHtml + `<div onclick="this.previousSibling && Array.from(this.parentElement.querySelectorAll('a')).length; this.outerHTML='${items.slice(PREVIEW).map(renderItem).join('').replace(/'/g,"\\'").replace(/\n/g,'')}'" 
+    style="text-align:center;padding:6px;cursor:pointer;font-size:12px;color:var(--text3);border:1px dashed var(--border);border-radius:6px;margin-top:4px;">
+    還有 ${items.length - PREVIEW} 則新聞 ▼ 點擊展開
+  </div>`;
+  // 改用簡單方法
+  const expandBtn = el.querySelector('div[onclick]');
+  if (expandBtn) {
+    expandBtn.onclick = () => {
+      el.innerHTML = items.map(renderItem).join('');
+    };
   }
-
-  el.innerHTML = allHtml + `<div class="news-toggle-btn" style="text-align:center;padding:6px;cursor:pointer;font-size:12px;color:var(--text3);border:1px dashed var(--border);border-radius:6px;margin-top:4px;">還有 ${items.length - PREVIEW} 則新聞 ▼ 點擊展開</div>`;
-
-  const btn = el.querySelector('.news-toggle-btn');
-  let expanded = false;
-  btn.addEventListener('click', () => {
-    expanded = !expanded;
-    el.querySelectorAll('.news-extra').forEach(a => { a.style.display = expanded ? 'block' : 'none'; });
-    btn.textContent = expanded ? '▲ 收起，只顯示 3 則' : `還有 ${items.length - PREVIEW} 則新聞 ▼ 點擊展開`;
-  });
 }
+
 function loadAllStockNews(stocks, prefix='qj') {
   stocks.forEach((s,i) => setTimeout(()=>fetchStockNews(s.code,s.name,prefix), i*400));
 }
