@@ -858,8 +858,8 @@ function cardQJ(s, idx) {
       ${s.market?`<span class="badge badge-sector">${s.market}</span>`:''}
     </div>
     <div class="stock-price-area">
-      <div class="stock-price" style="color:${(+(s.chg||0))>=0?'var(--red)':'var(--green)'}">${(+(s.price||0)).toFixed(1)}</div>
-      <div class="stock-change" style="color:${(+(s.chg||0))>=0?'var(--red)':'var(--green)'}">${fmtChg(+(s.chg||0))}</div>
+      <div class="stock-price">${(+(s.price||0)).toFixed(1)}</div>
+      <div class="stock-change">${fmtChg(+(s.chg||0))}</div>
     </div>
   </div>
 
@@ -867,6 +867,7 @@ function cardQJ(s, idx) {
     ${k15Status(s)}
     <span class="est-vol-chip">📊 預估量 ${estVolStr}</span>
     <span class="vol-chip">成交 ${volFull}張</span>
+    <span class="vol-chip">成交值 ${s.tradeValue?(s.tradeValue/100000000).toFixed(2)+'億':'-'}</span>
   </div>
 
   <div class="stock-meta">
@@ -901,8 +902,8 @@ function cardLZ(s, idx) {
       ${s.market?`<span class="badge badge-sector">${s.market}</span>`:''}
     </div>
     <div class="stock-price-area">
-      <div class="stock-price" style="color:${(+(s.chg||0))>=0?'var(--red)':'var(--green)'}">${(+(s.price||0)).toFixed(1)}</div>
-      <div class="stock-change" style="color:${(+(s.chg||0))>=0?'var(--red)':'var(--green)'}">${fmtChg(+(s.chg||0))}</div>
+      <div class="stock-price">${(+(s.price||0)).toFixed(1)}</div>
+      <div class="stock-change">${fmtChg(+(s.chg||0))}</div>
     </div>
   </div>
 
@@ -910,6 +911,7 @@ function cardLZ(s, idx) {
     ${k15Status(s)}
     <span class="est-vol-chip">📊 預估量 ${estVolStr} ${volCompare}</span>
     <span class="vol-chip">成交 ${volFull}張</span>
+    <span class="vol-chip">成交值 ${s.tradeValue?(s.tradeValue/100000000).toFixed(2)+'億':'-'}</span>
   </div>
 
   <div class="stock-meta">
@@ -936,8 +938,8 @@ function cardAfter(s, idx) {
       <span class="after-market">${s.market||'台股'}</span>
     </div>
     <div class="after-price-area">
-      <div class="after-price" style="color:${(+(s.chg||0))>=0?'var(--red)':'var(--green)'}">${(+(s.price||0)).toFixed(2)}</div>
-      <div class="after-chg" style="color:${(+(s.chg||0))>=0?'var(--red)':'var(--green)'}">${(+(s.chg||0))>=0?'↗':'↘'} ${fmtChg(+(s.chg||0))}</div>
+      <div class="after-price">${(+(s.price||0)).toFixed(2)}</div>
+      <div class="after-chg">↗ ${fmtChg(+(s.chg||0))}</div>
     </div>
   </div>
   <div class="after-vol-row">
