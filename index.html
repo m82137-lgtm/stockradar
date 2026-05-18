@@ -925,14 +925,15 @@ function cardLZ(s, idx) {
 
 // ── 盤後追蹤 card ──────────────────────────────
 function cardAfter(s, idx) {
-  const volDisplay = s.vol ? s.vol.toLocaleString() : '-';
+  const volDisplay  = s.vol ? s.vol.toLocaleString() : '-';
+  const tvDisplay   = s.tradeValue ? (s.tradeValue / 100000000).toFixed(2) + ' 億' : '-';
+  const newsId = `news-after-${s.code}`;
   return `
-<div class="after-card ${s.limit?'limit':'up'}" style="animation-delay:${idx*0.04}s"
-  onclick="window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')">
+<div class="after-card ${s.limit?'limit':'up'}" style="animation-delay:${idx*0.04}s">
   <div class="after-card-top">
-    <div class="after-code-area">
+    <div class="after-code-area" onclick="window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;">
       <span class="after-code">${s.code}</span>
-      <span class="after-name">${s.name}</span>
+      <span class="after-name" style="text-decoration:underline dotted;text-underline-offset:3px;">${s.name}</span>
       <span class="after-market">${s.market||'台股'}</span>
     </div>
     <div class="after-price-area">
@@ -941,12 +942,16 @@ function cardAfter(s, idx) {
     </div>
   </div>
 
-  <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">當日成交量</div>
   <div class="after-vol-row">
-    <span class="after-vol-num">${volDisplay} 張</span>
+    <span style="font-size:12px;color:var(--text2);">成交值</span>
+    <span class="after-vol-num">${tvDisplay}</span>
+    <span style="font-size:12px;color:var(--text2);margin-left:12px;">成交量</span>
+    <span class="after-vol-num" style="font-size:14px;">${volDisplay} 張</span>
   </div>
 
-  <div class="after-news-hint">— 點擊卡片查看個股資訊</div>
+  <div id="${newsId}" style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
+    <div style="font-size:11px;color:var(--text3);">📰 載入個股新聞中...</div>
+  </div>
 </div>`;
 }
 
@@ -1003,6 +1008,7 @@ async function fetchAfterHours() {
       return;
     }
     listEl.innerHTML = data.map((s,i)=>cardAfter(s,i)).join('');
+    loadAllStockNews(data, 'after');
   } catch(err) {
     if (listEl) listEl.innerHTML = `<div class="loading-card">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchAfterHours()">重試</button></div>`;
   }
@@ -1201,7 +1207,6 @@ function renderStockNews(el, items) {
     btn.textContent = expanded ? '▲ 收起，只顯示 3 則' : `還有 ${items.length - PREVIEW} 則新聞 ▼ 點擊展開`;
   });
 }
-
 function loadAllStockNews(stocks, prefix='qj') {
   stocks.forEach((s,i) => setTimeout(()=>fetchStockNews(s.code,s.name,prefix), i*400));
 }
