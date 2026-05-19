@@ -1175,7 +1175,7 @@ async function fetchStockNews(code, name, prefix='qj') {
   if (!el) return;
   if (newsCache[code]) { renderStockNews(el, newsCache[code]); return; }
   try {
-    const res  = await fetch(`${WORKER}/api/stock-news?code=${code}`);
+    const res  = await fetch(`${WORKER}/api/stock-news?code=${code}&name=${encodeURIComponent(name)}`);
     const items = await res.json();
     newsCache[code] = items;
     renderStockNews(el, filtered);
