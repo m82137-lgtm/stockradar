@@ -1175,22 +1175,9 @@ async function fetchStockNews(code, name, prefix='qj') {
   if (!el) return;
   if (newsCache[code]) { renderStockNews(el, newsCache[code]); return; }
   try {
-    const PROXY  = 'https://corsproxy.io/?url=';
-    const query  = encodeURIComponent(`${code} ${name} when:7d`);
-    const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
-    const res    = await fetch(PROXY + encodeURIComponent(rssUrl));
-    const xml    = new DOMParser().parseFromString(await res.text(), 'text/xml');
-    const allItems = Array.from(xml.querySelectorAll('item')).map(item => {
-      let src = item.querySelector('source')?.textContent||'';
-      const raw = item.querySelector('title')?.textContent||'';
-      if (!src && raw.includes(' - ')) src = raw.split(' - ').pop().trim();
-      const title = raw.includes(' - ') ? raw.split(' - ').slice(0,-1).join(' - ').trim() : raw;
-      return { title, link: item.querySelector('link')?.textContent||'#', pub: item.querySelector('pubDate')?.textContent||'', src };
-    });
-    let filtered = allItems.filter(n=>NEWS_MEDIA.some(m=>n.src.includes(m)));
-    if (filtered.length < 10) filtered = [...filtered, ...allItems.filter(n=>!NEWS_MEDIA.some(m=>n.src.includes(m)))].slice(0,10);
-    else filtered = filtered.slice(0,10);
-    newsCache[code] = filtered;
+    const res  = await fetch(`${WORKER}/api/stock-news?code=${code}`);
+    const items = await res.json();
+    newsCache[code] = items;
     renderStockNews(el, filtered);
   } catch { el.innerHTML = '<div style="font-size:11px;color:var(--text3);">⚠️ 新聞載入失敗</div>'; }
 }
