@@ -1244,7 +1244,7 @@ function renderSectors(contentEl, items) {
       ? d.toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
       : (n.time||'');
     const readClass  = isRead(n.url) ? 'read' : '';
-    const stockCodes = extractStockCodes(n.title);
+    const stockCodes = (n.stocks && n.stocks.length) ? n.stocks : extractStockCodes(n.title);
     return `
 <div class="sector-news-card ${readClass}" style="animation:fadeIn2 0.2s ease ${i*0.03}s both"
   onclick="markRead('${n.url}');this.classList.add('read');window.open('${n.url}','_blank')">
