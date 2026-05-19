@@ -315,25 +315,60 @@ def fetch_google_rss_backup():
     return items
 
 
+
+
+def normalize_title_key(title):
+    """同一則熱門族群常會從 direct/RSS/ww2 進來，網址不同但標題相同；用標題去重。"""
+    t = clean_title(title)
+    t = t.replace('《熱門族群》', '')
+    t = re.sub(r'\s+', '', t)
+    # 去掉常見標點差異，避免同一標題因符號不同被當成兩篇。
+    t = re.sub(r'[，,。．\.！!？?：:；;、\-—_\s]+', '', t)
+    return t
+
 def dedupe(items):
+    """去重：同標題只留一筆；股票清單多的優先保留。"""
     item_map = {}
     for n in items:
-        title = n.get('title', '')
+        title = clean_title(n.get('title', ''))
         url = normalize_url(n.get('url', ''))
         if HOT_KEYWORD not in title:
             continue
-        key = re.search(r'[?&]sn=([0-9]+)', url, re.I)
-        key = key.group(1) if key else (url.split('#')[0].split('?')[0] or title)
+
+        # 先用標題當主 key，因為 Google RSS 與 money-link/ww2 的網址常不同。
+        title_key = normalize_title_key(title)
+        sn = re.search(r'[?&]sn=([0-9]+)', url, re.I)
+        url_key = sn.group(1) if sn else (url.split('#')[0].split('?')[0] or title_key)
+        key = title_key or url_key
+
+        n['title'] = title
+        n['url'] = url
+        n['stocks'] = merge_stock_lists(n.get('stocks', []), limit=8)
+
         old = item_map.get(key)
         if not old:
-            n['url'] = url
             item_map[key] = n
+            continue
+
+        old_stocks = old.get('stocks') or []
+        new_stocks = n.get('stocks') or []
+        merged_stocks = merge_stock_lists(old_stocks, new_stocks, limit=8)
+
+        # 選主資料：優先選股票較多者；股票數相同時選較新者。
+        if len(new_stocks) > len(old_stocks) or (
+            len(new_stocks) == len(old_stocks) and n.get('ts', 0) > old.get('ts', 0)
+        ):
+            keep = {**old, **n}
         else:
-            # 保留較新的時間，並補股票
-            if n.get('ts', 0) > old.get('ts', 0):
-                item_map[key] = {**old, **n}
-            if not item_map[key].get('stocks') and n.get('stocks'):
-                item_map[key]['stocks'] = n['stocks']
+            keep = {**n, **old}
+
+        keep['stocks'] = merged_stocks
+        # 時間保留較新的，避免舊資料覆蓋新時間。
+        if n.get('ts', 0) > old.get('ts', 0):
+            keep['ts'] = n.get('ts', 0)
+            keep['time'] = n.get('time', old.get('time', ''))
+        item_map[key] = keep
+
     return list(item_map.values())
 
 
