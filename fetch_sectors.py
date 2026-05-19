@@ -28,6 +28,86 @@ HOT_KEYWORD = '熱門族群'
 KEEP_DAYS = 15
 MAX_ARTICLES = 30
 
+# 常用台股名稱對照表：新聞內文沒有「名稱(代號)」時，用標題/內文關鍵字補抓。
+# 可持續增加你常看到的股票。
+STOCK_MASTER = {
+    '台積電':'2330','鴻海':'2317','聯發科':'2454','廣達':'2382','緯創':'3231','技嘉':'2376','華碩':'2357','英業達':'2356','仁寶':'2324','和碩':'4938',
+    '大立光':'3008','玉晶光':'3406','亞光':'3019','佳凌':'4976','先進光':'3362','今國光':'6209','聯亞':'3081','采鈺':'6789',
+    '事欣科':'4916','信錦':'1582','乙盛-KY':'5243','台揚':'2314','敬鵬':'2355','華通':'2313','燿華':'2367','台郡':'6269','欣興':'3037','景碩':'3189','南電':'8046','臻鼎-KY':'4958',
+    '矽力-KY':'6415','強茂':'2481','台半':'5425','朋程':'8255','茂矽':'2342','漢磊':'3707','嘉晶':'3016','德微':'3675','尼克森':'3317','杰力':'5299',
+    '群聯':'8299','南亞科':'2408','華邦電':'2344','旺宏':'2337','威剛':'3260','十銓':'4967','創見':'2451','宇瞻':'8271','晶豪科':'3006','鈺創':'5351','品安':'8088','宜鼎':'5289','力積電':'6770',
+    '友達':'2409','群創':'3481','彩晶':'6116','達運':'6120','明基材':'8215','誠美材':'4960','力特':'3051',
+    '台光電':'2383','金像電':'2368','聯茂':'6213','台燿':'6274','尖點':'8021','志聖':'2467','均豪':'5443','牧德':'3563',
+    '昇達科':'3491','啟碁':'6285','耀登':'3138','華星光':'4979','聯鈞':'3450','光聖':'6442','波若威':'3163','上詮':'3363','智邦':'2345','台達電':'2308',
+    '世芯-KY':'3661','創意':'3443','M31':'6643','力旺':'3529','智原':'3035','聯詠':'3034','瑞昱':'2379','矽統':'2363',
+}
+
+# 標題常出現「三雄、四雄、雙雄」但內文抓不到時，用族群關鍵字補常見指標股。
+SECTOR_HINTS = [
+    ('記憶體', ['南亞科','華邦電','旺宏','群聯','威剛','十銓','創見','宇瞻','晶豪科','鈺創']),
+    ('低軌衛星', ['事欣科','信錦','乙盛-KY','台揚','敬鵬','昇達科','啟碁','耀登']),
+    ('衛星', ['事欣科','信錦','乙盛-KY','台揚','敬鵬','昇達科','啟碁','耀登']),
+    ('AI眼鏡', ['大立光','玉晶光','亞光','佳凌','先進光','今國光']),
+    ('眼鏡', ['大立光','玉晶光','亞光','佳凌','先進光','今國光']),
+    ('功率半導體', ['強茂','台半','朋程','漢磊','嘉晶','德微','尼克森','杰力']),
+    ('載板', ['欣興','景碩','南電','臻鼎-KY','華通','燿華','台郡']),
+    ('偏光片', ['明基材','誠美材','力特','友達','群創']),
+    ('PCB', ['台光電','金像電','聯茂','台燿','華通','燿華','欣興','景碩']),
+]
+
+
+def make_stock(name):
+    code = STOCK_MASTER.get(name)
+    return {'name': name, 'code': code} if code else None
+
+
+def merge_stock_lists(*lists, limit=8):
+    seen, out = set(), []
+    for lst in lists:
+        for x in lst or []:
+            if isinstance(x, dict):
+                code = str(x.get('code','')).strip()
+                name = str(x.get('name','')).strip()
+            else:
+                code = str(x).strip()
+                name = ''
+            if not re.match(r'^\d{4}$', code) or code in seen:
+                continue
+            seen.add(code)
+            out.append({'name': name, 'code': code})
+            if len(out) >= limit:
+                return out
+    return out
+
+
+def extract_stocks_from_text(text):
+    """從文字中抓 1) 名稱(代號) 2) 股票名稱關鍵字。"""
+    text = html.unescape(text or '')
+    found = []
+
+    pairs = re.findall(r'([\u4e00-\u9fffA-Za-z0-9\-＊*]{1,12})\s*[（(](\d{4})[）)]', text)
+    for raw_name, code in pairs:
+        name = clean_stock_name(raw_name)
+        if name and re.match(r'^\d{4}$', code):
+            found.append({'name': name, 'code': code})
+
+    # 直接掃股票名稱，補沒有代號格式的新聞。
+    for name, code in STOCK_MASTER.items():
+        if name in text:
+            found.append({'name': name, 'code': code})
+
+    return merge_stock_lists(found, limit=8)
+
+
+def guess_stocks_by_title(title):
+    """標題出現族群但內文/Google 轉址抓不到時，補常見指標股。"""
+    title = title or ''
+    found = extract_stocks_from_text(title)
+    for kw, names in SECTOR_HINTS:
+        if kw in title:
+            found.extend([make_stock(name) for name in names if make_stock(name)])
+    return merge_stock_lists(found, limit=8)
+
 
 def now_ms():
     return int(time.time() * 1000)
@@ -142,22 +222,7 @@ def fetch_article_stocks(url):
         text = re.sub(r'<[^>]+>', ' ', text)
         text = re.sub(r'\s+', ' ', text)
 
-        # 抓「台積電(2330)」、「台積電（2330）」這種格式。
-        pairs = re.findall(r'([\u4e00-\u9fffA-Za-z0-9\-＊*]{1,12})\s*[（(](\d{4})[）)]', text)
-
-        seen, result = set(), []
-        for raw_name, code in pairs:
-            if not re.match(r'^\d{4}$', code):
-                continue
-            if code in seen:
-                continue
-            name = clean_stock_name(raw_name)
-            if not name:
-                continue
-            seen.add(code)
-            result.append({'name': name, 'code': code})
-
-        return result[:8]
+        return extract_stocks_from_text(text)[:8]
     except Exception as e:
         print(f'    → stocks error: {e}')
         return []
@@ -282,6 +347,8 @@ def add_stocks_parallel(items):
             n = future_map[fut]
             try:
                 n['stocks'] = fut.result()
+                if not n.get('stocks'):
+                    n['stocks'] = guess_stocks_by_title(n.get('title', ''))
                 print(f"    → {n['title'][:28]} 個股: {n['stocks']}")
             except Exception as e:
                 print(f'parallel stock error: {e}')
@@ -309,6 +376,11 @@ def main():
     cutoff = now_ms() - KEEP_DAYS * 24 * 60 * 60 * 1000
     merged = [n for n in merged if n.get('ts', 0) > cutoff]
     merged.sort(key=lambda x: x.get('ts', 0), reverse=True)
+
+    # 舊資料若沒有個股，依標題補上常見指標股。
+    for n in merged:
+        if not n.get('stocks'):
+            n['stocks'] = guess_stocks_by_title(n.get('title', ''))
 
     payload = merged[:120]
     ok1 = kv_put('sectors', payload, ttl_seconds=60 * 60 * 24 * (KEEP_DAYS + 1))
