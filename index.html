@@ -775,23 +775,41 @@ function startClock() {
 
 // ── 從標題抓相關個股代號 ───────────────────────
 function extractStockCodes(title) {
-  // 抓 (1234) 或 （1234） 格式
-  const re = /[（(](\d{4})[）)]/g;
-  const codes = [];
+  // 從標題抓「名稱(1234)」或只抓「(1234)」。
+  const re = /([\u4e00-\u9fffA-Za-z0-9\-＊*]{0,12})[（(](\d{4})[）)]/g;
+  const stocks = [];
+  const seen = new Set();
   let m;
-  while ((m = re.exec(title)) !== null) {
-    codes.push(m[1]);
+  while ((m = re.exec(title || '')) !== null) {
+    const name = (m[1] || '').replace(/[，。、；:：\s]/g, '').slice(-8);
+    const code = m[2];
+    if (!seen.has(code)) {
+      seen.add(code);
+      stocks.push(name ? { name, code } : code);
+    }
   }
-  return [...new Set(codes)];
+  return stocks;
+}
+
+function normalizeRelatedStocks(stocks) {
+  const seen = new Set();
+  return (stocks || []).map(s => {
+    if (typeof s === 'string') return { code: s, name: '' };
+    return { code: String(s.code || ''), name: String(s.name || '') };
+  }).filter(s => /^\d{4}$/.test(s.code) && !seen.has(s.code) && seen.add(s.code));
 }
 
 // 渲染相關個股 chips
-function renderRelatedStocks(codes) {
-  if (!codes.length) return '';
+function renderRelatedStocks(stocks) {
+  const list = normalizeRelatedStocks(stocks);
+  if (!list.length) return '';
   return `
 <div class="related-stocks">
   <span class="related-label">🎯 指標主流股：</span>
-  ${codes.map(c => `<span class="stock-chip" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${c}','_blank')">${c}</span>`).join('')}
+  ${list.map(s => {
+    const label = s.name ? `${s.name}(${s.code})` : s.code;
+    return `<span class="stock-chip" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')">${label}</span>`;
+  }).join('')}
 </div>`;
 }
 
@@ -1244,7 +1262,7 @@ function renderSectors(contentEl, items) {
       ? d.toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
       : (n.time||'');
     const readClass  = isRead(n.url) ? 'read' : '';
-    const stockCodes = (n.stocks && n.stocks.length) ? n.stocks : extractStockCodes(n.title);
+    const relatedStocks = (n.stocks && n.stocks.length) ? n.stocks : extractStockCodes(n.title);
     return `
 <div class="sector-news-card ${readClass}" style="animation:fadeIn2 0.2s ease ${i*0.03}s both"
   onclick="markRead('${n.url}');this.classList.add('read');window.open('${n.url}','_blank')">
@@ -1253,7 +1271,7 @@ function renderSectors(contentEl, items) {
     ${dateStr?`<span class="tag-date">📅 ${dateStr} 入選</span>`:''}
   </div>
   <div class="sector-news-card-title">${n.title}</div>
-  ${stockCodes.length ? renderRelatedStocks(stockCodes) : ''}
+  ${relatedStocks.length ? renderRelatedStocks(relatedStocks) : ''}
   <div style="display:inline-flex;align-items:center;gap:5px;padding:2px 8px;background:var(--amber-bg);border-radius:6px;border:1px solid rgba(255,179,0,0.2);font-size:11px;color:var(--amber);font-weight:600;">
     🔥 熱門族群焦點
   </div>

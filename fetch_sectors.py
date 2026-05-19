@@ -114,18 +114,49 @@ def parse_moneylink_time(text):
     return None
 
 
+def clean_stock_name(name):
+    """整理股票名稱，避免把太長的前文一起抓進來。"""
+    name = html.unescape(name or '')
+    name = re.sub(r'<[^>]+>', '', name)
+    name = re.sub(r'\s+', '', name)
+    name = name.strip('，。、；:：()（）「」『』【】[]')
+    # 常見會黏在股票名稱前面的字，切掉。
+    for sep in ['包括', '看好', '如', '有', '與', '及', '、', '，', '。', '；', '：', ':', ' '] :
+        if sep in name:
+            name = name.split(sep)[-1]
+    # 股票名稱通常不會太長，保留最後 8 個字元避免抓到整句。
+    if len(name) > 8:
+        name = name[-8:]
+    return name
+
+
 def fetch_article_stocks(url):
+    """從新聞內文抓出 股票名稱(代號)，回傳 [{name, code}]。"""
     try:
         r = requests.get(url, headers=HEADERS, timeout=10, allow_redirects=True)
         if r.status_code != 200:
             return []
         text = html.unescape(r.text)
-        codes = re.findall(r'[\u4e00-\u9fffA-Za-z0-9\-＊*]+\s*[（(](\d{4})[）)]', text)
+        text = re.sub(r'<script[\s\S]*?</script>', '', text, flags=re.I)
+        text = re.sub(r'<style[\s\S]*?</style>', '', text, flags=re.I)
+        text = re.sub(r'<[^>]+>', ' ', text)
+        text = re.sub(r'\s+', ' ', text)
+
+        # 抓「台積電(2330)」、「台積電（2330）」這種格式。
+        pairs = re.findall(r'([\u4e00-\u9fffA-Za-z0-9\-＊*]{1,12})\s*[（(](\d{4})[）)]', text)
+
         seen, result = set(), []
-        for code in codes:
-            if code not in seen:
-                seen.add(code)
-                result.append(code)
+        for raw_name, code in pairs:
+            if not re.match(r'^\d{4}$', code):
+                continue
+            if code in seen:
+                continue
+            name = clean_stock_name(raw_name)
+            if not name:
+                continue
+            seen.add(code)
+            result.append({'name': name, 'code': code})
+
         return result[:8]
     except Exception as e:
         print(f'    → stocks error: {e}')
@@ -286,7 +317,11 @@ def main():
 
     print('\n前5則：')
     for n in payload[:5]:
-        stocks_str = ', '.join(n.get('stocks', [])) or '無'
+        def stock_label(x):
+            if isinstance(x, dict):
+                return f"{x.get('name','')}({x.get('code','')})"
+            return str(x)
+        stocks_str = ', '.join(stock_label(x) for x in n.get('stocks', [])) or '無'
         print(f"  [{n['time']}] {n['title'][:45]} → {stocks_str}")
 
 
