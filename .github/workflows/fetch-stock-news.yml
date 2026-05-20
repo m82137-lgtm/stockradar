@@ -1,0 +1,31 @@
+name: Fetch Stock News
+
+on:
+  schedule:
+    # 台灣時間 09:00~13:59（UTC 01~05）每5分鐘
+    - cron: '*/5 1-5 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  fetch-stock-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests feedparser
+
+      - name: Fetch stock news and push to Cloudflare KV
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_KV_NAMESPACE_ID: 92fabe69cac1471ea9c22e9ec7ea9a44
+          CF_KV_TOKEN: ${{ secrets.WORKER_KV_WRITE_TOKEN }}
+          WORKER_URL: https://stockradar-worker.lucastockradar.workers.dev
+        run: python fetch_stock_news.py
