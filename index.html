@@ -956,8 +956,8 @@ function cardAfter(s, idx) {
       <span class="after-market">${s.market||'台股'}</span>
     </div>
     <div class="after-price-area">
-      <div class="after-price">${(+(s.price||0)).toFixed(2)}</div>
-      <div class="after-chg">↗ ${fmtChg(+(s.chg||0))}</div>
+      <div class="after-price" style="color:${(+(s.chg||0))>=0?'var(--red)':'var(--green)'}">${(+(s.price||0)).toFixed(2)}</div>
+      <div class="after-chg" style="color:${(+(s.chg||0))>=0?'var(--red)':'var(--green)'}">${(+(s.chg||0))>=0?'↗':'↘'} ${fmtChg(+(s.chg||0))}</div>
     </div>
   </div>
   <div class="after-vol-row">
