@@ -1295,7 +1295,9 @@ function normalizeRenderSectorNews(rows) {
     }
   }
 
-  return out.filter(n => n.title && n.url).slice(0, 100);
+  return out.filter(n => n.title && n.url)
+    .sort((a, b) => new Date(b.time) - new Date(a.time))
+    .slice(0, 100);
 }
 
 async function fetchSectors() {
@@ -1327,9 +1329,9 @@ async function forceRefreshSectors() {
 
 function renderSectors(contentEl, items) {
   contentEl.innerHTML = items.map((n,i) => {
-    const d = new Date(n.ts||0);
-    const dateStr = n.ts && !isNaN(d.getTime())
-      ? d.toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
+    const d = new Date(n.time||0);
+    const dateStr = n.time && !isNaN(d.getTime())
+      ? d.toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})
       : (n.time||'');
     const readClass  = isRead(n.url) ? 'read' : '';
     const relatedStocks = (n.stocks && n.stocks.length) ? n.stocks : extractStockCodes(n.title);
