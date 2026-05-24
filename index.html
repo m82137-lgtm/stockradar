@@ -720,6 +720,7 @@ main {
 
 <script>
 const WORKER = 'https://stockradar-worker.lucastockradar.workers.dev';
+const NEWS_API = 'https://stockradar-news.onrender.com';
 
 // ── 主題切換 ───────────────────────────────────
 function toggleTheme() {
@@ -1170,16 +1171,84 @@ const pages = {
 const newsCache = {};
 const NEWS_MEDIA = ['工商時報','鉅亨網','Yahoo','經濟日報','中國時報','時報資訊','旺德富','旺得富','富聯網','時報'];
 
+function googleNewsSearchUrl(keyword) {
+  return `https://news.google.com/search?q=${encodeURIComponent(keyword)}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
+}
+
+function cleanGoogleNewsTitle(title) {
+  return String(title || '').replace(/ - Google 新聞$/, '').replace(/ - Google News$/, '').trim();
+}
+
+function parseRSSItems(raw, fallbackKeyword, fallbackTime) {
+  const items = [];
+  if (!raw || typeof raw !== 'string') return items;
+
+  try {
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(raw, 'text/xml');
+    const nodes = Array.from(xml.querySelectorAll('item'));
+    for (const item of nodes) {
+      const title = cleanGoogleNewsTitle(item.querySelector('title')?.textContent || fallbackKeyword || '新聞');
+      const link  = item.querySelector('link')?.textContent || googleNewsSearchUrl(fallbackKeyword || title);
+      const pub   = item.querySelector('pubDate')?.textContent || fallbackTime || '';
+      const src   = item.querySelector('source')?.textContent || 'Google RSS';
+      if (title) items.push({ title, link, pub, src });
+    }
+  } catch(e) {}
+
+  // 目前 Render 後端若只回傳 RSS 前 500 字，可能還沒有 <item>。
+  // 這時至少顯示「此股新聞已更新」並連到 Google News 搜尋。
+  if (!items.length && fallbackKeyword) {
+    items.push({
+      title: `${fallbackKeyword} 最新新聞已更新`,
+      link: googleNewsSearchUrl(fallbackKeyword),
+      pub: fallbackTime || '',
+      src: 'Google RSS'
+    });
+  }
+  return items;
+}
+
+function normalizeRenderStockNews(rows, code, name) {
+  const list = Array.isArray(rows) ? rows : [];
+  const out = [];
+
+  for (const r of list) {
+    if (Array.isArray(r.items)) {
+      for (const n of r.items) {
+        out.push({
+          title: n.title || '',
+          link: n.link || n.url || '',
+          pub: n.pub || r.time || '',
+          src: n.src || 'Google RSS'
+        });
+      }
+    }
+  }
+
+  return out.filter(n => n.title && n.link).slice(0, 10);
+}
+
 async function fetchStockNews(code, name, prefix='qj') {
   const el = document.getElementById(`news-${prefix}-${code}`);
   if (!el) return;
-  if (newsCache[code]) { renderStockNews(el, newsCache[code]); return; }
+
+  const keyword = String(name || code || '').trim();
+  const cacheKey = `${code}-${keyword}`;
+  if (newsCache[cacheKey]) {
+    renderStockNews(el, newsCache[cacheKey]);
+    return;
+  }
+
   try {
-    const res  = await fetch(`${WORKER}/api/stock-news?code=${code}`);
-    const filtered = await res.json();
-    newsCache[code] = filtered;
+    const res = await fetch(`${NEWS_API}/api/stock-news?name=${encodeURIComponent(keyword)}&code=${encodeURIComponent(code)}`);
+    const rows = await res.json();
+    const filtered = normalizeRenderStockNews(rows, code, keyword);
+    newsCache[cacheKey] = filtered;
     renderStockNews(el, filtered);
-  } catch { el.innerHTML = '<div style="font-size:11px;color:var(--text3);">⚠️ 新聞載入失敗</div>'; }
+  } catch {
+    el.innerHTML = '<div style="font-size:11px;color:var(--text3);">⚠️ 新聞載入失敗</div>';
+  }
 }
 
 function renderStockNews(el, items) {
@@ -1208,20 +1277,42 @@ function loadAllStockNews(stocks, prefix='qj') {
 }
 
 // ── 熱門族群 API ───────────────────────────────
+function normalizeRenderSectorNews(rows) {
+  const list = Array.isArray(rows) ? rows : [];
+  const out = [];
+
+  for (const r of list) {
+    if (Array.isArray(r.items)) {
+      for (const n of r.items) {
+        out.push({
+          title: n.title || '',
+          url: n.link || n.url || '',
+          time: n.pub || r.time || '',
+          src: n.src || 'Google RSS',
+          cat: '熱門族群'
+        });
+      }
+    }
+  }
+
+  return out.filter(n => n.title && n.url).slice(0, 100);
+}
+
 async function fetchSectors() {
   const statusEl  = document.getElementById('sectors-sync-status');
   const contentEl = document.getElementById('sectors-content');
   if (!contentEl) return;
   try {
-    const res   = await fetch(`${WORKER}/api/sectors`);
-    const items = await res.json();
+    const res   = await fetch(`${NEWS_API}/api/sectors`);
+    const rows  = await res.json();
+    const items = normalizeRenderSectorNews(rows);
     if (!items.length) { contentEl.innerHTML='<div class="loading-card">目前無熱門族群新聞</div>'; return; }
     const now = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    if (statusEl) statusEl.textContent = `同步完成 ／ ${now} ／ 共 ${items.length} 則（保存15天）`;
+    if (statusEl) statusEl.textContent = `Render 同步完成 ／ ${now} ／ 共 ${items.length} 則`;
     renderSectors(contentEl, items);
   } catch(err) {
     if (statusEl) statusEl.textContent = '載入失敗';
-    contentEl.innerHTML = `<div class="loading-card">⚠️ 無法載入資料<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchSectors()">重試</button></div>`;
+    contentEl.innerHTML = `<div class="loading-card">⚠️ 無法載入 Render 熱門族群資料<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchSectors()">重試</button></div>`;
   }
 }
 
@@ -1229,17 +1320,9 @@ async function forceRefreshSectors() {
   const statusEl  = document.getElementById('sectors-sync-status');
   const contentEl = document.getElementById('sectors-content');
   if (!contentEl) return;
-  if (statusEl) statusEl.textContent = '重新抓取中...';
+  if (statusEl) statusEl.textContent = '重新整理中...';
   contentEl.innerHTML = '<div class="loading-card">重新整理中...</div>';
-  try {
-    const res   = await fetch(`${WORKER}/api/refresh-sectors`);
-    const items = await res.json();
-    const now   = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    if (statusEl) statusEl.textContent = `重新整理完成 ／ ${now} ／ 共 ${items.length} 則`;
-    renderSectors(contentEl, items);
-  } catch(err) {
-    if (statusEl) statusEl.textContent = '重新整理失敗';
-  }
+  await fetchSectors();
 }
 
 function renderSectors(contentEl, items) {
