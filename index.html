@@ -964,8 +964,6 @@ function cardAfter(s, idx) {
   <div class="after-vol-row">
     <span style="font-size:12px;color:var(--text2);">成交值</span>
     <span class="after-vol-num">${tvDisplay}</span>
-    <span style="font-size:12px;color:var(--text2);margin-left:12px;">成交量</span>
-    <span class="after-vol-num" style="font-size:14px;">${volDisplay} 張</span>
   </div>
   <div id="news-after-${s.code}" style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
     <div style="font-size:11px;color:var(--text3);">📰 載入個股新聞中...</div>
@@ -1025,6 +1023,7 @@ async function fetchAfterHours() {
       listEl.innerHTML = '<div class="loading-card">今日盤後資料尚未產生<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">收盤後 13:30 自動更新</span></div>';
       return;
     }
+    data.sort((a,b)=>(b.tradeValue||0)-(a.tradeValue||0));
     listEl.innerHTML = data.map((s,i)=>cardAfter(s,i)).join('');
     loadAllStockNews(data, 'after');
   } catch(err) {
