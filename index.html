@@ -369,14 +369,14 @@ main {
   gap:12px; flex-wrap:wrap;
 }
 
-.status-info { display:flex; align-items:center; gap:14px; font-size:10px; color:var(--text2); flex-wrap:wrap; }
+.status-info { display:flex; align-items:center; gap:14px; font-size:11px; color:var(--text2); flex-wrap:wrap; }
 .status-dot  { display:flex; align-items:center; gap:5px; }
 .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
 .dot.green { background:var(--green); }
 .dot.amber { background:var(--amber); }
 .status-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
 .sort-btn {
-  padding:4px 10px; border-radius:6px; font-size:10px; font-weight:500;
+  padding:4px 10px; border-radius:6px; font-size:11px; font-weight:500;
   cursor:pointer; border:1px solid var(--border); background:var(--bg3);
   color:var(--text2); transition:all 0.15s; font-family:inherit;
 }
@@ -385,7 +385,7 @@ main {
 
 /* ══ BUTTONS ══════════════════════════════════ */
 .btn {
-  padding:6px 14px; border-radius:6px; font-size:10px; font-weight:500;
+  padding:6px 14px; border-radius:6px; font-size:11px; font-weight:500;
   cursor:pointer; border:1px solid var(--border2); background:var(--bg3);
   color:var(--text); transition:all 0.15s; font-family:inherit;
 }
@@ -490,7 +490,7 @@ main {
 /* ══ SYNC BAR ═════════════════════════════════ */
 .sync-bar {
   background:var(--green-bg); border:1px solid rgba(0,200,83,0.2);
-  border-radius:6px; padding:8px 14px; font-size:10px;
+  border-radius:6px; padding:8px 14px; font-size:11px;
   color:var(--green); display:flex; align-items:center;
   gap:8px; margin-bottom:14px; font-family:'JetBrains Mono',monospace;
 }
@@ -1459,7 +1459,7 @@ async function fetchCnyes() {
     }));
     if (!items.length) { contentEl.innerHTML='<div class="loading-card">目前無新聞資料</div>'; return; }
     const now = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    if (statusEl) statusEl.textContent = `鉅亨網同步完成 ／ ${now} ／ 共 ${items.length} 則（保存7天）`;
+    if (statusEl) statusEl.textContent = `鉅亨網同步完成 ／ ${now} ／ 共 ${items.length} 則`;
     renderNews(contentEl, items);
   } catch(err) {
     if (statusEl) statusEl.textContent = '載入失敗';
