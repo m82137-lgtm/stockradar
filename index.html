@@ -1132,38 +1132,97 @@ const pages = {
   },
 
   guide() {
-    return `<div class="page-wrap"><div class="guide-content">
-  <div class="guide-hero">
-    <div class="guide-hero-title">⚡ 極限強勢股：短線操作 S.O.P</div>
-    <div class="guide-hero-sub">鎖定市場最強標的，嚴格紀律的進出場指南</div>
+    return `<div class="page-wrap"><div class="guide-content" style="max-width:680px;margin:0 auto;">
+
+  <!-- Hero -->
+  <div style="text-align:center;padding:32px 24px 24px;background:linear-gradient(135deg,var(--bg3) 0%,var(--bg4) 100%);border:1px solid var(--border2);border-radius:16px;margin-bottom:28px;">
+    <div style="font-size:28px;font-weight:800;color:var(--text);margin-bottom:6px;">⚡ 極限強勢股：短線操作 S.O.P</div>
+    <div style="font-size:14px;color:var(--text2);">鎖定市場最強標的，嚴格紀律進出場</div>
   </div>
-  <div class="guide-section">
-    <div class="guide-section-title">短線進場的 4 步 S.O.P</div>
-    <div class="sop-steps">
-      <div class="sop-step"><div class="step-num">1</div><div><div class="step-title">漲幅必須在 7% 以上</div><div class="step-desc">真正的強勢股一開盤就會劇烈震動並迅速往上拉抬。如果一檔股票只漲 1% 或 4.8%，在成千上萬檔股票中根本排不上號，絕對不是最強的。</div></div></div>
-      <div class="sop-step"><div class="step-num">2</div><div><div class="step-title">成交量破萬張</div><div class="step-desc">必須有足夠的成交量，證明散戶、當沖客等各種龐大資金都已經湧入，形成一種「全民運動」。只有這樣的人氣，才能推動股價短線爆發。</div></div></div>
-      <div class="sop-step"><div class="step-num">3</div><div><div class="step-title">檢視「第一根 15 分 K 線」</div><div class="step-desc">飆股最大的特徵就是「一早就會動」。第一根 15 分鐘的 K 線必須顯示出大戶強烈拉抬的明確痕跡，真正的主力絕對不會拖到中午才發動。</div></div></div>
-      <div class="sop-step"><div class="step-num">4</div><div><div class="step-title">查閱新聞，確認「夢想與期待感」</div><div class="step-desc">看到股票大漲後立刻去查閱新聞。新聞的內容不能只是平庸的「本業獲利穩定」，必須要有極具爆發力、誇張的「新故事」。你買的是這個「夢」，而不是現有財報數字。</div></div></div>
+
+  <!-- 策略一：起漲K -->
+  <div style="margin-bottom:24px;">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;"><span style="width:3px;height:18px;background:var(--red);border-radius:2px;display:inline-block;"></span>策略一：起漲K</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.7;">快速抓取強勢股，長相通常是一開盤就會迅速往上帶量拉抬及遽動能。</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;align-items:flex-start;">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+        <div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">漲幅必須在 7% 以上</div><div style="font-size:13px;color:var(--text2);line-height:1.6;">真正的強勢股一開盤就會劇烈震動並迅速往上拉抬。如果一檔股票只漲 1% 或 4.8%，在成千上萬檔股票中根本排不上號，絕對不是最強的。</div></div>
+      </div>
+      <div style="display:flex;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;align-items:flex-start;">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+        <div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">成交量 &gt; 5000 張</div><div style="font-size:13px;color:var(--text2);line-height:1.6;">爆出成交量代表因為利多使得法人大戶、主力、散戶、當沖客等各種資金湧入，形成一種「全民運動」，才能推動股價短線爆發。</div></div>
+      </div>
+      <div style="display:flex;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;align-items:flex-start;">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+        <div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">檢視「第一根 15 分 K 線」</div><div style="font-size:13px;color:var(--text2);line-height:1.6;">飆股最大的特徵就是「一開盤就會動」，第一根 15 分鐘的 K 線必須顯示出大戶強烈拉抬的明確痕跡，真正的主力絕對不會拖到中午才發動。</div></div>
+      </div>
+      <div style="display:flex;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;align-items:flex-start;">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div>
+        <div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">查閱新聞，確認「夢想與期待感」</div><div style="font-size:13px;color:var(--text2);line-height:1.6;">股票大漲背後必定有利多，立刻去查閱新聞。新聞不能只是平庸的「本業獲利穩定」，必須要有極具爆發力、誇張的「新故事」。買的是「夢」且要具國際性題材：「需求爆熱」、「打入國際供應鏈」、「做出新產品」、「國際趨勢導致大幅漲價」。</div></div>
+      </div>
     </div>
   </div>
-  <div class="guide-section">
-    <div class="guide-section-title">出場機制</div>
-    <div class="exit-grid">
-      <div class="exit-card"><div class="exit-card-title">絕對的停損點</div><div class="exit-card-desc">進場前設定好固定的停損比例（如跌破 5% 或 7%）。只要跌破就立刻出場，絕不猶豫！</div></div>
-      <div class="exit-card"><div class="exit-card-title">時間合約（時間停損）</div><div class="exit-card-desc">短線交易沒有給股票無限的時間。散戶的耐心極限大約是 3 天，時間一到就果斷離開。</div></div>
-      <div class="exit-card"><div class="exit-card-title">避開法說會與財報</div><div class="exit-card-desc">對靠題材炒作的「黑隊公司」，絕對不要抱著去等法說會或財報公布。財報一翻開，夢想就會破滅。</div></div>
+
+  <!-- 策略二：量增K -->
+  <div style="margin-bottom:24px;">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;"><span style="width:3px;height:18px;background:var(--orange,#f59e0b);border-radius:2px;display:inline-block;"></span>策略二：量增K</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.7;">快速漲停後的隔天，目標是抓取因為前一天的利多導致起漲K快速漲停，引發買不到的人繼續加買的渴望。</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;align-items:flex-start;">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--orange,#f59e0b);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+        <div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">前一天有漲停（代表前一天為起漲K）</div><div style="font-size:13px;color:var(--text2);line-height:1.6;">前一天必須有漲停過，代表市場已確認強烈的買盤動能。</div></div>
+      </div>
+      <div style="display:flex;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;align-items:flex-start;">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--orange,#f59e0b);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+        <div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">預估量大於前一天成交量</div><div style="font-size:13px;color:var(--text2);line-height:1.6;">量增K必須收紅且預估量大於起漲K成交量，代表隔天更多人看好，顯見利多有效。</div></div>
+      </div>
     </div>
   </div>
-  <div class="guide-section">
-    <div class="guide-section-title">本站功能說明</div>
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;">
-      <div style="display:flex;gap:12px;align-items:flex-start"><span class="badge badge-up" style="flex-shrink:0;margin-top:2px">盤中警示</span><span style="font-size:13px;color:var(--text2)">富果 API 每分鐘掃描全市場，即時偵測漲幅 7%+ 且量>5000張的強勢股，含預估全日量。</span></div>
-      <div style="display:flex;gap:12px;align-items:flex-start"><span class="badge badge-blue" style="flex-shrink:0;margin-top:2px">盤後追蹤</span><span style="font-size:13px;color:var(--text2)">收盤後抓成交值前60名，篩出漲幅>7%的今日資金焦點。</span></div>
-      <div style="display:flex;gap:12px;align-items:flex-start"><span class="badge badge-new" style="flex-shrink:0;margin-top:2px">熱門族群</span><span style="font-size:13px;color:var(--text2)">追蹤富聯網族群動態，KV 保存 <b>15 天</b>，標題含個股代號自動標出指標股。</span></div>
-      <div style="display:flex;gap:12px;align-items:flex-start"><span class="badge badge-sector" style="flex-shrink:0;margin-top:2px">台股新聞</span><span style="font-size:13px;color:var(--text2)">抓取鉅亨網台股新聞，KV 保存 <b>7 天</b>，點過標題變淺代表已讀。</span></div>
+
+  <!-- 出場機制 -->
+  <div style="margin-bottom:24px;">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;"><span style="width:3px;height:18px;background:var(--green);border-radius:2px;display:inline-block;"></span>出場機制</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;">
+        <div style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:6px;">🛑 絕對的停損點</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6;">起漲K：進場前設定好固定停損比例，跌破紅K中值 5% 或守進場紅K低點 7-10%，立刻出場絕不猶豫。<br><br>量增K：以前一天起漲K收盤價為停損點，盡量 10 點後判定進場。</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">⏰ 時間合約</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6;">短線交易沒有給股票無限的時間。耐心極限大約是 4 天，到第 5 天時 5 均線就會下彎，代表短線不夠強，時間一到就果斷離場。</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;grid-column:1/-1;">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">📊 避開法說會與財報</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6;">對靠題材炒作的「黑隊公司」，絕對不要抱著去等法說會或財報公布。財報一翻開，夢想就會破滅。</div>
+      </div>
     </div>
   </div>
-</div>`;
+
+  <!-- 本站功能說明 -->
+  <div style="margin-bottom:24px;">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;"><span style="width:3px;height:18px;background:var(--blue,#3b82f6);border-radius:2px;display:inline-block;"></span>本站功能說明</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;gap:12px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+        <span class="badge badge-up" style="flex-shrink:0;margin-top:2px">盤中警示</span>
+        <span style="font-size:13px;color:var(--text2);line-height:1.6;">富果 API 每分鐘掃描成交值前 120 檔，即時偵測漲幅 7%+ 且量 &gt; 5000 張的強勢股抓取起漲K，及偵測前一天漲停的股票抓取量增K。</span>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+        <span class="badge badge-blue" style="flex-shrink:0;margin-top:2px">盤後追蹤</span>
+        <span style="font-size:13px;color:var(--text2);line-height:1.6;">16:00 後抓取今日成交值前 60 名，篩選漲幅 &gt; 7% 的今日資金焦點。</span>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+        <span class="badge badge-new" style="flex-shrink:0;margin-top:2px">熱門族群</span>
+        <span style="font-size:13px;color:var(--text2);line-height:1.6;">追蹤富聯網族群動態，KV 保存 <b>15 天</b>，標題含個股代號自動標出指標股。</span>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+        <span class="badge badge-sector" style="flex-shrink:0;margin-top:2px">台股新聞</span>
+        <span style="font-size:13px;color:var(--text2);line-height:1.6;">抓取鉅亨網台股新聞，KV 保存 <b>7 天</b>，點過標題變淺代表已讀。</span>
+      </div>
+    </div>
+  </div>
+
+</div></div>`;
   }
 };
 
