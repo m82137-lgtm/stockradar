@@ -374,7 +374,14 @@ main {
 .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
 .dot.green { background:var(--green); }
 .dot.amber { background:var(--amber); }
-.status-actions { display:flex; align-items:center; gap:8px; }
+.status-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.sort-btn {
+  padding:4px 10px; border-radius:6px; font-size:11px; font-weight:500;
+  cursor:pointer; border:1px solid var(--border); background:var(--bg3);
+  color:var(--text2); transition:all 0.15s; font-family:inherit;
+}
+.sort-btn:hover { border-color:var(--border2); color:var(--text); }
+.sort-btn.active { background:var(--accent-bg); border-color:var(--accent); color:var(--blue); }
 
 /* ══ BUTTONS ══════════════════════════════════ */
 .btn {
@@ -817,6 +824,7 @@ function renderRelatedStocks(stocks) {
 // ── 全域資料 ───────────────────────────────────
 let alertsData    = { qj: [], lz: [] };
 let currentStrategy = 'qj';
+let currentSort = 'chg';
 
 // ── 輔助 ───────────────────────────────────────
 function fmtChg(v) { return (v>0?'+':'')+v.toFixed(2)+'%'; }
@@ -990,13 +998,29 @@ async function fetchAlerts() {
   }
 }
 
+function setSort(type) {
+  currentSort = type;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('sort-' + type);
+  if (btn) btn.classList.add('active');
+  renderAlertsList();
+}
+
+function sortStocks(stocks) {
+  const arr = [...stocks];
+  if (currentSort === 'chg') return arr.sort((a,b) => (+(b.chg||0)) - (+(a.chg||0)));
+  if (currentSort === 'vol') return arr.sort((a,b) => (+(b.vol||0)) - (+(a.vol||0)));
+  // 入榜時間：最新在上
+  return arr.sort((a,b) => (b.ts||0) - (a.ts||0));
+}
+
 function renderAlertsList() {
   const listEl  = document.getElementById('strategy-list');
   const countEl = document.getElementById('alerts-count');
   const limitEl = document.getElementById('alerts-limit');
   if (!listEl) return;
   const isQJ   = currentStrategy === 'qj';
-  const stocks = isQJ ? alertsData.qj : alertsData.lz;
+  const stocks = sortStocks(isQJ ? alertsData.qj : alertsData.lz);
   if (countEl) countEl.textContent = stocks.length;
   if (limitEl) limitEl.textContent = isQJ ? `漲停 ${stocks.filter(s=>s.limit).length} 檔` : `共 ${stocks.length} 檔`;
   if (!stocks.length) {
@@ -1065,6 +1089,12 @@ const pages = {
     <div class="status-dot"><div class="dot amber"></div><span id="alerts-limit">載入中</span></div>
   </div>
   <div class="status-actions">
+    <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);flex-wrap:wrap;">
+      <span style="margin-right:2px;">排序：</span>
+      <button class="sort-btn active" id="sort-chg" onclick="setSort('chg')">↑ 漲幅</button>
+      <button class="sort-btn" id="sort-vol" onclick="setSort('vol')">📊 成交量</button>
+      <button class="sort-btn" id="sort-time" onclick="setSort('time')">⏱ 入榜時間</button>
+    </div>
     <button class="btn btn-primary" onclick="fetchAlerts()">立即更新</button>
   </div>
 </div>
