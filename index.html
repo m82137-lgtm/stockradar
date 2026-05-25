@@ -424,8 +424,6 @@ main {
 .stock-name   { font-size:14px; font-weight:500; color:var(--text); }
 .stock-price-area { text-align:right; flex-shrink:0; }
 .stock-price  { font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; color:var(--red); line-height:1; margin-bottom:2px; }
-.stock-price.limit-up { background:var(--red); color:#fff !important; padding:4px 10px; border-radius:6px; }
-.after-price.limit-up { background:var(--red); color:#fff !important; padding:4px 10px; border-radius:6px; }
 .stock-change { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--red); font-weight:600; }
 
 .stock-meta { display:flex; align-items:center; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--text2); margin-bottom:8px; }
@@ -879,7 +877,7 @@ function cardQJ(s, idx) {
       ${s.market?`<span class="badge badge-sector">${s.market}</span>`:''}
     </div>
     <div class="stock-price-area">
-      <div class="stock-price${s.limit?' limit-up':''}" style="${s.limit?'display:inline-block;':''}">${(+(s.price||0)).toFixed(1)}</div>
+      <div class="stock-price">${(+(s.price||0)).toFixed(1)}</div>
       <div class="stock-change">${fmtChg(+(s.chg||0))}</div>
     </div>
   </div>
@@ -923,7 +921,7 @@ function cardLZ(s, idx) {
       ${s.market?`<span class="badge badge-sector">${s.market}</span>`:''}
     </div>
     <div class="stock-price-area">
-      <div class="stock-price${s.limit?' limit-up':''}" style="${s.limit?'display:inline-block;':''}">${(+(s.price||0)).toFixed(1)}</div>
+      <div class="stock-price">${(+(s.price||0)).toFixed(1)}</div>
       <div class="stock-change">${fmtChg(+(s.chg||0))}</div>
     </div>
   </div>
@@ -959,7 +957,7 @@ function cardAfter(s, idx) {
       <span class="after-market">${s.market||'台股'}</span>
     </div>
     <div class="after-price-area">
-      <div class="after-price${s.limit?' limit-up':''}" style="${s.limit?'':'color:'+((+(s.chg||0))>=0?'var(--red)':'var(--green)')};${s.limit?'display:inline-block;':''}">${(+(s.price||0)).toFixed(2)}</div>
+      <div class="after-price" style="color:${(+(s.chg||0))>=0?'var(--red)':'var(--green)'}">${(+(s.price||0)).toFixed(2)}</div>
       <div class="after-chg" style="color:${(+(s.chg||0))>=0?'var(--red)':'var(--green)'}">${(+(s.chg||0))>=0?'↗':'↘'} ${fmtChg(+(s.chg||0))}</div>
     </div>
   </div>
