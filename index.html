@@ -826,12 +826,15 @@ function k15Status(s) {
   const twHour = (now.getUTCHours() + 8) % 24;
   const twMin  = now.getUTCMinutes();
   const totalMin = twHour * 60 + twMin;
-  const t915 = 9 * 60 + 15;
-  const t930 = 9 * 60 + 30;
+  const t915  = 9 * 60 + 15;
   const t1330 = 13 * 60 + 30;
 
-  // 盤後：不顯示15分K
-  if (totalMin > t1330) return '';
+  // 盤後：有k15資料就顯示結果，沒有就不顯示
+  if (totalMin > t1330) {
+    if (s.k15 === true)  return `<span class="k15-chip bullish">15分K ✅符合</span>`;
+    if (s.k15 === false) return `<span class="k15-chip bearish">15分K ❌不符合</span>`;
+    return '';
+  }
 
   // 09:00-09:15 核對中
   if (totalMin < t915) {
@@ -839,11 +842,8 @@ function k15Status(s) {
   }
 
   // 09:15後判斷
-  if (s.k15 === true) {
-    return `<span class="k15-chip bullish">15分K ✅符合</span>`;
-  } else if (s.k15 === false) {
-    return `<span class="k15-chip bearish">15分K ❌不符合</span>`;
-  }
+  if (s.k15 === true)  return `<span class="k15-chip bullish">15分K ✅符合</span>`;
+  if (s.k15 === false) return `<span class="k15-chip bearish">15分K ❌不符合</span>`;
 
   // 預設核對中（還沒有k15資料）
   return `<span class="k15-chip loading">⏱ 15分K 核對中</span>`;
