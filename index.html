@@ -595,8 +595,11 @@ main {
   animation:fadeIn 0.2s ease both;
 }
 
-.after-card.limit { border-left:3px solid var(--red); }
-.after-card.up    { border-left:3px solid var(--green); }
+.after-card.limit  { border-left:3px solid var(--red); }
+.after-card.up     { border-left:3px solid var(--green); }
+.after-card.strong { border-left:3px solid #f5b800; }
+.after-card.down   { border-left:3px solid var(--green); }
+.after-price.limit-bg { background:var(--red); color:#fff !important; padding:2px 8px; border-radius:4px; display:inline-block; }
 
 .after-card:hover { border-color:var(--border2); }
 
@@ -962,7 +965,7 @@ function cardAfter(s, idx) {
   const volDisplay = s.vol ? s.vol.toLocaleString() : '-';
   const tvDisplay  = s.tradeValue ? (s.tradeValue / 100000000).toFixed(2) + ' 億' : '-';
   return `
-<div class="after-card ${s.limit?'limit':'up'}" style="animation-delay:${idx*0.04}s">
+<div class="after-card ${(+(s.chg||0))>=9.5?'limit':((+(s.chg||0))>=0?'strong':'down')}" style="animation-delay:${idx*0.04}s">
   <div class="after-card-top">
     <div class="after-code-area" onclick="window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;">
       <span class="after-code">${s.code}</span>
@@ -970,7 +973,7 @@ function cardAfter(s, idx) {
       <span class="after-market">${s.market||'台股'}</span>
     </div>
     <div class="after-price-area">
-      <div class="after-price" style="color:${(+(s.chg||0))>=0?'var(--red)':'var(--green)'}">${(+(s.price||0)).toFixed(2)}</div>
+      <div class="after-price${(+(s.chg||0))>=9.5?' limit-bg':''}" style="color:${(+(s.chg||0))>=9.5?'#fff':((+(s.chg||0))>=0?'var(--red)':'var(--green)')}">${(+(s.price||0)).toFixed(2)}</div>
       <div class="after-chg" style="color:${(+(s.chg||0))>=0?'var(--red)':'var(--green)'}">${(+(s.chg||0))>=0?'↗':'↘'} ${fmtChg(+(s.chg||0))}</div>
     </div>
   </div>
