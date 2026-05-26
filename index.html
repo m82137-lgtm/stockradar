@@ -1030,7 +1030,7 @@ function renderAlertsList() {
   const isQJ   = currentStrategy === 'qj';
   const stocks = sortStocks(isQJ ? alertsData.qj : alertsData.lz);
   if (countEl) countEl.textContent = stocks.length;
-  if (limitEl) limitEl.textContent = isQJ ? `漲停 ${stocks.filter(s=>s.limit).length} 檔` : `共 ${stocks.length} 檔`;
+  if (limitEl) limitEl.textContent = `漲停 ${stocks.filter(s=>s.limit).length} 檔`;
   if (!stocks.length) {
     listEl.innerHTML = '<div class="loading-card">目前無符合條件的強勢股，盤中每分鐘自動更新</div>';
     return;
