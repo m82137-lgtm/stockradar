@@ -421,8 +421,11 @@ main {
   border-radius:12px; padding:14px 16px; transition:border-color 0.15s;
 }
 
-.stock-card.up    { border-left:3px solid var(--green); }
-.stock-card.limit { border-left:3px solid var(--red); }
+.stock-card.up     { border-left:3px solid var(--green); }
+.stock-card.limit  { border-left:3px solid var(--red); }
+.stock-card.strong { border-left:3px solid #f5b800; }
+.stock-card.down   { border-left:3px solid var(--green); }
+.stock-price.limit-bg { background:var(--red); color:#fff; padding:2px 8px; border-radius:4px; display:inline-block; }
 
 .stock-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; gap:12px; }
 .stock-id  { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
@@ -878,7 +881,7 @@ function cardQJ(s, idx) {
   const volFull = s.vol ? s.vol.toLocaleString() : '-';
   const estVolStr = s.estVol ? s.estVol.toLocaleString()+'張' : '-';
   return `
-<div class="stock-card ${s.limit?'limit':'up'}" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
+<div class="stock-card ${s.limit?'limit':'strong'}" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
   <div class="stock-top">
     <div class="stock-id">
       <span class="stock-code" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;">${s.code}</span>
@@ -887,7 +890,7 @@ function cardQJ(s, idx) {
       ${s.market?`<span class="badge badge-sector">${s.market}</span>`:''}
     </div>
     <div class="stock-price-area">
-      <div class="stock-price${(+(s.chg||0))<0?' down':''}">${(+(s.price||0)).toFixed(1)}</div>
+      <div class="stock-price${(+(s.chg||0))>=9.5?' limit-bg':((+(s.chg||0))<0?' down':'')}">${(+(s.price||0)).toFixed(1)}</div>
       <div class="stock-change${(+(s.chg||0))<0?' down':''}">${fmtChg(+(s.chg||0))}</div>
     </div>
   </div>
@@ -922,7 +925,7 @@ function cardLZ(s, idx) {
     ? (s.estVol > s.prevVol ? '✅量增' : '⚠️量縮')
     : '';
   return `
-<div class="stock-card up" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
+<div class="stock-card ${(+(s.chg||0))>=9.5?'limit':((+(s.chg||0))>=0?'strong':'down')}" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
   <div class="stock-top">
     <div class="stock-id">
       <span class="stock-code" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;">${s.code}</span>
@@ -931,7 +934,7 @@ function cardLZ(s, idx) {
       ${s.market?`<span class="badge badge-sector">${s.market}</span>`:''}
     </div>
     <div class="stock-price-area">
-      <div class="stock-price${(+(s.chg||0))<0?' down':''}">${(+(s.price||0)).toFixed(1)}</div>
+      <div class="stock-price${(+(s.chg||0))>=9.5?' limit-bg':((+(s.chg||0))<0?' down':'')}">${(+(s.price||0)).toFixed(1)}</div>
       <div class="stock-change${(+(s.chg||0))<0?' down':''}">${fmtChg(+(s.chg||0))}</div>
     </div>
   </div>
