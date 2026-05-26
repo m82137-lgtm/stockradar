@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>強勢股龍珠雷達</title>
+<link rel="icon" type="image/png" sizes="32x32" href="pixel-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="pixel-180.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="龍珠雷達">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -119,11 +126,10 @@ body {
 
   .sidebar-logo::before {
     content:'';
-    width:7px; height:7px;
-    background:var(--green);
-    border-radius:50%;
-    animation:blink 1.5s infinite;
+    width:32px; height:32px;
+    background:url('pixel-80.png') center/contain no-repeat;
     flex-shrink:0;
+    image-rendering:pixelated;
   }
 
   .sidebar-theme-btn {
@@ -295,10 +301,10 @@ body {
 
 .nav-logo::before {
   content:'';
-  width:7px; height:7px;
-  background:var(--green);
-  border-radius:50%;
-  animation:blink 1.5s infinite;
+  width:26px; height:26px;
+  background:url('pixel-80.png') center/contain no-repeat;
+  flex-shrink:0;
+  image-rendering:pixelated;
 }
 
 .theme-toggle-btn {
