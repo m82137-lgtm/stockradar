@@ -419,6 +419,93 @@ main {
 .strategy-tab:hover  { border-color:var(--border2); color:var(--text); }
 .strategy-tab.active { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); }
 
+/* ══ 盤中警示 v2：表格 + 新聞分割版面 ══════════ */
+main:has(.iv2){ padding:0 !important; }
+.iv2{ display:flex; flex-direction:column; height:calc(100dvh - 48px - 60px); }
+@media (min-width:640px){ .iv2{ height:100%; } .iv2-title, .iv2-clock{ display:none; } }
+.iv2-bar{ padding:10px 14px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+@media (min-width:640px){ .iv2-bar{ padding:12px 20px; } }
+.iv2-title{ font-size:15px; font-weight:800; color:var(--text); white-space:nowrap; }
+.iv2-seg{ display:inline-flex; background:var(--bg3); border-radius:10px; padding:3px; gap:2px; }
+.iv2-seg button{ border:none; background:transparent; color:var(--text2); padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer; font-weight:700; display:flex; flex-direction:column; line-height:1.15; align-items:flex-start; font-family:inherit; }
+.iv2-seg button small{ font-size:10px; font-weight:500; opacity:.7; }
+.iv2-seg button.on{ background:var(--green); color:#fff; }
+.iv2-seg button.on small{ opacity:.9; }
+.iv2-clock{ color:var(--text2); font-size:12px; margin-left:auto; white-space:nowrap; font-family:'JetBrains Mono',monospace; }
+.iv2-tools{ padding:8px 14px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+@media (min-width:640px){ .iv2-tools{ padding:8px 20px; } }
+.iv2-stat{ display:flex; align-items:center; gap:14px; font-size:12.5px; color:var(--text2); }
+.iv2-stat b{ color:var(--text); font-weight:800; }
+.iv2-dot{ width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:6px; vertical-align:middle; background:var(--green); }
+.iv2-dot.amber{ background:var(--amber); }
+.iv2-sorts{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.iv2-sorts .lbl{ color:var(--text3); font-size:12px; }
+.iv2-sb{ border:1px solid var(--border); background:var(--bg3); color:var(--text2); border-radius:8px; padding:6px 11px; font-size:12.5px; cursor:pointer; font-family:inherit; }
+.iv2-sb.on{ background:var(--accent-bg); border-color:var(--accent); color:var(--blue); font-weight:700; }
+.iv2-refresh{ border:1px solid var(--green); color:var(--green); background:transparent; border-radius:8px; padding:6px 11px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:inherit; }
+
+.iv2-ws{ flex:1; min-height:0; display:flex; }
+.iv2-tablewrap{ flex:1; min-height:0; overflow:auto; background:var(--bg2); }
+.iv2-table{ width:100%; border-collapse:collapse; }
+.iv2-table thead th{ font-size:12px; color:var(--text3); font-weight:700; text-align:right; padding:10px 8px; border-bottom:1px solid var(--border); background:var(--bg2); position:sticky; top:0; z-index:2; white-space:nowrap; }
+@media (min-width:640px){ .iv2-table thead th{ font-size:12.5px; padding:11px 14px; } }
+.iv2-table thead th.l{ text-align:left; }
+.iv2-table tbody td{ padding:11px 8px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap; font-size:14.5px; color:var(--text); }
+@media (min-width:640px){ .iv2-table tbody td{ padding:13px 14px; font-size:15px; } }
+.iv2-table tbody tr{ cursor:pointer; }
+.iv2-table tbody tr:hover{ background:var(--bg3); }
+.iv2-table tbody tr.sel{ background:var(--accent-bg); }
+.iv2-table tbody tr.sel td:first-child{ box-shadow:inset 3px 0 0 var(--green); }
+.iv2-code{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color:#fff; background:var(--green); padding:3px 8px; border-radius:6px; font-weight:700; }
+@media (max-width:639px){ .iv2-code{ font-size:12px; padding:2px 6px; } }
+.iv2-table td.l{ text-align:left; }
+.iv2-nm{ color:var(--text); text-decoration:none; font-weight:700; border-bottom:1.5px dashed var(--text3); padding-bottom:1px; font-size:15px; }
+@media (max-width:639px){ .iv2-nm{ font-size:14px; } }
+.iv2-nm:hover{ color:var(--green); border-bottom-color:var(--green); }
+.iv2-tv{ font-size:10px; color:var(--text3); border:1px solid var(--border); border-radius:5px; padding:1px 5px; margin-left:6px; }
+.iv2-mkt{ font-size:10px; color:var(--text2); background:var(--bg3); border-radius:5px; padding:2px 6px; margin-left:5px; }
+@media (max-width:639px){ .iv2-tv,.iv2-mkt{ display:none; } }
+.iv2-num{ font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; }
+.iv2-chg{ font-weight:800; }
+.iv2-chg.up{ color:var(--red); } .iv2-chg.down{ color:var(--green); }
+.iv2-table tr.limit{ background:rgba(255,68,68,.08); }
+[data-theme="light"] .iv2-table tr.limit{ background:rgba(217,54,62,.07); }
+.iv2-table tr.limit td{ border-color:rgba(255,68,68,.25); }
+.iv2-chgbox{ display:inline-block; background:var(--red); color:#fff; border-radius:7px; padding:3px 9px; font-weight:800; }
+@media (max-width:639px){ .iv2-chgbox,.iv2-chg{ font-size:13.5px; } }
+.iv2-k15{ font-size:12px; font-weight:700; border-radius:7px; padding:3px 8px; display:inline-block; }
+@media (max-width:639px){ .iv2-k15{ font-size:11px; padding:2px 6px; } }
+.iv2-k15.ok{ color:var(--green); background:var(--green-bg); }
+.iv2-k15.no{ color:var(--red); background:rgba(255,68,68,.12); }
+.iv2-k15.na{ color:var(--text3); background:var(--bg3); }
+.iv2-esttag{ font-size:10.5px; font-weight:700; border-radius:5px; padding:1px 5px; margin:0; white-space:nowrap; }
+.iv2-esttag.inc{ color:var(--amber); background:rgba(255,179,0,.14); }
+.iv2-esttag.dec{ color:var(--text3); background:var(--bg3); }
+.iv2-est-inline{ display:none; }
+@media (max-width:639px){
+  .iv2-est-col{ display:none; }
+  .iv2-est-inline{ display:block; font-size:11px; color:var(--text3); margin-top:3px; }
+  .iv2-est-inline .iv2-esttag{ font-size:10.5px; }
+}
+
+/* 新聞區：Web 右欄 / 手機下方 */
+.iv2-news{ flex:0 0 440px; width:440px; border-left:1px solid var(--border); background:var(--bg2); display:flex; flex-direction:column; min-height:0; }
+.iv2-nd-head{ padding:13px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.iv2-nd-head .t{ font-size:15px; font-weight:800; color:var(--text); }
+.iv2-nd-head .t small{ font-size:11.5px; color:var(--text2); font-weight:500; margin-left:6px; font-family:'JetBrains Mono',monospace; }
+.iv2-nd-meta{ display:flex; align-items:center; gap:10px; flex:0 0 auto; }
+.iv2-nd-time{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--green); background:var(--green-bg); border-radius:7px; padding:4px 9px; font-weight:700; white-space:nowrap; }
+.iv2-nd-time:empty{ display:none; }
+.iv2-nd-x{ border:none; background:var(--bg3); color:var(--text2); width:28px; height:28px; border-radius:8px; cursor:pointer; font-size:15px; display:none; }
+.iv2-nd-list{ flex:1; min-height:0; overflow:auto; padding:8px 0; }
+.iv2-nd-empty{ flex:1; display:flex; align-items:center; justify-content:center; color:var(--text3); font-size:13px; text-align:center; padding:20px; }
+@media (max-width:639px){
+  .iv2-ws{ flex-direction:column; }
+  .iv2-news{ flex:0 0 auto; width:auto; height:0; border-left:none; border-top:1px solid var(--border); overflow:hidden; }
+  body.iv2-has-sel .iv2-news{ height:36vh; }
+  .iv2-nd-x{ display:block; }
+}
+
 /* ══ STOCK CARD ══════════════════════════════ */
 .stock-list { display:flex; flex-direction:column; gap:10px; }
 
@@ -1009,15 +1096,15 @@ async function fetchAlerts() {
     if (timeEl) timeEl.textContent = now;
     renderAlertsList();
   } catch(err) {
-    if (listEl) listEl.innerHTML = `<div class="loading-card">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchAlerts()">重試</button></div>`;
+    if (listEl) listEl.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px 16px;color:var(--text3);">⚠️ ${err.message}<br><button class="iv2-refresh" style="margin-top:12px;" onclick="fetchAlerts()">重試</button></td></tr>`;
   }
 }
 
 function setSort(type) {
   currentSort = type;
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.iv2-sb').forEach(b => b.classList.remove('on'));
   const btn = document.getElementById('sort-' + type);
-  if (btn) btn.classList.add('active');
+  if (btn) btn.classList.add('on');
   renderAlertsList();
 }
 
@@ -1029,6 +1116,45 @@ function sortStocks(stocks) {
   return arr.sort((a,b) => (b.ts||0) - (a.ts||0));
 }
 
+// ── 市場別 TradingView 代碼（上市 TWSE / 上櫃 TPEX）──
+function ivTvSym(s){ return (s.market==='OTC'?'TPEX:':'TWSE:') + s.code; }
+function ivTvUrl(s){ return 'https://tw.tradingview.com/chart/?symbol=' + encodeURIComponent(ivTvSym(s)); }
+function ivFmtVol(v){ return (v||0).toLocaleString('en-US'); }
+function ivFmtVolM(v){ return v>=10000 ? (v/10000).toFixed(1).replace(/\.0$/,'')+'萬' : (v||0).toLocaleString('en-US'); }
+function ivTwTime(s){
+  if (s.ts) return new Date(s.ts).toLocaleTimeString('zh-TW',{timeZone:'Asia/Taipei',hour:'2-digit',minute:'2-digit',hour12:false});
+  return s.time || '';
+}
+function iv15(s){
+  if (s.k15 === true)  return '<span class="iv2-k15 ok">✓符合</span>';
+  if (s.k15 === false) return '<span class="iv2-k15 no">✗不符</span>';
+  return '<span class="iv2-k15 na">—</span>';
+}
+function ivRow(s){
+  const chg = +(s.chg||0);
+  const lim = chg >= 9.5;
+  const dir = chg >= 0 ? 'up' : 'down';
+  const sign = chg >= 0 ? '+' : '';
+  const chgCell = lim
+    ? `<span class="iv2-chgbox iv2-num">${sign}${chg.toFixed(2)}%</span>`
+    : `<span class="iv2-chg iv2-num ${dir}">${sign}${chg.toFixed(2)}%</span>`;
+  const hasEst = s.estVol && s.prevVol;
+  const inc = hasEst && s.estVol > s.prevVol;
+  const tag  = hasEst ? `<span class="iv2-esttag ${inc?'inc':'dec'}">${inc?'▲量增':'▼量縮'}</span>` : '';
+  const tagS = hasEst ? `<span class="iv2-esttag ${inc?'inc':'dec'}">${inc?'▲增':'▼縮'}</span>` : '';
+  const estMain = s.estVol ? `${tag} ${ivFmtVol(s.estVol)}張` : '<span style="color:var(--text3)">—</span>';
+  const estInline = s.estVol ? `<span class="iv2-est-inline">${tagS} 估${ivFmtVolM(s.estVol)}張</span>` : '';
+  return `<tr class="${lim?'limit':''} ${s.code===ivSelCode?'sel':''}" data-code="${s.code}" onclick="openNews('${s.code}')">
+    <td class="l"><span class="iv2-code">${s.code}</span></td>
+    <td class="l"><a class="iv2-nm" href="${ivTvUrl(s)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a><span class="iv2-tv">TV</span>${s.market?`<span class="iv2-mkt">${s.market}</span>`:''}</td>
+    <td class="iv2-num">${(+(s.price||0)).toFixed(1)}</td>
+    <td>${chgCell}</td>
+    <td class="iv2-num">${ivFmtVol(s.vol)}張${estInline}</td>
+    <td class="iv2-num iv2-est-col">${estMain}</td>
+    <td>${iv15(s)}</td>
+  </tr>`;
+}
+
 function renderAlertsList() {
   const listEl  = document.getElementById('strategy-list');
   const countEl = document.getElementById('alerts-count');
@@ -1037,15 +1163,79 @@ function renderAlertsList() {
   const isQJ   = currentStrategy === 'qj';
   const stocks = sortStocks(isQJ ? alertsData.qj : alertsData.lz);
   if (countEl) countEl.textContent = stocks.length;
-  if (limitEl) limitEl.textContent = `漲停 ${stocks.filter(s=>s.limit).length} 檔`;
+  if (limitEl) limitEl.textContent = `漲停 ${stocks.filter(s=>(+(s.chg||0))>=9.5).length}`;
   if (!stocks.length) {
-    listEl.innerHTML = '<div class="loading-card">目前無符合條件的強勢股，盤中每分鐘自動更新</div>';
+    listEl.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px 16px;color:var(--text3);">目前無符合條件的強勢股，盤中每分鐘自動更新</td></tr>';
     return;
   }
-  listEl.innerHTML = isQJ
-    ? stocks.map((s,i)=>cardQJ(s,i)).join('')
-    : stocks.map((s,i)=>cardLZ(s,i)).join('');
-  loadAllStockNews(stocks, isQJ?'qj':'lz');
+  ivAlertIndex = {};
+  stocks.forEach(s => { ivAlertIndex[s.code] = s; });
+  listEl.innerHTML = stocks.map(s => ivRow(s)).join('');
+  // 若已選取的股票還在清單裡，保持選取並刷新它的新聞；否則收起
+  if (ivSelCode && ivAlertIndex[ivSelCode]) openNews(ivSelCode, true);
+}
+
+// ── 個股新聞副卡 ───────────────────────────────
+let ivSelCode = null;
+let ivAlertIndex = {};
+function openNews(code, keepScroll){
+  const s = ivAlertIndex[code]; if (!s) return;
+  ivSelCode = code;
+  document.body.classList.add('iv2-has-sel');
+  document.querySelectorAll('#strategy-list tr').forEach(tr => tr.classList.toggle('sel', tr.dataset.code===code));
+  const titleEl = document.getElementById('iv2-nd-title');
+  const timeEl  = document.getElementById('iv2-nd-time');
+  const emptyEl = document.getElementById('iv2-nd-empty');
+  const listEl  = document.getElementById('iv2-nd-list');
+  if (titleEl) titleEl.innerHTML = `${s.name}<small>${s.code} · ${s.market==='OTC'?'上櫃':'上市'}</small>`;
+  if (timeEl)  timeEl.textContent = `入榜 ${ivTwTime(s)}`;
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (listEl)  { listEl.style.display = 'block'; if(!keepScroll) listEl.scrollTop = 0; }
+  fetchDockNews(s.code, s.name);
+  // 手機：把選取的列捲到新聞區上方看得見
+  if (!keepScroll && window.matchMedia('(max-width:639px)').matches){
+    const tr = [...document.querySelectorAll('#strategy-list tr')].find(t=>t.dataset.code===code);
+    setTimeout(()=>tr&&tr.scrollIntoView({behavior:'smooth',block:'nearest'}),80);
+  }
+}
+function clearSel(){
+  ivSelCode = null;
+  document.body.classList.remove('iv2-has-sel');
+  document.querySelectorAll('#strategy-list tr').forEach(tr => tr.classList.remove('sel'));
+  const emptyEl = document.getElementById('iv2-nd-empty');
+  const listEl  = document.getElementById('iv2-nd-list');
+  const titleEl = document.getElementById('iv2-nd-title');
+  const timeEl  = document.getElementById('iv2-nd-time');
+  if (listEl)  listEl.style.display = 'none';
+  if (emptyEl) emptyEl.style.display = 'flex';
+  if (titleEl) titleEl.textContent = '相關新聞';
+  if (timeEl)  timeEl.textContent = '';
+}
+async function fetchDockNews(code, name){
+  const el = document.getElementById('iv2-nd-list'); if (!el) return;
+  const keyword = String(name || code || '').trim();
+  const cacheKey = `${code}-${keyword}`;
+  if (newsCache[cacheKey]) { renderDockNews(el, newsCache[cacheKey]); return; }
+  el.innerHTML = '<div style="padding:16px;font-size:12px;color:var(--text3);">📰 載入新聞中…</div>';
+  try{
+    const res  = await fetch(`${NEWS_API}/api/stock-news?name=${encodeURIComponent(keyword)}&code=${encodeURIComponent(code)}`);
+    const rows = await res.json();
+    const filtered = normalizeRenderStockNews(rows, code, keyword);
+    newsCache[cacheKey] = filtered;
+    renderDockNews(el, filtered);
+  }catch{
+    el.innerHTML = '<div style="padding:16px;font-size:12px;color:var(--text3);">⚠️ 新聞載入失敗</div>';
+  }
+}
+function renderDockNews(el, items){
+  if (!items || !items.length){ el.innerHTML = '<div style="padding:16px;font-size:13px;color:var(--text3);">目前無相關新聞</div>'; return; }
+  el.innerHTML = items.slice(0,10).map(n=>{
+    const d = new Date(n.pub);
+    const t = isNaN(d) ? '' : d.toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<a href="${n.link}" target="_blank" rel="noopener" style="display:block;padding:11px 16px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text);">
+      <div style="font-size:13.5px;line-height:1.45;">${n.title}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:5px;display:flex;gap:8px;"><span style="color:var(--accent);">${n.src||''}</span><span>${t}</span></div></a>`;
+  }).join('');
 }
 
 // ── 盤後追蹤 API ───────────────────────────────
@@ -1080,43 +1270,47 @@ const pages = {
     const isQJ = currentStrategy === 'qj';
     setTimeout(fetchAlerts, 0);
     const now = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    return `<div class="page-wrap">
-<div class="page-header">
-  <div class="page-title">盤中即時警示</div>
-  <div class="page-desc">依策略條件即時篩選。最後更新：<span id="alerts-time">${now}</span></div>
-</div>
-
-<div class="strategy-tabs">
-  <div class="strategy-tab ${isQJ?'active':''}" onclick="switchStrategy('qj')">
-    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">策略一：起漲K</div>
-    <div style="font-size:11px;opacity:0.75;">漲幅>7% ／ 量>5000張</div>
-  </div>
-  <div class="strategy-tab ${!isQJ?'active':''}" onclick="switchStrategy('lz')">
-    <div style="font-size:13px;font-weight:700;margin-bottom:2px;">策略二：量增K</div>
-    <div style="font-size:11px;opacity:0.75;">前日漲停</div>
-  </div>
-</div>
-
-<div class="status-bar">
-  <div class="status-info">
-    <div class="status-dot"><div class="dot green"></div>即時偵測中</div>
-    <div class="status-dot"><div class="dot green"></div>符合條件 <span id="alerts-count">…</span> 檔</div>
-    <div class="status-dot"><div class="dot amber"></div><span id="alerts-limit">載入中</span></div>
-  </div>
-  <div class="status-actions">
-    <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);flex-wrap:wrap;">
-      <span style="margin-right:2px;">排序：</span>
-      <button class="sort-btn active" id="sort-chg" onclick="setSort('chg')">↑ 漲幅</button>
-      <button class="sort-btn" id="sort-vol" onclick="setSort('vol')">📊 成交量</button>
-      <button class="sort-btn" id="sort-time" onclick="setSort('time')">⏱ 入榜時間</button>
+    return `<div class="iv2">
+  <div class="iv2-bar">
+    <span class="iv2-title">盤中警示</span>
+    <div class="iv2-seg">
+      <button class="${isQJ?'on':''}" onclick="switchStrategy('qj')">策略一 起漲K<small>漲幅&gt;7% ／ 量&gt;5000</small></button>
+      <button class="${!isQJ?'on':''}" onclick="switchStrategy('lz')">策略二 量增K<small>前日漲停</small></button>
     </div>
-    <button class="btn btn-primary" onclick="fetchAlerts()">立即更新</button>
+    <span class="iv2-clock" id="alerts-time">${now}</span>
   </div>
-</div>
-
-<div class="stock-list" id="strategy-list">
-  <div class="loading-card">載入中，請稍候…</div>
-</div>
+  <div class="iv2-tools">
+    <div class="iv2-stat">
+      <span><span class="iv2-dot"></span>即時偵測中</span>
+      <span>符合 <b id="alerts-count">…</b></span>
+      <span><span class="iv2-dot amber"></span><span id="alerts-limit">漲停 0</span></span>
+    </div>
+    <div class="iv2-sorts">
+      <span class="lbl">排序</span>
+      <button class="iv2-sb on" id="sort-chg" onclick="setSort('chg')">漲幅</button>
+      <button class="iv2-sb" id="sort-vol" onclick="setSort('vol')">成交量</button>
+      <button class="iv2-sb" id="sort-time" onclick="setSort('time')">入榜時間</button>
+      <button class="iv2-refresh" onclick="fetchAlerts()">↻ 更新</button>
+    </div>
+  </div>
+  <div class="iv2-ws">
+    <div class="iv2-tablewrap" id="iv2-tablewrap">
+      <table class="iv2-table">
+        <thead><tr>
+          <th class="l">代碼</th><th class="l">名稱</th><th>最新價</th><th>漲幅</th><th>成交量</th><th class="iv2-est-col">預估量</th><th>15MK</th>
+        </tr></thead>
+        <tbody id="strategy-list"></tbody>
+      </table>
+    </div>
+    <aside class="iv2-news" id="iv2-news">
+      <div class="iv2-nd-head">
+        <div class="t" id="iv2-nd-title">相關新聞</div>
+        <div class="iv2-nd-meta"><span class="iv2-nd-time" id="iv2-nd-time"></span><button class="iv2-nd-x" onclick="clearSel()">✕</button></div>
+      </div>
+      <div class="iv2-nd-list" id="iv2-nd-list" style="display:none"></div>
+      <div class="iv2-nd-empty" id="iv2-nd-empty">點一檔股票<br>這裡顯示它的相關新聞</div>
+    </aside>
+  </div>
 </div>`;
   },
 
@@ -1263,6 +1457,16 @@ const pages = {
         <span class="badge badge-sector" style="flex-shrink:0;margin-top:2px">台股新聞</span>
         <span style="font-size:13px;color:var(--text2);line-height:1.6;">抓取鉅亨網台股新聞，KV 保存 <b>7 天</b>，點過標題變淺代表已讀。</span>
       </div>
+    </div>
+  </div>
+
+  <!-- 喚醒程式（Render / Worker） -->
+  <div style="margin-bottom:24px;">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;"><span style="width:3px;height:18px;background:var(--green);border-radius:2px;display:inline-block;"></span>程式睡著了？手動喚醒</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">名單沒更新、抓不到上櫃股時，依序點下面兩個（先 Step1 等它跑完，再 Step2，看到 <b>otc_count</b> 八百多就成功）。</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="${NEWS_API}/api/otc-daily" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;padding:13px;border-radius:10px;background:var(--green);color:#fff;text-decoration:none;font-weight:700;font-size:14px;">程式睡著了 Step1<div style="font-size:11px;font-weight:500;opacity:.85;margin-top:2px;">喚醒 Render（上櫃資料）</div></a>
+      <a href="${WORKER}/api/update-stocklist" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;padding:13px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:14px;">程式睡著了 Step2<div style="font-size:11px;font-weight:500;opacity:.85;margin-top:2px;">重建 120 檔名單</div></a>
     </div>
   </div>
 
@@ -1541,7 +1745,9 @@ function goto(page, el) {
 
 function switchStrategy(s) {
   currentStrategy = s;
-  document.getElementById('main').innerHTML = pages.intraday();
+  document.querySelectorAll('.iv2-seg button').forEach((b,i)=> b.classList.toggle('on', s==='qj' ? i===0 : i===1));
+  clearSel();
+  renderAlertsList();
 }
 
 startClock();
