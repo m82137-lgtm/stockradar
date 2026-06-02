@@ -446,7 +446,13 @@ main:has(.iv2){ padding:0 !important; }
 
 .iv2-ws{ flex:1; min-height:0; display:flex; }
 .iv2-tablewrap{ flex:1; min-height:0; overflow:auto; background:var(--bg2); }
-.iv2-table{ width:100%; border-collapse:collapse; }
+.iv2-table{ width:100%; border-collapse:collapse; table-layout:fixed; }
+.iv2-table .c-code{ width:8%; } .iv2-table .c-name{ width:22%; } .iv2-table .c-price{ width:11%; }
+.iv2-table .c-chg{ width:14%; } .iv2-table .c-vol{ width:18%; } .iv2-table .c-est{ width:15%; } .iv2-table .c-k15{ width:12%; }
+@media (max-width:639px){
+  .iv2-table .c-code{ width:13%; } .iv2-table .c-name{ width:21%; } .iv2-table .c-price{ width:13%; }
+  .iv2-table .c-chg{ width:17%; } .iv2-table .c-vol{ width:24%; } .iv2-table .c-k15{ width:12%; }
+}
 .iv2-table thead th{ font-size:12px; color:var(--text3); font-weight:700; text-align:right; padding:10px 8px; border-bottom:1px solid var(--border); background:var(--bg2); position:sticky; top:0; z-index:2; white-space:nowrap; }
 @media (min-width:640px){ .iv2-table thead th{ font-size:12.5px; padding:11px 14px; } }
 .iv2-table thead th.l{ text-align:left; }
@@ -482,6 +488,11 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-esttag.inc{ color:var(--amber); background:rgba(255,179,0,.14); }
 .iv2-esttag.dec{ color:var(--text3); background:var(--bg3); }
 .iv2-est-inline{ display:none; }
+.iv2-vol-m{ display:none; }
+@media (max-width:639px){
+  .iv2-vol-full{ display:none; }
+  .iv2-vol-m{ display:inline; }
+}
 @media (max-width:639px){
   .iv2-est-col{ display:none; }
   .iv2-est-inline{ display:block; font-size:11px; color:var(--text3); margin-top:3px; }
@@ -1149,7 +1160,7 @@ function ivRow(s){
     <td class="l"><a class="iv2-nm" href="${ivTvUrl(s)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a><span class="iv2-tv">TV</span>${s.market?`<span class="iv2-mkt">${s.market}</span>`:''}</td>
     <td class="iv2-num">${(+(s.price||0)).toFixed(1)}</td>
     <td>${chgCell}</td>
-    <td class="iv2-num">${ivFmtVol(s.vol)}張${estInline}</td>
+    <td class="iv2-num"><span class="iv2-vol-full">${ivFmtVol(s.vol)}張</span><span class="iv2-vol-m">${ivFmtVolM(s.vol)}張</span>${estInline}</td>
     <td class="iv2-num iv2-est-col">${estMain}</td>
     <td>${iv15(s)}</td>
   </tr>`;
@@ -1297,7 +1308,7 @@ const pages = {
     <div class="iv2-tablewrap" id="iv2-tablewrap">
       <table class="iv2-table">
         <thead><tr>
-          <th class="l">代碼</th><th class="l">名稱</th><th>最新價</th><th>漲幅</th><th>成交量</th><th class="iv2-est-col">預估量</th><th>15MK</th>
+          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price">最新價</th><th class="c-chg">漲幅</th><th class="c-vol">成交量</th><th class="iv2-est-col c-est">預估量</th><th class="c-k15">15MK</th>
         </tr></thead>
         <tbody id="strategy-list"></tbody>
       </table>
