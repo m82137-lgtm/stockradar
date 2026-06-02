@@ -277,13 +277,13 @@ body {
 
 /* ══ 手機版頂部 + 底部 Tab ═══════════════════ */
 .top-bar {
-  height:48px;
+  height:40px;
   background:var(--bg2);
   border-bottom:1px solid var(--border);
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0 16px;
+  padding:0 14px;
   position:sticky;
   top:0;
   z-index:100;
@@ -301,7 +301,7 @@ body {
 
 .nav-logo::before {
   content:'';
-  width:26px; height:26px;
+  width:22px; height:22px;
   background:url('pixel-80.png') center/contain no-repeat;
   flex-shrink:0;
   image-rendering:pixelated;
@@ -421,7 +421,7 @@ main {
 
 /* ══ 盤中警示 v2：表格 + 新聞分割版面 ══════════ */
 main:has(.iv2){ padding:0 !important; }
-.iv2{ display:flex; flex-direction:column; height:calc(100dvh - 48px - 60px); }
+.iv2{ display:flex; flex-direction:column; height:calc(100dvh - 40px - 60px); }
 @media (min-width:640px){ .iv2{ height:100%; } .iv2-title, .iv2-clock{ display:none; } }
 .iv2-bar{ padding:10px 14px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 @media (min-width:640px){ .iv2-bar{ padding:12px 20px; } }
@@ -513,7 +513,7 @@ main:has(.iv2){ padding:0 !important; }
 @media (max-width:639px){
   .iv2-ws{ flex-direction:column; }
   .iv2-news{ flex:0 0 auto; width:auto; height:0; border-left:none; border-top:1px solid var(--border); overflow:hidden; }
-  body.iv2-has-sel .iv2-news{ height:22vh; }
+  body.iv2-has-sel .iv2-news{ height:34vh; }
   .iv2-nd-x{ display:block; }
   /* 工具列壓成一排：即時偵測 + 排序同列、字縮小、不換行 */
   .iv2-tools{ flex-wrap:nowrap; gap:6px; padding:6px 12px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
