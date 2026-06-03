@@ -277,7 +277,7 @@ body {
 
 /* ══ 手機版頂部 + 底部 Tab ═══════════════════ */
 .top-bar {
-  height:40px;
+  height:36px;
   background:var(--bg2);
   border-bottom:1px solid var(--border);
   display:flex;
@@ -421,7 +421,7 @@ main {
 
 /* ══ 盤中警示 v2：表格 + 新聞分割版面 ══════════ */
 main:has(.iv2){ padding:0 !important; }
-.iv2{ display:flex; flex-direction:column; height:calc(100dvh - 40px - 60px); }
+.iv2{ display:flex; flex-direction:column; height:calc(100dvh - 36px - 60px); }
 @media (min-width:640px){ .iv2{ height:100%; } .iv2-title, .iv2-clock{ display:none; } }
 .iv2-bar{ padding:10px 14px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 @media (min-width:640px){ .iv2-bar{ padding:12px 20px; } }
@@ -470,7 +470,7 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-nm:hover{ color:var(--green); border-bottom-color:var(--green); }
 .iv2-tv{ font-size:10px; color:var(--text3); border:1px solid var(--border); border-radius:5px; padding:1px 5px; margin-left:6px; }
 .iv2-mkt{ font-size:10px; color:var(--text2); background:var(--bg3); border-radius:5px; padding:2px 6px; margin-left:5px; }
-@media (max-width:639px){ .iv2-tv,.iv2-mkt{ display:none; } }
+@media (max-width:639px){ .iv2-tv{ display:none; } .iv2-mkt{ font-size:9px; padding:1px 4px; margin-left:4px; } }
 .iv2-num{ font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; }
 .iv2-chg{ font-weight:800; }
 .iv2-chg.up{ color:var(--red); } .iv2-chg.down{ color:var(--green); }
@@ -513,7 +513,7 @@ main:has(.iv2){ padding:0 !important; }
 @media (max-width:639px){
   .iv2-ws{ flex-direction:column; }
   .iv2-news{ flex:0 0 auto; width:auto; height:0; border-left:none; border-top:1px solid var(--border); overflow:hidden; }
-  body.iv2-has-sel .iv2-news{ height:34vh; }
+  body.iv2-has-sel .iv2-news{ height:30vh; }
   .iv2-nd-x{ display:block; }
   /* 工具列壓成一排：即時偵測 + 排序同列、字縮小、不換行 */
   .iv2-tools{ flex-wrap:nowrap; gap:6px; padding:6px 12px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
@@ -1342,7 +1342,7 @@ const pages = {
 
 <div class="after-info-box">
   <span style="font-size:14px;flex-shrink:0;">ℹ️</span>
-  <span style="font-size:12px;">查看成交值前 60 名，篩選漲幅大於 7% 的股票，盤後回顧今日資金焦點，15:00 後盤後資料更新。</span>
+  <span style="font-size:12px;">查看成交值前 60 名，篩選漲幅大於 7% 的股票，盤後回顧今日資金焦點，17:00 後盤後資料更新。</span>
 </div>
 
 <div id="after-list">
