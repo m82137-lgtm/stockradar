@@ -933,8 +933,7 @@ function normalizeRelatedStocks(stocks) {
 // 渲染相關個股 chips：只顯示「有對應到 120 檔」的股號，股名用對照表配，漲停的標紅
 // 回傳 { html, hasLimit }：hasLimit 供外層「有效題材」標籤判斷亮/暗
 function renderRelatedStocks(stocks) {
-  const list = normalizeRelatedStocks(stocks)
-    .filter(s => stockNameMap[s.code] !== undefined);   // 只留對到 120 檔的
+  const list = normalizeRelatedStocks(stocks);   // 全部都顯示：對到120檔配股名，沒對到只顯示股號
   if (!list.length) return { html: '', hasLimit: false };
   let hasLimit = false;
   const chips = list.map(s => {
