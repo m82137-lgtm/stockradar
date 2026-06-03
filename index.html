@@ -684,6 +684,9 @@ main:has(.iv2){ padding:0 !important; }
 }
 
 .stock-chip:hover { background:rgba(79,142,247,0.2); }
+.stock-chip.limit { background:var(--red); color:#fff; border-color:var(--red); }
+.stock-chip.limit:hover { background:var(--red); opacity:.85; }
+.tag-valid.dim { background:var(--bg3); color:var(--text3); border-color:var(--border); }
 
 .sector-meta-row {
   display:flex; align-items:center; gap:8px;
@@ -927,24 +930,51 @@ function normalizeRelatedStocks(stocks) {
   }).filter(s => /^\d{4}$/.test(s.code) && !seen.has(s.code) && seen.add(s.code));
 }
 
-// 渲染相關個股 chips
+// 渲染相關個股 chips：只顯示「有對應到 120 檔」的股號，股名用對照表配，漲停的標紅
+// 回傳 { html, hasLimit }：hasLimit 供外層「有效題材」標籤判斷亮/暗
 function renderRelatedStocks(stocks) {
-  const list = normalizeRelatedStocks(stocks);
-  if (!list.length) return '';
-  return `
-<div class="related-stocks">
-  <span class="related-label">🎯 指標主流股：</span>
-  ${list.map(s => {
-    const label = s.name ? `${s.name}(${s.code})` : s.code;
-    return `<span class="stock-chip" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')">${label}</span>`;
-  }).join('')}
-</div>`;
+  const list = normalizeRelatedStocks(stocks)
+    .filter(s => stockNameMap[s.code] !== undefined);   // 只留對到 120 檔的
+  if (!list.length) return { html: '', hasLimit: false };
+  let hasLimit = false;
+  const chips = list.map(s => {
+    const name = stockNameMap[s.code] || '';
+    const q = quotesMap[s.code];
+    const isLimit = q && (+q.chg) >= 9.5;
+    if (isLimit) hasLimit = true;
+    const label = name ? `${name}(${s.code})` : s.code;
+    return `<span class="stock-chip${isLimit?' limit':''}" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')">${label}${isLimit?' 🔴':''}</span>`;
+  }).join('');
+  return {
+    html: `\n<div class="related-stocks">\n  <span class="related-label">🎯 指標主流股：</span>\n  ${chips}\n</div>`,
+    hasLimit,
+  };
 }
 
 // ── 全域資料 ───────────────────────────────────
 let alertsData    = { qj: [], lz: [] };
 let currentStrategy = 'qj';
 let currentSort = 'chg';
+let stockNameMap  = {};   // 120檔 code → name（族群配股名用）
+let quotesMap     = {};   // code → {chg, price}（族群漲停亮燈用）
+
+// 抓 120 檔對照表 + 即時報價快照（族群頁用，失敗不影響其他功能）
+async function loadSectorStockData() {
+  try {
+    const [slRes, qRes] = await Promise.all([
+      fetch(`${WORKER}/api/stocklist`),
+      fetch(`${WORKER}/api/quotes`),
+    ]);
+    const sl = await slRes.json();
+    if (Array.isArray(sl)) {
+      stockNameMap = {};
+      sl.forEach(s => { if (s.code) stockNameMap[s.code] = s.name || ''; });
+    }
+    quotesMap = await qRes.json() || {};
+  } catch (e) {
+    console.log('loadSectorStockData fail:', e.message);
+  }
+}
 
 // ── 輔助 ───────────────────────────────────────
 function fmtChg(v) { return (v>0?'+':'')+v.toFixed(2)+'%'; }
@@ -1630,6 +1660,7 @@ async function fetchSectors() {
   const contentEl = document.getElementById('sectors-content');
   if (!contentEl) return;
   try {
+    await loadSectorStockData();   // 先載入 120 檔對照表 + 報價快照
     const res   = await fetch(`${NEWS_API}/api/sectors`);
     const rows  = await res.json();
     const items = normalizeRenderSectorNews(rows);
@@ -1660,15 +1691,16 @@ function renderSectors(contentEl, items) {
       : (n.time||'');
     const readClass  = isRead(n.url) ? 'read' : '';
     const relatedStocks = (n.stocks && n.stocks.length) ? n.stocks : extractStockCodes(n.title);
+    const related = renderRelatedStocks(relatedStocks);
     return `
 <div class="sector-news-card ${readClass}" style="animation:fadeIn2 0.2s ease ${i*0.03}s both"
   onclick="markRead('${n.url}');this.classList.add('read');window.open('${n.url}','_blank')">
   <div class="sector-tag-row">
-    <span class="tag-valid">有效題材 ⚡</span>
+    <span class="tag-valid${related.hasLimit?'':' dim'}">${related.hasLimit?'有效題材 ⚡':'題材觀察中'}</span>
     ${dateStr?`<span class="tag-date">📅 ${dateStr} 入選</span>`:''}
   </div>
   <div class="sector-news-card-title">${n.title}</div>
-  ${relatedStocks.length ? renderRelatedStocks(relatedStocks) : ''}
+  ${related.html}
   <div style="display:inline-flex;align-items:center;gap:5px;padding:2px 8px;background:var(--amber-bg);border-radius:6px;border:1px solid rgba(255,179,0,0.2);font-size:11px;color:var(--amber);font-weight:600;">
     🔥 熱門族群焦點
   </div>
