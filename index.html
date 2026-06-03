@@ -299,6 +299,14 @@ body {
   gap:6px;
 }
 
+.wind-gauge {
+  font-size:14px; font-weight:700; cursor:pointer;
+  display:flex; align-items:center; gap:4px;
+  white-space:nowrap;
+}
+.wind-gauge.red   { color:var(--red); }
+.wind-gauge.green { color:var(--green); }
+
 .nav-logo::before {
   content:'';
   width:22px; height:22px;
@@ -781,6 +789,7 @@ main:has(.iv2){ padding:0 !important; }
 <!-- 手機版頂部 -->
 <div class="top-bar">
   <div class="nav-logo">強勢股龍珠雷達</div>
+  <div class="wind-gauge" id="wind-gauge" onclick="showWindGaugeInfo()" style="display:none;"></div>
   <button class="theme-toggle-btn" onclick="toggleTheme()" title="切換主題" id="mobile-theme-btn">🌙</button>
 </div>
 
@@ -933,7 +942,8 @@ function normalizeRelatedStocks(stocks) {
 // 渲染相關個股 chips：只顯示「有對應到 120 檔」的股號，股名用對照表配，漲停的標紅
 // 回傳 { html, hasLimit }：hasLimit 供外層「有效題材」標籤判斷亮/暗
 function renderRelatedStocks(stocks) {
-  const list = normalizeRelatedStocks(stocks);   // 全部都顯示：對到120檔配股名，沒對到只顯示股號
+  const list = normalizeRelatedStocks(stocks)
+    .filter(s => stockNameMap[s.code] !== undefined);   // 只留對到 120 檔的
   if (!list.length) return { html: '', hasLimit: false };
   let hasLimit = false;
   const chips = list.map(s => {
@@ -973,6 +983,35 @@ async function loadSectorStockData() {
   } catch (e) {
     console.log('loadSectorStockData fail:', e.message);
   }
+}
+
+// ── 市場風度圖：讀 Worker 算好的狀態，顯示在頂部 ──
+let windGaugeData = null;
+async function loadWindGauge() {
+  try {
+    const res = await fetch(`${WORKER}/api/wind-gauge`);
+    const wg  = await res.json();
+    const el  = document.getElementById('wind-gauge');
+    if (!el) return;
+    if (!wg || !wg.label) { el.style.display = 'none'; return; }
+    windGaugeData = wg;
+    el.className = `wind-gauge ${wg.color}`;
+    el.textContent = `行情：${wg.label}`;
+    el.style.display = 'flex';
+  } catch (e) {
+    console.log('loadWindGauge fail:', e.message);
+  }
+}
+function showWindGaugeInfo() {
+  if (!windGaugeData) return;
+  const w = windGaugeData;
+  const cond1 = w.aboveMA ? '櫃買指數 ≥ 20MA' : '櫃買指數 < 20MA';
+  const cond2 = w.histUp ? '當日MACD柱 > 前一日' : '當日MACD柱 < 前一日';
+  const desc = {
+    '強風':'勝率偏高的行情','亂流':'行情震盪，嚴守紀律',
+    '陣風':'開始起風，嘗試交易','無風':'勝率很低，多做多賠！'
+  }[w.label] || '';
+  alert(`市場風度圖：${w.label}\n${desc}\n\n${cond1}\n${cond2}\n\n櫃買指數 ${w.close}（20MA ${w.ma20}）`);
 }
 
 // ── 輔助 ───────────────────────────────────────
@@ -1130,6 +1169,7 @@ function cardAfter(s, idx) {
 
 // ── 盤中 API ───────────────────────────────────
 async function fetchAlerts() {
+  loadWindGauge();   // 順便更新頂部風度圖（不阻塞）
   const listEl = document.getElementById('strategy-list');
   const timeEl = document.getElementById('alerts-time');
   if (!listEl) return;
@@ -1800,6 +1840,8 @@ function switchStrategy(s) {
 }
 
 startClock();
+loadWindGauge();                          // 頁面一載入就顯示風度圖
+setInterval(loadWindGauge, 5 * 60 * 1000); // 每5分鐘刷新顯示(Worker 端30分算一次)
 // 恢復上次的頁面
 try {
   const last = localStorage.getItem('lastPage');
