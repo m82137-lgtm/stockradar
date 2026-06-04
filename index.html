@@ -364,10 +364,45 @@ body { padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)); }
 .tab-label { font-size:11px; white-space:nowrap; }
 .nav-link.active { color:var(--green); }
 
-/* ══ MAIN ═══════════════════════════════════ */
-main {
-  padding:16px 14px;
-}
+/* ══ 風度頁 ═══════════════════════════════════ */
+.wind-page { padding:4px 2px 16px; }
+.wind-head { display:flex; align-items:baseline; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+.wind-h1 { font-size:18px; font-weight:700; color:var(--text); }
+.wind-sub { font-size:12px; color:var(--text2); }
+.wind-top-row { display:flex; gap:10px; margin-bottom:14px; }
+.wind-gauge-card { flex:1.1; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:8px; min-width:0; }
+.wind-gauge-toplabel { text-align:center; font-size:11px; font-weight:600; color:var(--text2); margin-bottom:2px; }
+.wind-gauge-labels { display:flex; justify-content:space-between; font-size:11px; margin-top:-2px; }
+.wind-gauge-labels .l { color:var(--green); font-weight:600; }
+.wind-gauge-labels .r { color:var(--red); font-weight:600; }
+.wind-gauge-now { text-align:center; margin-top:4px; }
+.wind-gauge-now .state { font-size:20px; font-weight:800; line-height:1.1; }
+.wind-gauge-now .state.red { color:var(--red); }
+.wind-gauge-now .state.green { color:var(--green); }
+.wind-gauge-now .meta { font-size:10px; color:var(--text3); margin-top:2px; font-family:'JetBrains Mono',monospace; line-height:1.4; }
+.wind-desc-box { flex:1; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:6px 10px; display:flex; flex-direction:column; justify-content:center; min-width:0; }
+.wind-desc-item { padding:7px 0; border-bottom:1px solid var(--border); }
+.wind-desc-item:last-child { border-bottom:none; }
+.wind-desc-item .h { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:700; margin-bottom:2px; color:var(--text); }
+.wind-desc-item .h .dot { width:4px; height:15px; border-radius:2px; display:inline-block; flex-shrink:0; }
+.wind-desc-item .h small { font-size:10px; color:var(--text3); font-weight:500; }
+.wind-desc-item .t { font-size:11px; color:var(--text2); line-height:1.5; }
+.wind-desc-item .dot.red { background:var(--red); }
+.wind-desc-item .dot.white { background:#fff; }
+.wind-desc-item .dot.green { background:var(--green); }
+.wind-tbl-title { font-size:12px; color:var(--text3); margin-bottom:6px; }
+.wind-tbl-wrap { overflow-x:auto; }
+.wind-tbl { width:100%; border-collapse:collapse; font-size:13px; }
+.wind-tbl thead th { background:var(--bg3); color:var(--text2); font-weight:600; padding:7px 4px; border:1px solid var(--border); font-size:12px; text-align:center; }
+.wind-tbl tbody td { padding:8px 4px; border:1px solid var(--border); text-align:center; font-family:'JetBrains Mono',monospace; }
+.wind-tbl tbody td.date { color:var(--text2); white-space:nowrap; }
+.wind-tbl tbody td.wind-c { font-weight:700; font-family:inherit; }
+.wind-tbl tbody td.wind-c.red { color:var(--red); }
+.wind-tbl tbody td.wind-c.green { color:var(--green); }
+.wind-tbl tbody tr:nth-child(even) { background:rgba(255,255,255,0.02); }
+.wind-tbl .limit-num { color:var(--red); font-weight:700; }
+.wind-tbl .zero { color:var(--text3); }
+
 
 /* ══ PAGE HEADER ═════════════════════════════ */
 .page-header { margin-bottom:16px; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
@@ -804,7 +839,11 @@ main:has(.iv2){ padding:0 !important; }
   </div>
 
   <div class="sidebar-section-label">台灣市場</div>
-  <div class="sidebar-link active" onclick="goto('intraday',this)">
+  <div class="sidebar-link active" onclick="goto('wind',this)">
+    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+    風度
+  </div>
+  <div class="sidebar-link" onclick="goto('intraday',this)">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M20.49 3.51a12 12 0 0 1 0 16.97"/><path d="M3.51 20.49a12 12 0 0 1 0-16.97"/></svg>
     盤中警示
   </div>
@@ -840,7 +879,10 @@ main:has(.iv2){ padding:0 !important; }
 
 <!-- 手機版底部 Tab -->
 <div class="bottom-nav">
-  <div class="nav-link active" onclick="goto('intraday',this)">
+  <div class="nav-link active" onclick="goto('wind',this)">
+    <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg></span><span class="tab-label">風度</span>
+  </div>
+  <div class="nav-link" onclick="goto('intraday',this)">
     <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span class="tab-label">盤中</span>
   </div>
   <div class="nav-link" onclick="goto('after',this)">
@@ -1019,6 +1061,79 @@ function showWindGaugeInfo() {
     '陣風':'開始起風，嘗試交易','無風':'勝率很低，多做多賠！'
   }[w.label] || '';
   alert(`市場風度圖：${w.label}\n${desc}\n\n${cond1}\n${cond2}\n\n櫃買指數 ${w.close}（20MA ${w.ma20}）`);
+}
+
+// ── 風度頁：讀 env-history,渲染儀表板 + 歷史表格 ──
+function windDrawGauge(dev, color, label) {
+  // 畫分段色塊半圓(11段,左綠中白右紅)
+  const layer = document.getElementById('wind-seg-layer');
+  if (!layer) return;
+  layer.innerHTML = '';
+  const cx=110, cy=118, r=85, NSEG=11, gap=7, span=180/NSEG;
+  const colors=['#3ddc84','#5fe09a','#84e6b0','#a8e6c0','#ffffff','#ffffff','#ffffff','#f5b5b6','#f59a9c','#ff7173','#ff4d4f'];
+  const pol = (a)=>{ const rad=a*Math.PI/180; return [cx+r*Math.cos(rad), cy-r*Math.sin(rad)]; };
+  for (let i=0;i<NSEG;i++){
+    const a0=180 - i*span - gap/2, a1=180 - (i+1)*span + gap/2;
+    const [x0,y0]=pol(a0), [x1,y1]=pol(a1);
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',`M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`);
+    p.setAttribute('stroke',colors[i]);
+    layer.appendChild(p);
+  }
+  // 指針:偏離率 dev,±6%滿格
+  const clamp=Math.max(-6,Math.min(6, dev||0));
+  const ang=90 - (clamp/6)*90;           // dev+6→0°(右), -6→180°(左), 0→90°(上)
+  const needle=document.getElementById('wind-needle');
+  if (needle) needle.setAttribute('transform',`rotate(${(90-ang).toFixed(1)} ${cx} ${cy})`);
+}
+
+async function loadWindPage() {
+  try {
+    const res = await fetch(`${WORKER}/api/env-history`);
+    const hist = await res.json();
+    const list = Array.isArray(hist) ? hist : [];
+    // 最新一筆(陣列尾端)當今日儀表板
+    const latest = list.length ? list[list.length-1] : null;
+
+    // 儀表板
+    const stateEl = document.getElementById('wind-state');
+    const metaEl  = document.getElementById('wind-meta');
+    if (latest && latest.wind) {
+      windDrawGauge(latest.dev, latest.color, latest.wind);
+      if (stateEl) { stateEl.textContent = latest.wind; stateEl.className = `state ${latest.color||''}`; }
+      if (metaEl) metaEl.innerHTML = `櫃買 ${latest.close??'—'}｜20MA ${latest.ma20??'—'}<br>偏離 ${latest.dev>=0?'+':''}${latest.dev??'—'}%｜MACD柱 ${latest.histUp?'↑':'↓'}`;
+    } else {
+      windDrawGauge(0, null, null);
+      if (stateEl) { stateEl.textContent = '—'; stateEl.className = 'state'; }
+      if (metaEl) metaEl.textContent = '尚無風度資料（收盤後更新）';
+    }
+
+    // 歷史表格(新到舊)
+    const tbody = document.getElementById('wind-tbody');
+    if (tbody) {
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);">尚無記錄</td></tr>';
+      } else {
+        const rows = [...list].reverse().map(e => {
+          const d = e.date ? e.date.slice(5).replace('-','/') : '—';
+          const windCls = e.color || '';
+          const windTxt = e.wind || '—';
+          const num = (v, limit) => (v===0||v==null) ? `<span class="zero">0</span>` : (limit ? `<span class="limit-num">${v}</span>` : v);
+          return `<tr>
+            <td class="date">${d}</td>
+            <td class="wind-c ${windCls}">${windTxt}</td>
+            <td>${e.qjCount??0}</td><td>${num(e.qjLimit,true)}</td>
+            <td>${e.lzCount??0}</td><td>${num(e.lzLimit,true)}</td>
+          </tr>`;
+        }).join('');
+        tbody.innerHTML = rows;
+      }
+    }
+  } catch (e) {
+    console.log('loadWindPage fail:', e.message);
+    const tbody = document.getElementById('wind-tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);">載入失敗</td></tr>';
+  }
 }
 
 // ── 輔助 ───────────────────────────────────────
@@ -1356,10 +1471,59 @@ async function fetchAfterHours() {
 
 // ── Pages ──────────────────────────────────────
 const PAGE_TITLES = {
-  intraday:'盤中警示', after:'盤後追蹤', sectors:'熱門族群', news:'台股新聞', guide:'網站說明'
+  wind:'風度', intraday:'盤中警示', after:'盤後追蹤', sectors:'熱門族群', news:'台股新聞', guide:'網站說明'
 };
 
 const pages = {
+  wind() {
+    setTimeout(loadWindPage, 0);
+    return `<div class="wind-page">
+  <div class="wind-head">
+    <span class="wind-h1">風度</span>
+    <span class="wind-sub">收盤後記錄大環境（櫃買指數）走向</span>
+  </div>
+  <div class="wind-top-row">
+    <div class="wind-gauge-card">
+      <div class="wind-gauge-toplabel">循環交界</div>
+      <svg viewBox="0 0 220 135" width="100%" id="wind-gauge-svg" xmlns="http://www.w3.org/2000/svg">
+        <g id="wind-seg-layer" fill="none" stroke-width="9" stroke-linecap="round"></g>
+        <g id="wind-needle"><polygon points="110,118 107,110 110,42 113,110" fill="var(--amber)"/></g>
+        <circle cx="110" cy="118" r="7" fill="#fff" stroke="var(--bg2)" stroke-width="2"/>
+      </svg>
+      <div class="wind-gauge-labels"><span class="l">無風循環</span><span class="r">強風循環</span></div>
+      <div class="wind-gauge-now">
+        <div class="state" id="wind-state">—</div>
+        <div class="meta" id="wind-meta">載入中…</div>
+      </div>
+    </div>
+    <div class="wind-desc-box">
+      <div class="wind-desc-item">
+        <div class="h"><span class="dot red"></span>強風循環 <small>強風、亂流</small></div>
+        <div class="t">漲勢延續性強，勝率偏高。</div>
+      </div>
+      <div class="wind-desc-item">
+        <div class="h"><span class="dot white"></span>循環交界</div>
+        <div class="t">震盪區間，無明顯行情方向。</div>
+      </div>
+      <div class="wind-desc-item">
+        <div class="h"><span class="dot green"></span>無風循環 <small>陣風、無風</small></div>
+        <div class="t">漲勢延續性差，低買的好機會。</div>
+      </div>
+    </div>
+  </div>
+  <div class="wind-tbl-title">近 10 個交易日記錄</div>
+  <div class="wind-tbl-wrap">
+    <table class="wind-tbl">
+      <thead>
+        <tr><th rowspan="2">日期</th><th rowspan="2">風度</th><th colspan="2">起漲K</th><th colspan="2">量增K</th></tr>
+        <tr><th>符合</th><th>漲停</th><th>符合</th><th>漲停</th></tr>
+      </thead>
+      <tbody id="wind-tbody"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);">載入中…</td></tr></tbody>
+    </table>
+  </div>
+</div>`;
+  },
+
   intraday() {
     const isQJ = currentStrategy === 'qj';
     setTimeout(fetchAlerts, 0);
@@ -1822,7 +1986,12 @@ function renderNews(contentEl, items) {
 function goto(page, el) {
   document.querySelectorAll('.sidebar-link').forEach(n=>n.classList.remove('active'));
   document.querySelectorAll('.bottom-nav .nav-link').forEach(n=>n.classList.remove('active'));
-  if (el) el.classList.add('active');
+  if (el) {
+    el.classList.add('active');
+  } else {
+    // 啟動或程式呼叫時沒帶 el：依 page 自動找對應導航標記 active
+    document.querySelectorAll(`[onclick*="goto('${page}'"]`).forEach(n=>n.classList.add('active'));
+  }
 
   // 更新桌機頂部標題
   const titleEl = document.getElementById('desktop-page-title');
