@@ -939,17 +939,17 @@ function normalizeRelatedStocks(stocks) {
   }).filter(s => /^\d{4}$/.test(s.code) && !seen.has(s.code) && seen.add(s.code));
 }
 
-// 渲染相關個股 chips：只顯示「有對應到 120 檔」的股號，股名用對照表配，漲停的標紅
+// 渲染相關個股 chips：對到120檔配股名、沒對到顯示股號；漲停(在警示榜)標紅
 // 回傳 { html, hasLimit }：hasLimit 供外層「有效題材」標籤判斷亮/暗
 function renderRelatedStocks(stocks) {
-  const list = normalizeRelatedStocks(stocks)
-    .filter(s => stockNameMap[s.code] !== undefined);   // 只留對到 120 檔的
+  const list = normalizeRelatedStocks(stocks);   // 全部顯示：對到配股名，沒對到顯示股號
   if (!list.length) return { html: '', hasLimit: false };
   let hasLimit = false;
   const chips = list.map(s => {
     const name = stockNameMap[s.code] || '';
-    const q = quotesMap[s.code];
-    const isLimit = q && (+q.chg) >= 9.5;
+    // 漲停判斷：查警示榜(漲停的股漲幅≥7%必在起漲K榜)。在榜且 limit 或漲幅≥9.5 → 漲停
+    const a = limitMap[s.code];
+    const isLimit = !!a;
     if (isLimit) hasLimit = true;
     const label = name ? `${name}(${s.code})` : s.code;
     return `<span class="stock-chip${isLimit?' limit':''}" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')">${label}${isLimit?' 🔴':''}</span>`;
@@ -965,21 +965,28 @@ let alertsData    = { qj: [], lz: [] };
 let currentStrategy = 'qj';
 let currentSort = 'chg';
 let stockNameMap  = {};   // 120檔 code → name（族群配股名用）
-let quotesMap     = {};   // code → {chg, price}（族群漲停亮燈用）
+let limitMap      = {};   // code → true（漲停股，族群亮燈用，來自警示榜）
 
-// 抓 120 檔對照表 + 即時報價快照（族群頁用，失敗不影響其他功能）
+// 抓 120 檔對照表 + 警示榜漲停股（族群頁用，失敗不影響其他功能）
 async function loadSectorStockData() {
   try {
-    const [slRes, qRes] = await Promise.all([
+    const [slRes, alRes] = await Promise.all([
       fetch(`${WORKER}/api/stocklist`),
-      fetch(`${WORKER}/api/quotes`),
+      fetch(`${WORKER}/api/alerts`),
     ]);
     const sl = await slRes.json();
     if (Array.isArray(sl)) {
       stockNameMap = {};
       sl.forEach(s => { if (s.code) stockNameMap[s.code] = s.name || ''; });
     }
-    quotesMap = await qRes.json() || {};
+    // 從警示榜建漲停表：limit 為 true，或漲幅 ≥ 9.5 視為漲停
+    const al = await alRes.json();
+    limitMap = {};
+    if (Array.isArray(al)) {
+      al.forEach(a => {
+        if (a.code && (a.limit === true || (+a.chg) >= 9.5)) limitMap[a.code] = true;
+      });
+    }
   } catch (e) {
     console.log('loadSectorStockData fail:', e.message);
   }
@@ -1336,7 +1343,7 @@ async function fetchAfterHours() {
     const now  = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
     if (timeEl) timeEl.textContent = now;
     if (!data.length) {
-      listEl.innerHTML = '<div class="loading-card">今日盤後資料尚未產生<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">收盤後 13:30 自動更新</span></div>';
+      listEl.innerHTML = '<div class="loading-card">今日盤後資料尚未產生<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">收盤後 17:00 自動更新</span></div>';
       return;
     }
     data.sort((a,b)=>(b.tradeValue||0)-(a.tradeValue||0));
