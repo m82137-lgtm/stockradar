@@ -1706,7 +1706,6 @@ async function fetchSectors() {
   const contentEl = document.getElementById('sectors-content');
   if (!contentEl) return;
   try {
-    await loadSectorStockData();   // 先載入 120 檔對照表 + 報價快照
     const res   = await fetch(`${NEWS_API}/api/sectors`);
     const rows  = await res.json();
     const items = normalizeRenderSectorNews(rows);
@@ -1736,17 +1735,14 @@ function renderSectors(contentEl, items) {
       ? d.toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})
       : (n.time||'');
     const readClass  = isRead(n.url) ? 'read' : '';
-    const relatedStocks = (n.stocks && n.stocks.length) ? n.stocks : extractStockCodes(n.title);
-    const related = renderRelatedStocks(relatedStocks);
     return `
 <div class="sector-news-card ${readClass}" style="animation:fadeIn2 0.2s ease ${i*0.03}s both"
   onclick="markRead('${n.url}');this.classList.add('read');window.open('${n.url}','_blank')">
   <div class="sector-tag-row">
-    <span class="tag-valid${related.hasLimit?'':' dim'}">${related.hasLimit?'有效題材 ⚡':'題材觀察中'}</span>
+    <span class="tag-valid">熱門族群 ⚡</span>
     ${dateStr?`<span class="tag-date">📅 ${dateStr} 入選</span>`:''}
   </div>
   <div class="sector-news-card-title">${n.title}</div>
-  ${related.html}
   <div style="display:inline-flex;align-items:center;gap:5px;padding:2px 8px;background:var(--amber-bg);border-radius:6px;border:1px solid rgba(255,179,0,0.2);font-size:11px;color:var(--amber);font-weight:600;">
     🔥 熱門族群焦點
   </div>
