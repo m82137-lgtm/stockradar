@@ -701,7 +701,7 @@ main:has(.iv2){ padding:0 !important; }
 .sector-news-card.read  { background:var(--bg3); }
 .sector-news-card.read .sector-news-card-title { color:var(--text3); }
 
-.sector-news-card-title { font-size:15px; font-weight:600; color:var(--text); line-height:1.35; margin:0 0 4px; transition:color 0.2s; }
+.sector-news-card-title { font-size:16px; font-weight:600; color:var(--text); line-height:1.5; margin:0 0 4px; transition:color 0.2s; }
 
 .sector-tag-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px; }
 
@@ -1373,8 +1373,8 @@ function iv15(s){
 function ivRow(s){
   const chg = +(s.chg||0);
   const lim = chg >= 9.5;
-  // 漲幅跌破 7%（起漲K 入榜門檻）視為回落，整行淡化；起漲K 與量增K 皆套用
-  const isFaded = chg < 7;
+  // 只在起漲K（qj）分頁淡化：入榜門檻為漲幅≥7%，跌破7%代表曾達標後回落。量增K 不淡化
+  const isFaded = currentStrategy === 'qj' && chg < 7;
   const dir = chg >= 0 ? 'up' : 'down';
   const sign = chg >= 0 ? '+' : '';
   const chgCell = lim
@@ -1946,8 +1946,8 @@ function renderSectors(contentEl, items) {
   onclick="markRead('${n.url}');this.classList.add('read');window.open('${n.url}','_blank')">
   <div class="sector-news-card-title">${n.title}</div>
   <div class="sector-meta-row">
+    <span>🕐</span><span style="font-family:'JetBrains Mono',monospace;">${dateStr}</span>
     <span>📋</span><span style="color:var(--accent);font-weight:500;">${n.src||'富聯網'}</span>
-    <span>🕐</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;">${dateStr}</span>
   </div>
 </div>`;
   }).join('');
