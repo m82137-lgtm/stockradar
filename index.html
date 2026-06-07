@@ -1332,6 +1332,21 @@ function cardAfter(s, idx) {
 }
 
 // ── 盤中 API ───────────────────────────────────
+let intradayTimer = null;
+// 僅盤中時段（週一~五 09:00–13:35）才自動刷新，省額度
+function isMarketHours() {
+  const d = new Date();
+  const day = d.getDay();
+  if (day === 0 || day === 6) return false;
+  const hm = d.getHours() * 60 + d.getMinutes();
+  return hm >= 540 && hm <= 815;
+}
+function startIntradayAutoRefresh() {
+  clearInterval(intradayTimer);
+  intradayTimer = setInterval(() => { if (isMarketHours()) fetchAlerts(); }, 60000);
+}
+function stopIntradayAutoRefresh() { clearInterval(intradayTimer); intradayTimer = null; }
+
 async function fetchAlerts() {
   loadWindGauge();   // 順便更新頂部風度圖（不阻塞）
   const listEl = document.getElementById('strategy-list');
@@ -1578,6 +1593,7 @@ const pages = {
   intraday() {
     const isQJ = currentStrategy === 'qj';
     setTimeout(fetchAlerts, 0);
+    startIntradayAutoRefresh();
     const now = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
     return `<div class="iv2">
   <div class="iv2-bar">
@@ -2031,6 +2047,7 @@ function renderNews(contentEl, items) {
 
 // ── 導航 ───────────────────────────────────────
 function goto(page, el) {
+  stopIntradayAutoRefresh();
   document.querySelectorAll('.sidebar-link').forEach(n=>n.classList.remove('active'));
   document.querySelectorAll('.bottom-nav .nav-link').forEach(n=>n.classList.remove('active'));
   if (el) {
