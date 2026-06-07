@@ -219,20 +219,20 @@ body {
 
   .sidebar-icon { width:16px; height:16px; flex-shrink:0; }
 
-  /* 頂部滿版 header bar（桌機） */
+  /* 頂部滿版 header bar（桌機）── 已移除，標題與下面內容區重複，時間改放各頁標題列右側 */
   .desktop-header {
-    display:flex;
-    align-items:center;
-    position:fixed;
-    top:0;
-    left:var(--sidebar-w);
-    right:0;
-    height:48px;
-    background:var(--bg2);
-    border-bottom:1px solid var(--border);
-    padding:0 60px;
-    z-index:90;
-    gap:12px;
+    display:none;
+  }
+
+  /* 各頁標題列右側時鐘（桌機顯示，靠右、等寬字體） */
+  .head-clock {
+    display:inline-block;
+    margin-left:auto;
+    align-self:center;
+    font-size:13px;
+    color:var(--text3);
+    font-family:'JetBrains Mono',monospace;
+    white-space:nowrap;
   }
 
   .desktop-header-title {
@@ -253,7 +253,7 @@ body {
 
   main {
     position:fixed;
-    top:48px;
+    top:0;
     left:var(--sidebar-w);
     right:0;
     bottom:0;
@@ -270,6 +270,9 @@ body {
     padding:24px 32px;
     box-sizing:border-box;
   }
+
+  /* 風度頁原靠頂部 bar 撐開，bar 移除後自補上方留白 */
+  .wind-page { padding:24px 32px 16px; }
 
   .bottom-nav { display:none !important; }
   .top-bar    { display:none !important; }
@@ -414,6 +417,7 @@ body { padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)); }
 .page-title  { font-size:19px; font-weight:700; color:var(--text); white-space:nowrap; }
 .page-desc   { font-size:12px; color:var(--text2); }
 .page-desc span { color:var(--green); font-family:'JetBrains Mono',monospace; font-size:12px; }
+@media (max-width:639px){ .head-clock { display:none; } }  /* 僅手機隱藏；桌機由 min-width:640 顯示 */
 
 /* ══ STATUS BAR ══════════════════════════════ */
 .status-bar {
@@ -470,7 +474,7 @@ body { padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)); }
 /* ══ 盤中警示 v2：表格 + 新聞分割版面 ══════════ */
 main:has(.iv2){ padding:0 !important; }
 .iv2{ display:flex; flex-direction:column; height:calc(100dvh - 36px - 60px); }
-@media (min-width:640px){ .iv2{ height:100%; } .iv2-title, .iv2-clock{ display:none; } }
+@media (min-width:640px){ .iv2{ height:100%; } }
 .iv2-bar{ padding:10px 14px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 @media (min-width:640px){ .iv2-bar{ padding:12px 20px; } }
 .iv2-title{ font-size:15px; font-weight:800; color:var(--text); white-space:nowrap; }
@@ -872,14 +876,6 @@ main:has(.iv2){ padding:0 !important; }
   </div>
 </div>
 
-<!-- 桌機版頂部 Header -->
-<div class="desktop-header" id="desktop-header">
-  <span id="desktop-page-title" class="desktop-header-title">盤中警示</span>
-  <div class="desktop-header-right">
-    <span id="desktop-clock"></span>
-  </div>
-</div>
-
 <main id="main"></main>
 
 <!-- 手機版底部 Tab -->
@@ -949,12 +945,11 @@ function isRead(url) {
   return true;
 }
 
-// ── 桌機時鐘 ───────────────────────────────────
+// ── 桌機時鐘（各頁標題列右側）───────────────────
 function startClock() {
-  const el = document.getElementById('desktop-clock');
-  if (!el) return;
   function tick() {
-    el.textContent = new Date().toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const t = new Date().toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    document.querySelectorAll('.head-clock').forEach(el => { el.textContent = t; });
   }
   tick();
   setInterval(tick, 1000);
@@ -1506,6 +1501,7 @@ const pages = {
   <div class="wind-head">
     <span class="wind-h1">風度</span>
     <span class="wind-sub">收盤後記錄大環境走向</span>
+    <span class="head-clock"></span>
   </div>
   <div class="wind-top-row">
     <div class="wind-gauge-card">
@@ -1608,6 +1604,7 @@ const pages = {
 <div class="page-header">
   <div class="page-title">盤後追蹤</div>
   <div class="page-desc">更新時間：<span id="after-time">載入中…</span></div>
+  <span class="head-clock"></span>
 </div>
 
 <div class="after-info-box">
@@ -1627,6 +1624,7 @@ const pages = {
 <div class="page-header">
   <div class="page-title">熱門族群情報</div>
   <div class="page-desc">即時抓取富聯網熱門族群新聞，<span>保存 15 天</span></div>
+  <span class="head-clock"></span>
 </div>
 <div class="sync-bar">
   <div class="pulse-dot"></div>
@@ -1645,6 +1643,7 @@ const pages = {
 <div class="page-header">
   <div class="page-title">台股新聞</div>
   <div class="page-desc">即時抓取鉅亨網台股新聞，<span>保存 7 天</span></div>
+  <span class="head-clock"></span>
 </div>
 <div class="sync-bar">
   <div class="pulse-dot"></div>
@@ -2015,10 +2014,6 @@ function goto(page, el) {
     // 啟動或程式呼叫時沒帶 el：依 page 自動找對應導航標記 active
     document.querySelectorAll(`[onclick*="goto('${page}'"]`).forEach(n=>n.classList.add('active'));
   }
-
-  // 更新桌機頂部標題
-  const titleEl = document.getElementById('desktop-page-title');
-  if (titleEl) titleEl.textContent = PAGE_TITLES[page]||'';
 
   document.getElementById('main').innerHTML = pages[page]();
   window.scrollTo(0,0);
