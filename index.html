@@ -514,8 +514,7 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-table tbody tr:hover{ background:var(--bg3); }
 .iv2-table tbody tr.sel{ background:var(--accent-bg); }
 .iv2-table tbody tr.sel td:first-child{ box-shadow:inset 3px 0 0 var(--accent); }
-.iv2-table tbody tr.faded{ opacity:.5; }
-.iv2-fade-tag{ display:inline-block; margin-left:6px; font-size:11px; color:var(--text3); background:var(--bg4); border-radius:4px; padding:1px 6px; font-family:'JetBrains Mono',monospace; vertical-align:middle; }
+.iv2-table tbody tr.faded{ opacity:.7; }
 .iv2-code{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color:#fff; background:#8b5a2b; padding:3px 8px; border-radius:6px; font-weight:700; }
 @media (max-width:639px){ .iv2-code{ font-size:12px; padding:2px 6px; } }
 .iv2-table td.l{ text-align:left; }
@@ -1364,9 +1363,8 @@ function iv15(s){
 function ivRow(s){
   const chg = +(s.chg||0);
   const lim = chg >= 9.5;
-  // 起漲K（qj）入榜門檻為漲幅≥7%；入榜後不移除，若漲幅已跌破7%代表「曾強已回落」，淡化標示
-  const isQjFaded = currentStrategy === 'qj' && chg < 7;
-  const fadeTag = isQjFaded ? '<span class="iv2-fade-tag">回落</span>' : '';
+  // 漲幅跌破 7%（起漲K 入榜門檻）視為回落，整行淡化；起漲K 與量增K 皆套用
+  const isFaded = chg < 7;
   const dir = chg >= 0 ? 'up' : 'down';
   const sign = chg >= 0 ? '+' : '';
   const chgCell = lim
@@ -1378,9 +1376,9 @@ function ivRow(s){
   const tagS = hasEst ? `<span class="iv2-esttag ${inc?'inc':'dec'}">${inc?'▲增':'▼縮'}</span>` : '';
   const estMain = s.estVol ? `${tag} ${ivFmtVol(s.estVol)}張` : '<span style="color:var(--text3)">—</span>';
   const estInline = s.estVol ? `<span class="iv2-est-inline">${tagS} 估${ivFmtVolM(s.estVol)}張</span>` : '';
-  return `<tr class="${lim?'limit':''} ${isQjFaded?'faded':''} ${s.code===ivSelCode?'sel':''}" data-code="${s.code}" onclick="openNews('${s.code}')">
+  return `<tr class="${lim?'limit':''} ${isFaded?'faded':''} ${s.code===ivSelCode?'sel':''}" data-code="${s.code}" onclick="openNews('${s.code}')">
     <td class="l"><span class="iv2-code">${s.code}</span></td>
-    <td class="l"><a class="iv2-nm" href="${ivTvUrl(s)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a><span class="iv2-tv">TV</span>${s.market?`<span class="iv2-mkt">${s.market}</span>`:''}${fadeTag}</td>
+    <td class="l"><a class="iv2-nm" href="${ivTvUrl(s)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a><span class="iv2-tv">TV</span>${s.market?`<span class="iv2-mkt">${s.market}</span>`:''}</td>
     <td class="iv2-num">${(+(s.price||0)).toFixed(1)}</td>
     <td>${chgCell}</td>
     <td class="iv2-num"><span class="iv2-vol-full">${ivFmtVol(s.vol)}張</span><span class="iv2-vol-m">${ivFmtVolM(s.vol)}張</span>${estInline}</td>
