@@ -32,6 +32,8 @@
   --red-bg:   rgba(255,68,68,0.08);
   --red-bg2:  rgba(255,68,68,0.15);
   --amber:    #ffb300;
+  --red-soft: #ff8f8f;
+  --green-soft:#74d68e;
   --amber-bg: rgba(255,179,0,0.10);
   --blue:     #4f8ef7;
   --blue-bg:  rgba(79,142,247,0.10);
@@ -60,6 +62,8 @@
   --red-bg:   rgba(217,54,62,0.07);
   --red-bg2:  rgba(217,54,62,0.13);
   --amber:    #c47d00;
+  --red-soft: #e06b70;
+  --green-soft:#43a05f;
   --amber-bg: rgba(196,125,0,0.09);
   --blue:     #1a6fcc;
   --blue-bg:  rgba(26,111,204,0.08);
@@ -310,6 +314,8 @@ body {
 .wind-gauge.red   { color:var(--red); }
 .wind-gauge.green { color:var(--green); }
 .wind-gauge.amber { color:var(--amber); }
+.wind-gauge.redsoft   { color:var(--red-soft); }
+.wind-gauge.greensoft { color:var(--green-soft); }
 
 .nav-logo::before {
   content:'';
@@ -392,6 +398,8 @@ body { padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)); }
 .wind-gauge-now .state.red { color:var(--red); }
 .wind-gauge-now .state.green { color:var(--green); }
 .wind-gauge-now .state.amber { color:var(--amber); }
+.wind-gauge-now .state.redsoft   { color:var(--red-soft); }
+.wind-gauge-now .state.greensoft { color:var(--green-soft); }
 .wind-gauge-now .meta { font-size:10px; color:var(--text3); margin-top:2px; font-family:'JetBrains Mono',monospace; line-height:1.4; }
 .wind-desc-box { flex:1; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:6px 10px; display:flex; flex-direction:column; justify-content:center; min-width:0; }
 .wind-desc-item { padding:10px 0; border-bottom:1px solid var(--border); }
@@ -413,6 +421,8 @@ body { padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)); }
 .wind-tbl tbody td.wind-c.red { color:var(--red); }
 .wind-tbl tbody td.wind-c.green { color:var(--green); }
 .wind-tbl tbody td.wind-c.amber { color:var(--amber); }
+.wind-tbl tbody td.wind-c.redsoft   { color:var(--red-soft); }
+.wind-tbl tbody td.wind-c.greensoft { color:var(--green-soft); }
 .wind-tbl tbody tr:nth-child(even) { background:rgba(255,255,255,0.02); }
 .wind-tbl .limit-num { color:var(--red); font-weight:700; }
 .wind-tbl .zero { color:var(--text3); }
@@ -1044,7 +1054,8 @@ let windGaugeData = null;
 function windClass(label) {
   if (label === '強風') return 'red';
   if (label === '無風') return 'green';
-  if (label === '亂流' || label === '陣風') return 'amber';
+  if (label === '亂流') return 'redsoft';
+  if (label === '陣風') return 'greensoft';
   return '';
 }
 async function loadWindGauge() {
