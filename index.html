@@ -309,6 +309,7 @@ body {
 }
 .wind-gauge.red   { color:var(--red); }
 .wind-gauge.green { color:var(--green); }
+.wind-gauge.amber { color:var(--amber); }
 
 .nav-logo::before {
   content:'';
@@ -387,6 +388,7 @@ body { padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)); }
 .wind-gauge-now .state { font-size:20px; font-weight:800; line-height:1.1; }
 .wind-gauge-now .state.red { color:var(--red); }
 .wind-gauge-now .state.green { color:var(--green); }
+.wind-gauge-now .state.amber { color:var(--amber); }
 .wind-gauge-now .meta { font-size:10px; color:var(--text3); margin-top:2px; font-family:'JetBrains Mono',monospace; line-height:1.4; }
 .wind-desc-box { flex:1; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:6px 10px; display:flex; flex-direction:column; justify-content:center; min-width:0; }
 .wind-desc-item { padding:10px 0; border-bottom:1px solid var(--border); }
@@ -407,6 +409,7 @@ body { padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)); }
 .wind-tbl tbody td.wind-c { font-weight:700; font-family:inherit; }
 .wind-tbl tbody td.wind-c.red { color:var(--red); }
 .wind-tbl tbody td.wind-c.green { color:var(--green); }
+.wind-tbl tbody td.wind-c.amber { color:var(--amber); }
 .wind-tbl tbody tr:nth-child(even) { background:rgba(255,255,255,0.02); }
 .wind-tbl .limit-num { color:var(--red); font-weight:700; }
 .wind-tbl .zero { color:var(--text3); }
@@ -1037,6 +1040,13 @@ async function loadSectorStockData() {
 
 // ── 市場風度圖：讀 Worker 算好的狀態，顯示在頂部 ──
 let windGaugeData = null;
+// 風度狀態 → 顏色 class：強風=紅、亂流/陣風=黃、無風=綠（依名稱判斷，不依賴後端 color 欄位，舊資料也正確）
+function windClass(label) {
+  if (label === '強風') return 'red';
+  if (label === '無風') return 'green';
+  if (label === '亂流' || label === '陣風') return 'amber';
+  return '';
+}
 async function loadWindGauge() {
   try {
     const res = await fetch(`${WORKER}/api/wind-gauge`);
@@ -1045,7 +1055,7 @@ async function loadWindGauge() {
     if (!el) return;
     if (!wg || !wg.label) { el.style.display = 'none'; return; }
     windGaugeData = wg;
-    el.className = `wind-gauge ${wg.color}`;
+    el.className = `wind-gauge ${windClass(wg.label)}`;
     el.textContent = `行情：${wg.label}`;
     el.style.display = 'flex';
   } catch (e) {
@@ -1115,7 +1125,7 @@ async function loadWindPage() {
     const metaEl  = document.getElementById('wind-meta');
     if (latest && latest.wind) {
       windDrawGauge(latest.dev, latest.color, latest.wind, latest.twseDev);
-      if (stateEl) { stateEl.textContent = latest.wind; stateEl.className = `state ${latest.color||''}`; }
+      if (stateEl) { stateEl.textContent = latest.wind; stateEl.className = `state ${windClass(latest.wind)}`; }
       if (metaEl) {
         const otcLine = `櫃買 ${latest.close??'—'}｜偏離 ${latest.dev>=0?'+':''}${latest.dev??'—'}%`;
         const twseLine = (latest.twseDev!==null && latest.twseDev!==undefined)
@@ -1137,7 +1147,7 @@ async function loadWindPage() {
       } else {
         const rows = [...list].reverse().map(e => {
           const d = e.date ? e.date.slice(5).replace('-','/') : '—';
-          const windCls = e.color || '';
+          const windCls = windClass(e.wind);
           const windTxt = e.wind || '—';
           const num = (v, limit) => (v===0||v==null) ? `<span class="zero">0</span>` : (limit ? `<span class="limit-num">${v}</span>` : v);
           return `<tr>
