@@ -664,11 +664,11 @@ main:has(.iv2){ padding:0 !important; }
 .pulse-dot { width:7px; height:7px; background:var(--green); border-radius:50%; animation:blink 1.2s infinite; flex-shrink:0; }
 
 /* ══ 台股新聞卡片 ═════════════════════════════ */
-.news-list { display:flex; flex-direction:column; gap:8px; }
+.news-list { display:flex; flex-direction:column; gap:6px; }
 
 .news-card {
   background:var(--bg2); border:1px solid var(--border);
-  border-radius:12px; padding:14px 16px;
+  border-radius:12px; padding:7px 14px;
   cursor:pointer; text-decoration:none; display:block;
   transition:border-color 0.15s, background 0.15s;
 }
@@ -677,7 +677,7 @@ main:has(.iv2){ padding:0 !important; }
 .news-card.read  { background:var(--bg3); }
 .news-card.read .news-card-title { color:var(--text3); }
 
-.news-card-title { font-size:16px; font-weight:600; color:var(--text); line-height:1.5; margin-bottom:8px; transition:color 0.2s; }
+.news-card-title { font-size:15px; font-weight:600; color:var(--text); line-height:1.35; margin-bottom:4px; transition:color 0.2s; }
 .news-card-meta  { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text3); flex-wrap:wrap; }
 .news-source { color:var(--accent); font-weight:500; }
 
@@ -693,7 +693,7 @@ main:has(.iv2){ padding:0 !important; }
 .sector-news-card.read  { background:var(--bg3); }
 .sector-news-card.read .sector-news-card-title { color:var(--text3); }
 
-.sector-news-card-title { font-size:15px; font-weight:700; color:var(--text); line-height:1.35; margin:0 0 4px; transition:color 0.2s; }
+.sector-news-card-title { font-size:15px; font-weight:600; color:var(--text); line-height:1.35; margin:0 0 4px; transition:color 0.2s; }
 
 .sector-tag-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px; }
 
