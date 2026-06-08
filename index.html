@@ -1936,7 +1936,7 @@ async function fetchStockNews(code, name, prefix='qj') {
   try {
     const res = await fetch(`${NEWS_API}/api/stock-news?name=${encodeURIComponent(keyword)}&code=${encodeURIComponent(code)}`);
     const rows = await res.json();
-    const filtered = normalizeRenderStockNews(rows, code, keyword);
+    const filtered = normalizeRenderStockNews(rows, code, keyword).slice(0, 10);
     newsCache[cacheKey] = filtered;
     renderStockNews(el, filtered);
   } catch {
@@ -2084,14 +2084,33 @@ async function doStockNewsSearch() {
   const q = input.value.trim();
   if (!q) return;
 
-  // 純數字 → 視為股號，查對照表轉股名（B 精準版）；否則直接當股名/關鍵字
+  // 先用對照表檢查：只能查真實存在的台股，擋掉「大便」這種非股票關鍵字
+  await loadCodeNameMap();
+  const map = codeNameMap || {};
+  const mapReady = Object.keys(map).length > 50;
+
   let code = '', name = '';
-  if (/^\d{4,6}$/.test(q)) {
-    code = q;
-    await loadCodeNameMap();
-    name = (codeNameMap && codeNameMap[q]) || '';
+  if (mapReady) {
+    if (/^\d{4,6}$/.test(q)) {
+      // 純股號：對照表要有這檔
+      if (map[q]) { code = q; name = map[q]; }
+    } else {
+      // 股名：先精確比對，再模糊（含關鍵字、至少2字，例：「台積」→台積電）
+      const exact = Object.entries(map).find(([c, n]) => n === q);
+      if (exact) { code = exact[0]; name = exact[1]; }
+      else if (q.length >= 2) {
+        const fuzzy = Object.entries(map).find(([c, n]) => n.includes(q));
+        if (fuzzy) { code = fuzzy[0]; name = fuzzy[1]; }
+      }
+    }
+    // 對照表裡找不到 → 擋下，不去 Google 亂搜
+    if (!code && !name) {
+      resultEl.innerHTML = `<div class="stock-search-empty">找不到「${q}」這檔股票<br><span style="font-size:11px;">請輸入正確的台股股名或股號（例：台積電 或 2330）</span></div>`;
+      return;
+    }
   } else {
-    name = q;
+    // 對照表還沒載到（極少數）：退回直接用輸入查，不擋（保可用性）
+    if (/^\d{4,6}$/.test(q)) code = q; else name = q;
   }
   const keyword = name || code || q;
 
