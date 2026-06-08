@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>強勢股龍珠雷達</title>
+<meta name="description" content="台股盤中強勢股即時警示">
+<meta property="og:title" content="強勢股龍珠雷達">
+<meta property="og:description" content="台股盤中強勢股即時警示">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://m82137-lgtm.github.io/stockradar/">
+<meta property="og:image" content="https://m82137-lgtm.github.io/stockradar/pixel-180.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="強勢股龍珠雷達">
+<meta name="twitter:description" content="台股盤中強勢股即時警示">
 <link rel="icon" type="image/png" sizes="32x32" href="pixel-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="pixel-180.png">
 <link rel="manifest" href="manifest.json">
@@ -339,12 +348,12 @@ body {
   transition:all 0.15s;
 }
 
-body { padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)); }
+body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 
 .bottom-nav {
   position:fixed;
   bottom:0; left:0; right:0;
-  height:calc(60px + env(safe-area-inset-bottom,0px));
+  height:calc(72px + env(safe-area-inset-bottom,0px));
   padding-bottom:env(safe-area-inset-bottom,0px);
   background:var(--bg2);
   border-top:1px solid var(--border);
@@ -359,19 +368,19 @@ body { padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)); }
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:3px;
+  gap:4px;
   cursor:pointer;
   color:var(--text3);
   border:none;
   background:transparent;
-  padding:6px 2px;
+  padding:8px 2px;
   -webkit-tap-highlight-color:transparent;
   user-select:none;
   transition:color 0.15s;
 }
 
-.tab-icon  { font-size:21px; line-height:1; display:flex; align-items:center; justify-content:center; color:inherit; }
-.tab-label { font-size:11px; white-space:nowrap; }
+.tab-icon  { font-size:26px; line-height:1; display:flex; align-items:center; justify-content:center; color:inherit; }
+.tab-label { font-size:12px; white-space:nowrap; }
 .nav-link.active { color:var(--accent); }
 
 /* ══ 風度頁 ═══════════════════════════════════ */
@@ -701,6 +710,33 @@ main:has(.iv2){ padding:0 !important; }
 .news-card-title { font-size:16px; font-weight:600; color:var(--text); line-height:1.5; margin-bottom:8px; transition:color 0.2s; }
 .news-card-meta  { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text3); flex-wrap:wrap; }
 .news-source { color:var(--accent); font-weight:500; }
+
+/* ══ 新聞頁雙 tab（鉅亨網 / 個股新聞）═══════════ */
+.news-seg{ display:flex; gap:8px; padding:10px 14px 12px; }
+@media (min-width:640px){ .news-seg{ padding:10px 20px 12px; } }
+.news-seg-btn{ flex:1; padding:11px; border-radius:11px; text-align:center; font-size:14px; font-weight:600; cursor:pointer; background:var(--bg2); color:var(--text2); border:1px solid var(--border); font-family:inherit; transition:all .15s; }
+.news-seg-btn.on{ background:var(--accent); color:#fff; border-color:var(--accent); }
+
+.stock-search-box{ display:flex; align-items:center; gap:8px; background:var(--bg2); border:1px solid var(--border); border-radius:11px; padding:11px 13px; margin:0 14px 6px; }
+@media (min-width:640px){ .stock-search-box{ margin:0 20px 6px; } }
+.stock-search-box svg{ flex-shrink:0; color:var(--text3); }
+.stock-search-box input{ flex:1; background:none; border:none; outline:none; color:var(--text); font-size:15px; font-family:inherit; min-width:0; }
+.stock-search-box input::placeholder{ color:var(--text3); }
+.stock-search-btn{ background:var(--accent); color:#fff; border:none; border-radius:9px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; flex-shrink:0; }
+.stock-search-hint{ font-size:11px; color:var(--text3); margin:0 16px 12px; }
+@media (min-width:640px){ .stock-search-hint{ margin:0 22px 12px; } }
+.stock-search-empty{ text-align:center; color:var(--text3); font-size:13px; padding:50px 20px; line-height:1.8; }
+
+.stock-result-head{ display:flex; align-items:baseline; gap:8px; padding:6px 16px 12px; border-bottom:1px solid var(--border); margin-bottom:2px; }
+@media (min-width:640px){ .stock-result-head{ padding:6px 22px 12px; } }
+.stock-result-code{ background:#8b5a2b; color:#fff; font-family:'JetBrains Mono',monospace; font-size:12px; padding:2px 7px; border-radius:5px; font-weight:700; }
+.stock-result-name{ font-size:16px; font-weight:700; color:var(--text); }
+.stock-result-cnt{ margin-left:auto; font-size:12px; color:var(--accent); font-weight:600; }
+
+.stock-news-card{ display:block; padding:13px 16px; border-bottom:1px solid var(--border); text-decoration:none; color:var(--text); }
+@media (min-width:640px){ .stock-news-card{ padding:13px 22px; } }
+.stock-news-card-title{ font-size:15px; font-weight:600; color:var(--text); line-height:1.5; margin-bottom:7px; }
+.stock-news-card-meta{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); flex-wrap:wrap; }
 
 /* ══ 熱門族群卡片 ═════════════════════════════ */
 .sector-news-card {
@@ -1679,20 +1715,42 @@ const pages = {
   },
 
   news() {
-    setTimeout(fetchCnyes, 0);
+    setTimeout(initNewsPage, 0);
     return `<div class="page-wrap">
 <div class="page-header">
   <div class="page-title">台股新聞</div>
-  <div class="page-desc">即時抓取鉅亨網台股新聞，<span>保存 7 天</span></div>
+  <div class="page-desc" id="news-page-desc">即時抓取鉅亨網台股新聞，<span>保存 7 天</span></div>
   <span class="head-clock"></span>
 </div>
-<div class="sync-bar">
-  <div class="pulse-dot"></div>
-  <span id="news-sync-status">正在從鉅亨網載入台股新聞...</span>
-  <button class="btn" style="margin-left:auto;padding:3px 10px;font-size:11px;" onclick="forceRefreshNews()">重新整理</button>
+<div class="news-seg">
+  <button class="news-seg-btn on" id="ntab-cnyes" onclick="switchNewsTab('cnyes')">鉅亨網</button>
+  <button class="news-seg-btn" id="ntab-stock" onclick="switchNewsTab('stock')">個股新聞</button>
 </div>
-<div id="news-content">
-  <div class="loading-card">載入中，請稍候...</div>
+
+<!-- 鉅亨網 tab -->
+<div id="news-pane-cnyes">
+  <div class="sync-bar">
+    <div class="pulse-dot"></div>
+    <span id="news-sync-status">正在從鉅亨網載入台股新聞...</span>
+    <button class="btn" style="margin-left:auto;padding:3px 10px;font-size:11px;" onclick="forceRefreshNews()">重新整理</button>
+  </div>
+  <div id="news-content">
+    <div class="loading-card">載入中，請稍候...</div>
+  </div>
+</div>
+
+<!-- 個股新聞 tab -->
+<div id="news-pane-stock" style="display:none;">
+  <div class="stock-search-box">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="stock-search-input" placeholder="輸入股名或股號…" autocomplete="off"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();doStockNewsSearch();}">
+    <button class="stock-search-btn" onclick="doStockNewsSearch()">查詢</button>
+  </div>
+  <div class="stock-search-hint">範圍：全台股 1800+ 檔，不限盤中監控的 120 檔</div>
+  <div id="stock-news-result">
+    <div class="stock-search-empty">輸入股名或股號，查詢個股相關新聞</div>
+  </div>
 </div>
 </div>`;
   },
@@ -1861,7 +1919,7 @@ function normalizeRenderStockNews(rows, code, name) {
     }
   }
 
-  return out.filter(n => n.title && n.link).slice(0, 10);
+  return out.filter(n => n.title && n.link).slice(0, 30);
 }
 
 async function fetchStockNews(code, name, prefix='qj') {
@@ -1981,6 +2039,97 @@ function renderSectors(contentEl, items) {
   }).join('');
 }
 
+// ── 新聞頁雙 tab（鉅亨網 / 個股新聞）──────────────
+let codeNameMap = null;   // 股號→股名對照表（從 Worker 抓，本地快取）
+let cnyesLoaded = false;  // 鉅亨網是否已載入（避免切回重抓）
+
+function initNewsPage() {
+  cnyesLoaded = false;
+  switchNewsTab('cnyes');  // 預設停鉅亨網
+  loadCodeNameMap();       // 背景預載對照表（個股查詢用）
+}
+
+function switchNewsTab(which) {
+  const tCny = document.getElementById('ntab-cnyes');
+  const tStk = document.getElementById('ntab-stock');
+  const pCny = document.getElementById('news-pane-cnyes');
+  const pStk = document.getElementById('news-pane-stock');
+  const desc = document.getElementById('news-page-desc');
+  if (!tCny || !tStk) return;
+  const isCny = which === 'cnyes';
+  tCny.classList.toggle('on', isCny);
+  tStk.classList.toggle('on', !isCny);
+  if (pCny) pCny.style.display = isCny ? '' : 'none';
+  if (pStk) pStk.style.display = isCny ? 'none' : '';
+  if (desc) desc.innerHTML = isCny
+    ? '即時抓取鉅亨網台股新聞，<span>保存 7 天</span>'
+    : '輸入股名或股號，查詢個股新聞（全台股）';
+  if (isCny && !cnyesLoaded) { cnyesLoaded = true; fetchCnyes(); }
+  if (!isCny) { const i = document.getElementById('stock-search-input'); if (i) setTimeout(()=>i.focus(), 50); }
+}
+
+async function loadCodeNameMap() {
+  if (codeNameMap) return codeNameMap;
+  try {
+    const res = await fetch(`${WORKER}/api/code-name-map`);
+    codeNameMap = await res.json();
+  } catch { codeNameMap = {}; }
+  return codeNameMap;
+}
+
+async function doStockNewsSearch() {
+  const input    = document.getElementById('stock-search-input');
+  const resultEl = document.getElementById('stock-news-result');
+  if (!input || !resultEl) return;
+  const q = input.value.trim();
+  if (!q) return;
+
+  // 純數字 → 視為股號，查對照表轉股名（B 精準版）；否則直接當股名/關鍵字
+  let code = '', name = '';
+  if (/^\d{4,6}$/.test(q)) {
+    code = q;
+    await loadCodeNameMap();
+    name = (codeNameMap && codeNameMap[q]) || '';
+  } else {
+    name = q;
+  }
+  const keyword = name || code || q;
+
+  resultEl.innerHTML = '<div class="stock-search-empty">📰 查詢中…</div>';
+  try {
+    const res  = await fetch(`${NEWS_API}/api/stock-news?name=${encodeURIComponent(keyword)}&code=${encodeURIComponent(code)}`);
+    const rows = await res.json();
+    const items = normalizeRenderStockNews(rows, code, keyword);
+    renderStockNewsResult(resultEl, items, code, name || keyword);
+  } catch {
+    resultEl.innerHTML = '<div class="stock-search-empty">⚠️ 查詢失敗，請稍後再試<br><span style="font-size:11px;">（Render 免費版若休眠中，第一次查詢需等幾秒喚醒）</span></div>';
+  }
+}
+
+function renderStockNewsResult(el, items, code, name) {
+  if (!items || !items.length) {
+    el.innerHTML = `<div class="stock-search-empty">找不到「${name||code}」的相關新聞</div>`;
+    return;
+  }
+  const head = `<div class="stock-result-head">
+    ${code ? `<span class="stock-result-code">${code}</span>` : ''}
+    <span class="stock-result-name">${name||''}</span>
+    <span class="stock-result-cnt">共 ${items.length} 則</span>
+  </div>`;
+  const list = items.map((n,i) => {
+    const d = new Date(n.pub);
+    const t = isNaN(d) ? '' : d.toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<a href="${n.link}" target="_blank" rel="noopener" class="stock-news-card" style="animation:fadeIn2 0.2s ease ${i*0.015}s both">
+      <div class="stock-news-card-title">${n.title}</div>
+      <div class="stock-news-card-meta">
+        <span>🕐</span><span style="font-family:'JetBrains Mono',monospace;">${t}</span>
+        <span>📋</span><span class="news-source">${n.src||'Google 新聞'}</span>
+      </div>
+    </a>`;
+  }).join('');
+  el.innerHTML = head + `<div class="news-list">${list}</div>`;
+}
+
 // ── 台股新聞 API ───────────────────────────────
 async function fetchCnyes() {
   const statusEl  = document.getElementById('news-sync-status');
@@ -2009,10 +2158,10 @@ async function forceRefreshNews() {
   const statusEl  = document.getElementById('news-sync-status');
   const contentEl = document.getElementById('news-content');
   if (!contentEl) return;
-  if (statusEl) statusEl.textContent = '重新抓取中...';
+  if (statusEl) statusEl.textContent = '重新整理中...';
   contentEl.innerHTML = '<div class="loading-card">重新整理中...</div>';
   try {
-    const res  = await fetch(`${WORKER}/api/refresh-news`);
+    const res  = await fetch(`${WORKER}/api/news`);   // 重讀 KV（新聞改由 Render 每5分鐘抓進 KV，重整只重新拉一次）
     const json = await res.json();
     const items = Array.isArray(json) ? json : [];
     const now   = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
