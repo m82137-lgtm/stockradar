@@ -752,6 +752,15 @@ main:has(.iv2){ padding:0 !important; }
 
 .sector-news-card-title { font-size:16px; font-weight:600; color:var(--text); line-height:1.5; margin:0 0 4px; transition:color 0.2s; }
 
+/* 指標股 chip（紫色） */
+.sector-hot-block{ background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:10px 11px; margin:8px 0 10px; }
+.sector-hot-label{ display:flex; align-items:center; gap:5px; font-size:12.5px; font-weight:700; color:var(--text2); margin-bottom:9px; }
+.sector-chips{ display:flex; flex-wrap:wrap; gap:7px; }
+.sector-chip{ display:inline-flex; align-items:center; gap:6px; background:rgba(140,92,246,.13); border:1px solid rgba(140,92,246,.45); border-radius:9px; padding:5px 10px; cursor:pointer; transition:all .15s; }
+.sector-chip:hover{ background:rgba(140,92,246,.26); border-color:rgba(140,92,246,.7); }
+.sc-name{ font-weight:600; color:var(--text); font-size:13px; }
+.sc-code{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#8c5cf6; font-weight:600; }
+
 .sector-tag-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px; }
 
 .tag-valid {
@@ -1982,6 +1991,7 @@ function normalizeRenderSectorNews(rows) {
           url: n.link || n.url || '',
           time: n.pub || r.time || '',
           src: n.src || 'Google RSS',
+          stocks: Array.isArray(n.stocks) ? n.stocks : [],
           cat: '熱門族群'
         });
       }
@@ -2027,10 +2037,17 @@ function renderSectors(contentEl, items) {
       ? d.toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})
       : (n.time||'');
     const readClass  = isRead(n.url) ? 'read' : '';
+    const chipsHtml = (n.stocks && n.stocks.length) ? `
+  <div class="sector-hot-block">
+    <div class="sector-hot-label">🎯 指標股</div>
+    <div class="sector-chips">
+      ${n.stocks.map(s => `<span class="sector-chip" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')"><span class="sc-name">${s.name}</span><span class="sc-code">${s.code}</span></span>`).join('')}
+    </div>
+  </div>` : '';
     return `
 <div class="sector-news-card ${readClass}" style="animation:fadeIn2 0.2s ease ${i*0.03}s both"
   onclick="markRead('${n.url}');this.classList.add('read');window.open('${n.url}','_blank')">
-  <div class="sector-news-card-title">${n.title}</div>
+  <div class="sector-news-card-title">${n.title}</div>${chipsHtml}
   <div class="sector-meta-row">
     <span>🕐</span><span style="font-family:'JetBrains Mono',monospace;">${dateStr}</span>
     <span>📋</span><span style="color:var(--accent);font-weight:500;">${n.src||'富聯網'}</span>
