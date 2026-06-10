@@ -2262,12 +2262,30 @@ function switchStrategy(s) {
 startClock();
 loadWindGauge();                          // 頁面一載入就顯示風度圖
 setInterval(loadWindGauge, 5 * 60 * 1000); // 每5分鐘刷新顯示(Worker 端30分算一次)
+// ── ?search=股號：TG 推播連結跳轉（點了直接到盤中警示並選中該檔）──
+const _searchCode = (() => {
+  try { return new URLSearchParams(window.location.search).get('search') || ''; } catch(e) { return ''; }
+})();
+if (/^\d{4,6}$/.test(_searchCode)) {
+  goto('intraday');
+  // 等 fetchAlerts 把列表載回來後選中該檔（每 0.5 秒試一次，最多 20 次 = 10 秒）
+  let _tries = 0;
+  const _timer = setInterval(() => {
+    _tries++;
+    const row = document.querySelector(`tr[data-code="${_searchCode}"]`);
+    if (row) {
+      clearInterval(_timer);
+      try { openNews(_searchCode); row.scrollIntoView({ block: 'center' }); } catch(e) {}
+    } else if (_tries >= 20) { clearInterval(_timer); }
+  }, 500);
+} else {
 // 恢復上次的頁面
 try {
   const last = localStorage.getItem('lastPage');
   goto(last && pages[last] ? last : 'intraday');
 } catch(e) {
   goto('intraday');
+}
 }
 </script>
 </body>
