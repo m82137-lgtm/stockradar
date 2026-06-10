@@ -1053,7 +1053,7 @@ function renderRelatedStocks(stocks) {
     const isLimit = !!a;
     if (isLimit) hasLimit = true;
     const label = name ? `${name}(${s.code})` : s.code;
-    return `<span class="stock-chip${isLimit?' limit':''}" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')">${label}${isLimit?' 🔴':''}</span>`;
+    return `<span class="stock-chip${isLimit?' limit':''}" onclick="event.stopPropagation();window.open('${ivTvUrl(s)}','_blank')">${label}${isLimit?' 🔴':''}</span>`;
   }).join('');
   return {
     html: `\n<div class="related-stocks">\n  <span class="related-label">🎯 指標主流股：</span>\n  ${chips}\n</div>`,
@@ -1276,8 +1276,8 @@ function cardQJ(s, idx) {
 <div class="stock-card ${s.limit?'limit':'strong'}" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
   <div class="stock-top">
     <div class="stock-id">
-      <span class="stock-code" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;">${s.code}</span>
-      <span class="stock-name" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;">${s.name}</span>
+      <span class="stock-code" onclick="event.stopPropagation();window.open('${ivTvUrl(s)}','_blank')" style="cursor:pointer;">${s.code}</span>
+      <span class="stock-name" onclick="event.stopPropagation();window.open('${ivTvUrl(s)}','_blank')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;">${s.name}</span>
       ${s.limit?'<span class="badge badge-limit">漲停</span>':'<span class="badge badge-up">強漲</span>'}
       ${s.market?`<span class="badge badge-sector">${s.market}</span>`:''}
     </div>
@@ -1320,8 +1320,8 @@ function cardLZ(s, idx) {
 <div class="stock-card ${(+(s.chg||0))>=9.5?'limit':((+(s.chg||0))>=0?'strong':'down')}" style="animation:fadeIn 0.2s ease ${idx*0.04}s both">
   <div class="stock-top">
     <div class="stock-id">
-      <span class="stock-code" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;">${s.code}</span>
-      <span class="stock-name" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;">${s.name}</span>
+      <span class="stock-code" onclick="event.stopPropagation();window.open('${ivTvUrl(s)}','_blank')" style="cursor:pointer;">${s.code}</span>
+      <span class="stock-name" onclick="event.stopPropagation();window.open('${ivTvUrl(s)}','_blank')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;">${s.name}</span>
       <span class="badge badge-limit">前日漲停</span>
       ${s.market?`<span class="badge badge-sector">${s.market}</span>`:''}
     </div>
@@ -1356,7 +1356,7 @@ function cardAfter(s, idx) {
   return `
 <div class="after-card ${(+(s.chg||0))>=9.5?'limit':((+(s.chg||0))>=0?'strong':'down')}" style="animation-delay:${idx*0.04}s">
   <div class="after-card-top">
-    <div class="after-code-area" onclick="window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')" style="cursor:pointer;">
+    <div class="after-code-area" onclick="window.open('${ivTvUrl(s)}','_blank')" style="cursor:pointer;">
       <span class="after-code">${s.code}</span>
       <span class="after-name" style="text-decoration:underline dotted;text-underline-offset:3px;">${s.name}</span>
       <span class="after-market">${s.market||'台股'}</span>
@@ -2041,7 +2041,7 @@ function renderSectors(contentEl, items) {
   <div class="sector-hot-block">
     <div class="sector-hot-label">🎯 指標股</div>
     <div class="sector-chips">
-      ${n.stocks.map(s => `<span class="sector-chip" onclick="event.stopPropagation();window.open('https://tw.tradingview.com/chart/?symbol=TWSE:${s.code}','_blank')"><span class="sc-name">${s.name}</span><span class="sc-code">${s.code}</span></span>`).join('')}
+      ${n.stocks.map(s => `<span class="sector-chip" onclick="event.stopPropagation();window.open('${ivTvUrl(s)}','_blank')"><span class="sc-name">${s.name}</span><span class="sc-code">${s.code}</span></span>`).join('')}
     </div>
   </div>` : '';
     return `
@@ -2058,6 +2058,9 @@ function renderSectors(contentEl, items) {
 
 // ── 新聞頁雙 tab（鉅亨網 / 個股新聞）──────────────
 let codeNameMap = null;   // 股號→股名對照表（從 Worker 抓，本地快取）
+// 對照表相容新舊格式：舊 = {code:"股名"}；新 = {code:{name,market}}
+function cnmName(entry){ return typeof entry === 'string' ? entry : (entry && entry.name) || ''; }
+function cnmMarket(entry){ return typeof entry === 'string' ? '' : (entry && entry.market) || ''; }
 let cnyesLoaded = false;  // 鉅亨網是否已載入（避免切回重抓）
 
 function initNewsPage() {
@@ -2110,14 +2113,14 @@ async function doStockNewsSearch() {
   if (mapReady) {
     if (/^\d{4,6}$/.test(q)) {
       // 純股號：對照表要有這檔
-      if (map[q]) { code = q; name = map[q]; }
+      if (map[q]) { code = q; name = cnmName(map[q]); }
     } else {
       // 股名：先精確比對，再模糊（含關鍵字、至少2字，例：「台積」→台積電）
-      const exact = Object.entries(map).find(([c, n]) => n === q);
-      if (exact) { code = exact[0]; name = exact[1]; }
+      const exact = Object.entries(map).find(([c, n]) => cnmName(n) === q);
+      if (exact) { code = exact[0]; name = cnmName(exact[1]); }
       else if (q.length >= 2) {
-        const fuzzy = Object.entries(map).find(([c, n]) => n.includes(q));
-        if (fuzzy) { code = fuzzy[0]; name = fuzzy[1]; }
+        const fuzzy = Object.entries(map).find(([c, n]) => cnmName(n).includes(q));
+        if (fuzzy) { code = fuzzy[0]; name = cnmName(fuzzy[1]); }
       }
     }
     // 對照表裡找不到 → 擋下，不去 Google 亂搜
