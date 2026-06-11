@@ -578,7 +578,7 @@ main:has(.iv2){ padding:0 !important; }
 }
 
 /* 新聞區：Web 右欄 / 手機下方 */
-.iv2-news{ flex:0 0 clamp(440px, 43vw, 760px); width:clamp(440px, 43vw, 760px); border-left:1px solid var(--border); background:var(--bg2); display:flex; flex-direction:column; min-height:0; }
+.iv2-news{ flex:0 0 440px; width:440px; border-left:1px solid var(--border); background:var(--bg2); display:flex; flex-direction:column; min-height:0; }
 .iv2-nd-head{ padding:13px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .iv2-nd-head .t{ font-size:15px; font-weight:800; color:var(--text); }
 .iv2-nd-head .t small{ font-size:11.5px; color:var(--text2); font-weight:500; margin-left:6px; font-family:'JetBrains Mono',monospace; }
@@ -588,39 +588,6 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-nd-x{ border:none; background:var(--bg3); color:var(--text2); width:28px; height:28px; border-radius:8px; cursor:pointer; font-size:15px; display:none; }
 .iv2-nd-list{ flex:1; min-height:0; overflow:auto; padding:8px 0; }
 .iv2-nd-empty{ flex:1; display:flex; align-items:center; justify-content:center; color:var(--text3); font-size:13px; text-align:center; padding:20px; }
-/* TV K線圖（桌機限定）：選股後顯示在新聞上方；手機永遠隱藏、不載入 */
-.iv2-tvchart{ display:none; }
-.iv2-tv-divider{ display:none; }
-.iv2-tvlb{ display:none; }
-@media (min-width:640px){
-  body.iv2-has-sel .iv2-tvchart{ display:flex; flex-direction:column; flex:0 0 360px; border-bottom:1px solid var(--border); background:var(--bg2); }
-  .iv2-tv-ivs{ display:flex; gap:4px; padding:6px 10px; border-bottom:1px solid var(--border); flex:0 0 auto; align-items:center; }
-  .iv2-tv-ivs button{ border:1px solid var(--border); background:var(--bg3); color:var(--text2); font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:7px; cursor:pointer; }
-  .iv2-tv-ivs button.on{ background:var(--accent); border-color:var(--accent); color:#fff; }
-  .iv2-tv-ivs .sp{ flex:1; }
-  .iv2-tv-ivs .iv2-tv-zoom{ width:26px; height:26px; padding:0; font-size:13px; display:flex; align-items:center; justify-content:center; }
-  .iv2-tv-ivs .iv2-tv-zoom:hover{ border-color:var(--accent); color:var(--accent); }
-  .iv2-tv-host{ flex:1; min-height:0; }
-  .iv2-tv-host .tradingview-widget-container, .iv2-tv-host .tradingview-widget-container__widget{ height:100%; }
-  /* 圖表/新聞之間的拖拉把手 */
-  body.iv2-has-sel .iv2-tv-divider{ display:flex; flex:0 0 10px; background:var(--bg3); border-bottom:1px solid var(--border); cursor:ns-resize; align-items:center; justify-content:center; }
-  .iv2-tv-divider::after{ content:''; width:36px; height:3px; border-radius:2px; background:var(--border2); }
-  .iv2-tv-divider:hover{ background:var(--bg4); }
-  .iv2-tv-divider:hover::after{ background:var(--accent); }
-  body.iv2-tv-dragging{ user-select:none; cursor:ns-resize; }
-  body.iv2-tv-dragging iframe{ pointer-events:none; }
-  /* 放大燈箱 */
-  .iv2-tvlb.open{ display:flex; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,.65); padding:28px; }
-  .iv2-tvlb-card{ flex:1; background:var(--bg2); border:1px solid var(--border2); border-radius:14px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 18px 60px rgba(0,0,0,.55); }
-  .iv2-tvlb-head{ display:flex; align-items:center; gap:14px; padding:10px 16px; border-bottom:1px solid var(--border); }
-  .iv2-tvlb-head .t{ font-size:15px; font-weight:800; color:var(--text); }
-  .iv2-tvlb-head .t small{ font-size:11.5px; color:var(--text2); font-weight:500; margin-left:6px; font-family:'JetBrains Mono',monospace; }
-  .iv2-tvlb-head .iv2-tv-ivs{ border-bottom:none; padding:0; }
-  .iv2-tvlb-head .x{ margin-left:auto; border:none; background:var(--bg3); color:var(--text2); width:30px; height:30px; border-radius:8px; cursor:pointer; font-size:15px; }
-  .iv2-tvlb-head .x:hover{ color:var(--text); }
-  .iv2-tvlb-host{ flex:1; min-height:0; }
-  .iv2-tvlb-host .tradingview-widget-container, .iv2-tvlb-host .tradingview-widget-container__widget{ height:100%; }
-}
 @media (max-width:639px){
   .iv2-ws{ flex-direction:column; }
   .iv2-news{ flex:0 0 auto; width:auto; height:0; border-left:none; border-top:1px solid var(--border); overflow:hidden; }
@@ -1004,8 +971,6 @@ function toggleTheme() {
   html.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
   updateThemeUI(next);
-  // 有選股時讓 TV K線圖跟著換主題
-  if (typeof ivSelCode !== 'undefined' && ivSelCode && typeof ivAlertIndex !== 'undefined' && ivAlertIndex[ivSelCode]) updateTvChart(ivAlertIndex[ivSelCode]);
 }
 
 function updateThemeUI(theme) {
@@ -1465,114 +1430,6 @@ function sortStocks(stocks) {
 // ── 市場別 TradingView 代碼（上市 TWSE / 上櫃 TPEX）──
 function ivTvSym(s){ return (s.market==='OTC'?'TPEX:':'TWSE:') + s.code; }
 function ivTvUrl(s){ return 'https://tw.tradingview.com/chart/?symbol=' + encodeURIComponent(ivTvSym(s)); }
-// TV K線圖（桌機限定）：TradingView 官方 embed（K線+量內建+5/10/20/60均線），手機不載入
-const TV_INTERVALS = [['5','5分K'],['15','15分K'],['D','日K'],['W','週K'],['M','月K']];
-let tvInterval = localStorage.getItem('tvInterval') || '5';
-function renderTvIvBtns(){
-  const html = TV_INTERVALS.map(([v,l]) =>
-    `<button class="${v===tvInterval?'on':''}" onclick="setTvInterval('${v}')">${l}</button>`).join('');
-  const bar = document.getElementById('iv2-tv-ivs');
-  if (bar) bar.innerHTML = html + '<span class="sp"></span><button class="iv2-tv-zoom" onclick="openTvLb()" title="放大圖表">⛶</button>';
-  const lb = document.getElementById('iv2-tvlb-ivs');
-  if (lb) lb.innerHTML = html;
-}
-function setTvInterval(v){
-  tvInterval = v;
-  localStorage.setItem('tvInterval', v);
-  renderTvIvBtns();
-  const s = ivSelCode && ivAlertIndex[ivSelCode];
-  if (!s) return;
-  buildTvWidget(s, document.getElementById('iv2-tv-host'));
-  const lbEl = document.getElementById('iv2-tvlb');
-  if (lbEl && lbEl.classList.contains('open')) buildTvWidget(s, document.getElementById('iv2-tvlb-host'));
-}
-function buildTvWidget(s, host){
-  if (!host || !s) return;
-  const theme = document.documentElement.getAttribute('data-theme')==='light' ? 'light' : 'dark';
-  host.innerHTML = '';
-  const wrap = document.createElement('div');
-  wrap.className = 'tradingview-widget-container';
-  const inner = document.createElement('div');
-  inner.className = 'tradingview-widget-container__widget';
-  const sc = document.createElement('script');
-  sc.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-  sc.async = true;
-  sc.text = JSON.stringify({
-    autosize: true,
-    symbol: ivTvSym(s),
-    interval: tvInterval,
-    timezone: 'Asia/Taipei',
-    theme: theme,
-    style: '1',
-    locale: 'zh_TW',
-    hide_top_toolbar: true,
-    hide_side_toolbar: true,
-    allow_symbol_change: false,
-    save_image: false,
-    studies: [
-      { id: 'MASimple@tv-basicstudies', inputs: { length: 5 } },
-      { id: 'MASimple@tv-basicstudies', inputs: { length: 10 } },
-      { id: 'MASimple@tv-basicstudies', inputs: { length: 20 } },
-      { id: 'MASimple@tv-basicstudies', inputs: { length: 60 } }
-    ],
-    support_host: 'https://www.tradingview.com'
-  });
-  wrap.appendChild(inner);
-  wrap.appendChild(sc);
-  host.appendChild(wrap);
-}
-function updateTvChart(s){
-  if (!window.matchMedia('(min-width:640px)').matches) return; // 手機直接不碰
-  const box = document.getElementById('iv2-tvchart');
-  if (box){
-    const h = parseInt(localStorage.getItem('tvChartH')) || 360;
-    box.style.flex = '0 0 ' + Math.max(180, Math.min(600, h)) + 'px';
-  }
-  renderTvIvBtns();
-  buildTvWidget(s, document.getElementById('iv2-tv-host'));
-}
-// 放大燈箱
-function openTvLb(){
-  const s = ivSelCode && ivAlertIndex[ivSelCode]; if (!s) return;
-  const lb = document.getElementById('iv2-tvlb'); if (!lb) return;
-  lb.classList.add('open');
-  const t = document.getElementById('iv2-tvlb-title');
-  if (t) t.innerHTML = `${s.name}<small>${s.code} · ${s.market==='OTC'?'上櫃':'上市'}</small>`;
-  renderTvIvBtns();
-  buildTvWidget(s, document.getElementById('iv2-tvlb-host'));
-}
-function closeTvLb(){
-  const lb = document.getElementById('iv2-tvlb');
-  if (!lb || !lb.classList.contains('open')) return;
-  lb.classList.remove('open');
-  const h = document.getElementById('iv2-tvlb-host'); if (h) h.innerHTML = '';
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTvLb(); });
-// 圖表/新聞分隔線拖拉（document 層級委派，頁面重繪也不失效）
-(function(){
-  let drag = null;
-  document.addEventListener('mousedown', e => {
-    if (e.target && e.target.id === 'iv2-tv-divider'){
-      const box = document.getElementById('iv2-tvchart'); if (!box) return;
-      drag = { y: e.clientY, h: box.offsetHeight };
-      document.body.classList.add('iv2-tv-dragging');
-      e.preventDefault();
-    }
-  });
-  document.addEventListener('mousemove', e => {
-    if (!drag) return;
-    const box = document.getElementById('iv2-tvchart'); if (!box) return;
-    const h = Math.max(180, Math.min(600, drag.h + (e.clientY - drag.y)));
-    box.style.flex = '0 0 ' + h + 'px';
-  });
-  document.addEventListener('mouseup', () => {
-    if (!drag) return;
-    const box = document.getElementById('iv2-tvchart');
-    if (box) localStorage.setItem('tvChartH', box.offsetHeight);
-    document.body.classList.remove('iv2-tv-dragging');
-    drag = null;
-  });
-})();
 function ivFmtVol(v){ return (v||0).toLocaleString('en-US'); }
 function ivFmtVolM(v){ return v>=10000 ? (v/10000).toFixed(1).replace(/\.0$/,'')+'萬' : (v||0).toLocaleString('en-US'); }
 function ivTwTime(s){
@@ -1648,7 +1505,6 @@ function openNews(code, keepScroll){
   if (emptyEl) emptyEl.style.display = 'none';
   if (listEl)  { listEl.style.display = 'block'; if(!keepScroll) listEl.scrollTop = 0; }
   fetchDockNews(s.code, s.name);
-  updateTvChart(s);
   // 手機：把選取的列捲到新聞區上方看得見
   if (!keepScroll && window.matchMedia('(max-width:639px)').matches){
     const tr = [...document.querySelectorAll('#strategy-list tr')].find(t=>t.dataset.code===code);
@@ -1657,8 +1513,6 @@ function openNews(code, keepScroll){
 }
 function clearSel(){
   ivSelCode = null;
-  const tvh = document.getElementById('iv2-tv-host'); if (tvh) tvh.innerHTML = '';
-  if (typeof closeTvLb === 'function') closeTvLb();
   document.body.classList.remove('iv2-has-sel');
   document.querySelectorAll('#strategy-list tr').forEach(tr => tr.classList.remove('sel'));
   const emptyEl = document.getElementById('iv2-nd-empty');
@@ -1823,9 +1677,6 @@ const pages = {
         <div class="t" id="iv2-nd-title">相關新聞</div>
         <div class="iv2-nd-meta"><span class="iv2-nd-time" id="iv2-nd-time"></span><button class="iv2-nd-x" onclick="clearSel()">✕</button></div>
       </div>
-      <div class="iv2-tvchart" id="iv2-tvchart"><div class="iv2-tv-ivs" id="iv2-tv-ivs"></div><div class="iv2-tv-host" id="iv2-tv-host"></div></div>
-      <div class="iv2-tv-divider" id="iv2-tv-divider" title="上下拖拉調整圖表高度"></div>
-      <div class="iv2-tvlb" id="iv2-tvlb"><div class="iv2-tvlb-card"><div class="iv2-tvlb-head"><div class="t" id="iv2-tvlb-title"></div><div class="iv2-tv-ivs" id="iv2-tvlb-ivs"></div><button class="x" onclick="closeTvLb()" title="關閉 (Esc)">✕</button></div><div class="iv2-tvlb-host" id="iv2-tvlb-host"></div></div></div>
       <div class="iv2-nd-list" id="iv2-nd-list" style="display:none"></div>
       <div class="iv2-nd-empty" id="iv2-nd-empty">點一檔股票<br>這裡顯示它的相關新聞</div>
     </aside>
