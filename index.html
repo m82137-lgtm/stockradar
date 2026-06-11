@@ -588,6 +588,12 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-nd-x{ border:none; background:var(--bg3); color:var(--text2); width:28px; height:28px; border-radius:8px; cursor:pointer; font-size:15px; display:none; }
 .iv2-nd-list{ flex:1; min-height:0; overflow:auto; padding:8px 0; }
 .iv2-nd-empty{ flex:1; display:flex; align-items:center; justify-content:center; color:var(--text3); font-size:13px; text-align:center; padding:20px; }
+/* TV K線圖（桌機限定）：選股後顯示在新聞上方；手機永遠隱藏、不載入 */
+.iv2-tvchart{ display:none; }
+@media (min-width:640px){
+  body.iv2-has-sel .iv2-tvchart{ display:block; flex:0 0 320px; border-bottom:1px solid var(--border); background:var(--bg2); }
+  .iv2-tvchart iframe{ width:100%; height:100%; border:0; display:block; }
+}
 @media (max-width:639px){
   .iv2-ws{ flex-direction:column; }
   .iv2-news{ flex:0 0 auto; width:auto; height:0; border-left:none; border-top:1px solid var(--border); overflow:hidden; }
@@ -971,6 +977,8 @@ function toggleTheme() {
   html.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
   updateThemeUI(next);
+  // 有選股時讓 TV K線圖跟著換主題
+  if (typeof ivSelCode !== 'undefined' && ivSelCode && typeof ivAlertIndex !== 'undefined' && ivAlertIndex[ivSelCode]) updateTvChart(ivAlertIndex[ivSelCode]);
 }
 
 function updateThemeUI(theme) {
@@ -1430,6 +1438,17 @@ function sortStocks(stocks) {
 // ── 市場別 TradingView 代碼（上市 TWSE / 上櫃 TPEX）──
 function ivTvSym(s){ return (s.market==='OTC'?'TPEX:':'TWSE:') + s.code; }
 function ivTvUrl(s){ return 'https://tw.tradingview.com/chart/?symbol=' + encodeURIComponent(ivTvSym(s)); }
+// TV K線圖（桌機限定）：嵌 TradingView widget iframe（K線+成交量內建+MACD），手機不載入
+function updateTvChart(s){
+  if (!window.matchMedia('(min-width:640px)').matches) return; // 手機直接不碰
+  const f = document.getElementById('iv2-tv-frame'); if (!f || !s) return;
+  const theme = document.documentElement.getAttribute('data-theme')==='light' ? 'light' : 'dark';
+  const url = 'https://s.tradingview.com/widgetembed/?symbol=' + encodeURIComponent(ivTvSym(s))
+    + '&interval=D&theme=' + theme + '&style=1&timezone=Asia%2FTaipei&locale=zh_TW'
+    + '&hidesidetoolbar=1&symboledit=0&saveimage=0&withdateranges=1'
+    + '&studies=' + encodeURIComponent('MACD@tv-basicstudies');
+  if (f.getAttribute('src') !== url) f.src = url;
+}
 function ivFmtVol(v){ return (v||0).toLocaleString('en-US'); }
 function ivFmtVolM(v){ return v>=10000 ? (v/10000).toFixed(1).replace(/\.0$/,'')+'萬' : (v||0).toLocaleString('en-US'); }
 function ivTwTime(s){
@@ -1505,6 +1524,7 @@ function openNews(code, keepScroll){
   if (emptyEl) emptyEl.style.display = 'none';
   if (listEl)  { listEl.style.display = 'block'; if(!keepScroll) listEl.scrollTop = 0; }
   fetchDockNews(s.code, s.name);
+  updateTvChart(s);
   // 手機：把選取的列捲到新聞區上方看得見
   if (!keepScroll && window.matchMedia('(max-width:639px)').matches){
     const tr = [...document.querySelectorAll('#strategy-list tr')].find(t=>t.dataset.code===code);
@@ -1513,6 +1533,7 @@ function openNews(code, keepScroll){
 }
 function clearSel(){
   ivSelCode = null;
+  const tvf = document.getElementById('iv2-tv-frame'); if (tvf) tvf.removeAttribute('src');
   document.body.classList.remove('iv2-has-sel');
   document.querySelectorAll('#strategy-list tr').forEach(tr => tr.classList.remove('sel'));
   const emptyEl = document.getElementById('iv2-nd-empty');
@@ -1677,6 +1698,7 @@ const pages = {
         <div class="t" id="iv2-nd-title">相關新聞</div>
         <div class="iv2-nd-meta"><span class="iv2-nd-time" id="iv2-nd-time"></span><button class="iv2-nd-x" onclick="clearSel()">✕</button></div>
       </div>
+      <div class="iv2-tvchart" id="iv2-tvchart"><iframe id="iv2-tv-frame" title="K線圖" loading="lazy"></iframe></div>
       <div class="iv2-nd-list" id="iv2-nd-list" style="display:none"></div>
       <div class="iv2-nd-empty" id="iv2-nd-empty">點一檔股票<br>這裡顯示它的相關新聞</div>
     </aside>
