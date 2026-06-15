@@ -427,6 +427,7 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .wind-tbl tbody td { padding:5px 4px; border:1px solid var(--border); text-align:center; font-family:'JetBrains Mono',monospace; }
 .wind-tbl tbody td.date { color:var(--text2); white-space:nowrap; }
 .wind-tbl tbody td.wind-c { font-weight:700; font-family:inherit; }
+.wind-tbl thead th.wind-sub { font-size:11px; font-weight:600; color:var(--text2); }
 .wind-tbl tbody td.wind-c.red { color:var(--red); }
 .wind-tbl tbody td.wind-c.green { color:var(--green); }
 .wind-tbl tbody td.wind-c.amber { color:var(--amber); }
@@ -1199,15 +1200,18 @@ async function loadWindPage() {
     const tbody = document.getElementById('wind-tbody');
     if (tbody) {
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);">尚無記錄</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3);">尚無記錄</td></tr>';
       } else {
         const rows = [...list].reverse().map(e => {
           const d = e.date ? e.date.slice(5).replace('-','/') : '—';
           const windCls = windClass(e.wind);
           const windTxt = e.wind || '—';
+          const twseCls = e.twseWind ? windClass(e.twseWind) : '';
+          const twseTxt = e.twseWind || '—';
           const num = (v, limit) => (v===0||v==null) ? `<span class="zero">0</span>` : (limit ? `<span class="limit-num">${v}</span>` : v);
           return `<tr>
             <td class="date">${d}</td>
+            <td class="wind-c ${twseCls}">${twseTxt}</td>
             <td class="wind-c ${windCls}">${windTxt}</td>
             <td>${e.qjCount??0}</td><td>${num(e.qjLimit,true)}</td>
             <td>${e.lzCount??0}</td><td>${num(e.lzLimit,true)}</td>
@@ -1219,7 +1223,7 @@ async function loadWindPage() {
   } catch (e) {
     console.log('loadWindPage fail:', e.message);
     const tbody = document.getElementById('wind-tbody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);">載入失敗</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3);">載入失敗</td></tr>';
   }
 }
 
@@ -1626,10 +1630,10 @@ const pages = {
   <div class="wind-tbl-wrap">
     <table class="wind-tbl">
       <thead>
-        <tr><th rowspan="2">日期</th><th rowspan="2">風度</th><th colspan="2">起漲K</th><th colspan="2">量增K</th></tr>
-        <tr><th>符合</th><th>漲停</th><th>符合</th><th>漲停</th></tr>
+        <tr><th rowspan="2">日期</th><th colspan="2">風度</th><th colspan="2">起漲K</th><th colspan="2">量增K</th></tr>
+        <tr><th class="wind-sub">TSE</th><th class="wind-sub">OTC</th><th>符合</th><th>漲停</th><th>符合</th><th>漲停</th></tr>
       </thead>
-      <tbody id="wind-tbody"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);">載入中…</td></tr></tbody>
+      <tbody id="wind-tbody"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3);">載入中…</td></tr></tbody>
     </table>
   </div>
 </div>`;
