@@ -1729,7 +1729,7 @@ const pages = {
     return `<div class="page-wrap">
 <div class="page-header">
   <div class="page-title">熱門族群情報</div>
-  <div class="page-desc">即時抓取富聯網熱門族群新聞，<span>保存 15 天</span></div>
+  <div class="page-desc">即時抓取富聯網熱門族群新聞，<span>保存 30 天</span></div>
   <span class="head-clock"></span>
 </div>
 <div class="sync-bar">
@@ -1748,7 +1748,7 @@ const pages = {
     return `<div class="page-wrap">
 <div class="page-header">
   <div class="page-title">台股新聞</div>
-  <div class="page-desc" id="news-page-desc">即時抓取鉅亨網台股新聞，<span>保存 7 天</span></div>
+  <div class="page-desc" id="news-page-desc">即時抓取鉅亨網台股新聞，<span>保存 15 天</span></div>
   <span class="head-clock"></span>
 </div>
 <div class="news-seg">
@@ -1866,11 +1866,11 @@ const pages = {
       </div>
       <div style="display:flex;gap:12px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
         <span class="badge badge-new" style="flex-shrink:0;margin-top:2px">熱門族群</span>
-        <span style="font-size:13px;color:var(--text2);line-height:1.6;">追蹤富聯網族群動態，KV 保存 <b>15 天</b>，標題含個股代號自動標出指標股。</span>
+        <span style="font-size:13px;color:var(--text2);line-height:1.6;">追蹤富聯網族群動態，KV 保存 <b>30 天</b>，標題含個股代號自動標出指標股。</span>
       </div>
       <div style="display:flex;gap:12px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
         <span class="badge badge-sector" style="flex-shrink:0;margin-top:2px">台股新聞</span>
-        <span style="font-size:13px;color:var(--text2);line-height:1.6;">抓取鉅亨網台股新聞，KV 保存 <b>7 天</b>，點過標題變淺代表已讀。</span>
+        <span style="font-size:13px;color:var(--text2);line-height:1.6;">抓取鉅亨網台股新聞，KV 保存 <b>15 天</b>，點過標題變淺代表已讀。</span>
       </div>
     </div>
   </div>
@@ -2140,7 +2140,7 @@ function switchNewsTab(which) {
   if (pCny) pCny.style.display = isCny ? '' : 'none';
   if (pStk) pStk.style.display = isCny ? 'none' : '';
   if (desc) desc.innerHTML = isCny
-    ? '即時抓取鉅亨網台股新聞，<span>保存 7 天</span>'
+    ? '即時抓取鉅亨網台股新聞，<span>保存 15 天</span>'
     : '輸入股名或股號，查詢個股新聞（全台股）';
   if (isCny && !cnyesLoaded) { cnyesLoaded = true; fetchCnyes(); }
   if (!isCny) { const i = document.getElementById('stock-search-input'); if (i) setTimeout(()=>i.focus(), 50); }
