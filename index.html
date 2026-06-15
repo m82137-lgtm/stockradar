@@ -765,6 +765,18 @@ main:has(.iv2){ padding:0 !important; }
 .sector-chip:hover{ background:rgba(140,92,246,.26); border-color:rgba(140,92,246,.7); }
 .sc-name{ font-weight:600; color:var(--text); font-size:11px; }
 .sc-code{ font-family:'JetBrains Mono',monospace; font-size:10px; color:#8c5cf6; font-weight:600; }
+/* 指標股 chip 折疊:手機露前3顆、桌機露前6顆；展開時全露 */
+.sector-chips .sec-chip-x6{ display:none; }   /* 第4~6顆:手機預設收 */
+.sector-chips .sec-chip-x7{ display:none; }   /* 第7顆起:預設收 */
+@media (min-width:640px){
+  .sector-chips .sec-chip-x6{ display:inline-flex; }   /* 桌機露出第4~6顆 */
+  .sector-chips .more-hide-desktop{ display:none; }    /* 總數≤6 桌機已全露，藏鈕 */
+  /* 桌機鈕文字改成 +(總數-6)：用 CSS 無法算，改由 JS 在桌機重寫，見 toggleSectorChips 初始化 */
+}
+.sector-chips.chips-expanded .sec-chip-x6,
+.sector-chips.chips-expanded .sec-chip-x7{ display:inline-flex !important; }
+.sec-chip-more{ display:inline-flex; align-items:center; font-size:11px; color:var(--accent); cursor:pointer; border:1px dashed rgba(91,141,248,.5); border-radius:8px; padding:3px 9px; font-weight:600; white-space:nowrap; }
+.sec-chip-more:hover{ background:rgba(91,141,248,.1); }
 
 .sector-tag-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px; }
 
@@ -1986,6 +1998,28 @@ function loadAllStockNews(stocks, prefix='qj') {
   stocks.forEach((s,i) => setTimeout(()=>fetchStockNews(s.code,s.name,prefix), i*400));
 }
 
+// 指標股 chip 展開/收起:點「+N ▼」露出全部、變「▲ 收起」，再點收回
+// 收起時顯示數依螢幕:桌機露6顆→+(總數-6)、手機露3顆→+(總數-3)
+function sectorVisibleCount(){ return window.matchMedia('(min-width:640px)').matches ? 6 : 3; }
+function sectorMoreLabel(total){ return `+${total - sectorVisibleCount()} ▼`; }
+function toggleSectorChips(btn){
+  const box = btn.closest('.sector-chips');
+  if (!box) return;
+  const expanded = box.classList.toggle('chips-expanded');
+  const total = parseInt(btn.getAttribute('data-total')) || 0;
+  btn.textContent = expanded ? '▲ 收起' : sectorMoreLabel(total);
+}
+// 渲染後/縮放時:依螢幕修正每顆「+N」鈕的數字（收合狀態才改）
+function refreshSectorMoreLabels(){
+  document.querySelectorAll('.sec-chip-more').forEach(btn => {
+    const box = btn.closest('.sector-chips');
+    if (box && box.classList.contains('chips-expanded')) return;
+    const total = parseInt(btn.getAttribute('data-total')) || 0;
+    if (total - sectorVisibleCount() > 0) btn.textContent = sectorMoreLabel(total);
+  });
+}
+window.addEventListener('resize', refreshSectorMoreLabels);
+
 // ── 熱門族群 API ───────────────────────────────
 function normalizeRenderSectorNews(rows) {
   const list = Array.isArray(rows) ? rows : [];
@@ -2045,15 +2079,28 @@ function renderSectors(contentEl, items) {
       ? d.toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})
       : (n.time||'');
     const readClass  = isRead(n.url) ? 'read' : '';
-    const chipsHtml = (n.stocks && n.stocks.length) ? `
+    const chipsHtml = (n.stocks && n.stocks.length) ? (() => {
+      // 折疊:手機露前3顆、桌機露前6顆（CSS 控制），超過的依位置標記，多一顆「+N ▼」鈕
+      const chips = n.stocks.map((s, idx) => {
+        let extra = '';
+        if (idx >= 3 && idx < 6) extra = ' sec-chip-x6';   // 第4~6顆:桌機露、手機收
+        else if (idx >= 6)       extra = ' sec-chip-x7';   // 第7顆起:展開才露
+        return `<span class="sector-chip${extra}" onclick="event.stopPropagation();window.open('${ivTvUrl(s)}','_blank')"><span class="sc-name">${s.name}</span><span class="sc-code">${s.code}</span></span>`;
+      }).join('');
+      // +N 鈕:手機基準(超過3顆就有)。桌機已露6顆，若總數≤6 用 class 讓桌機隱藏此鈕
+      const moreBtn = n.stocks.length > 3
+        ? `<span class="sec-chip-more${n.stocks.length<=6?' more-hide-desktop':''}" data-total="${n.stocks.length}" onclick="event.stopPropagation();toggleSectorChips(this)">+${n.stocks.length-3} ▼</span>`
+        : '';
+      return `
   <div class="sector-hot-block">
     <div class="sector-hot-inline">
       <div class="sector-hot-label">🎯 指標股</div>
       <div class="sector-chips">
-      ${n.stocks.map(s => `<span class="sector-chip" onclick="event.stopPropagation();window.open('${ivTvUrl(s)}','_blank')"><span class="sc-name">${s.name}</span><span class="sc-code">${s.code}</span></span>`).join('')}
+      ${chips}${moreBtn}
       </div>
     </div>
-  </div>` : '';
+  </div>`;
+    })() : '';
     return `
 <div class="sector-news-card ${readClass}" style="animation:fadeIn2 0.2s ease ${i*0.03}s both"
   onclick="markRead('${n.url}');this.classList.add('read');window.open('${n.url}','_blank')">
@@ -2064,6 +2111,7 @@ function renderSectors(contentEl, items) {
   </div>
 </div>`;
   }).join('');
+  refreshSectorMoreLabels();  // 依當前螢幕修正「+N」鈕數字（桌機6/手機3基準）
 }
 
 // ── 新聞頁雙 tab（鉅亨網 / 個股新聞）──────────────
