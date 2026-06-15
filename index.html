@@ -1990,7 +1990,7 @@ function renderStockNews(el, items) {
   let expanded = false;
   document.getElementById(toggleId).addEventListener('click', function() {
     expanded = !expanded;
-    el.querySelectorAll('.news-extra').forEach(function(a, idx) { a.style.display = (expanded && idx < 6) ? 'block' : 'none'; });
+    el.querySelectorAll('.news-extra').forEach(function(a) { a.style.display = expanded ? 'block' : 'none'; });
     this.textContent = expanded ? '▲ 收起，只顯示 2 則' : ('還有 ' + (items.length - PREVIEW) + ' 則新聞 ▼ 點擊展開');
   });
 }
