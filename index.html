@@ -16,7 +16,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="pixel-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="pixel-180.png">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#101011">
+<meta name="theme-color" content="#1a1b1e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="龍珠雷達">
@@ -25,31 +25,31 @@
 <style>
 /* ══ 暗色主題（預設）══════════════════════════ */
 :root, [data-theme="dark"] {
-  --bg:       #101011;
-  --bg2:      #1a1a1c;
-  --bg3:      #242427;
-  --bg4:      #2e2e33;
-  --border:   #323236;
-  --border2:  #44444a;
-  --text:     #e8ecf4;
-  --text2:    #8892aa;
-  --text3:    #4e5a7a;
-  --green:    #00c853;
-  --green-bg: rgba(0,200,83,0.08);
-  --green-bg2:rgba(0,200,83,0.15);
-  --red:      #ff4444;
-  --red-bg:   rgba(255,68,68,0.08);
-  --red-bg2:  rgba(255,68,68,0.15);
+  --bg:       #1a1b1e;
+  --bg2:      #212328;
+  --bg3:      #2a2d33;
+  --bg4:      #343841;
+  --border:   #3a3d44;
+  --border2:  #4c505a;
+  --text:     #f0f3f9;
+  --text2:    #9aa4ba;
+  --text3:    #6b7794;
+  --green:    #22d36a;
+  --green-bg: rgba(34,211,106,0.10);
+  --green-bg2:rgba(34,211,106,0.18);
+  --red:      #ff5a5a;
+  --red-bg:   rgba(255,90,90,0.10);
+  --red-bg2:  rgba(255,90,90,0.18);
   --amber:    #ffb300;
   --red-soft: #ff8f8f;
   --green-soft:#74d68e;
-  --amber-bg: rgba(255,179,0,0.10);
-  --blue:     #4f8ef7;
-  --blue-bg:  rgba(79,142,247,0.10);
-  --accent:   #5b8df8;
-  --accent-bg:rgba(91,141,248,0.12);
-  --purple:   #9c6bf4;
-  --purple-bg:rgba(156,107,244,0.10);
+  --amber-bg: rgba(255,179,0,0.12);
+  --blue:     #5b97f8;
+  --blue-bg:  rgba(91,151,248,0.12);
+  --accent:   #6b97f8;
+  --accent-bg:rgba(107,151,248,0.14);
+  --purple:   #a87cf5;
+  --purple-bg:rgba(168,124,245,0.12);
   --sidebar-w:180px;
 }
 
@@ -531,21 +531,21 @@ main:has(.iv2){ padding:0 !important; }
   .iv2-table .c-code{ width:13%; } .iv2-table .c-name{ width:21%; } .iv2-table .c-price{ width:13%; }
   .iv2-table .c-chg{ width:17%; } .iv2-table .c-vol{ width:24%; } .iv2-table .c-k15{ width:12%; }
 }
-.iv2-table thead th{ font-size:11.5px; color:var(--text3); font-weight:700; text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); background:var(--bg2); position:sticky; top:0; z-index:2; white-space:nowrap; }
-@media (min-width:640px){ .iv2-table thead th{ font-size:12px; padding:7px 14px; } }
+.iv2-table thead th{ font-size:11px; color:var(--text3); font-weight:700; text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); background:var(--bg2); position:sticky; top:0; z-index:2; white-space:nowrap; }
+@media (min-width:640px){ .iv2-table thead th{ font-size:11.5px; padding:7px 14px; } }
 .iv2-table thead th.l{ text-align:left; }
-.iv2-table tbody td{ padding:7px 8px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap; font-size:13.5px; color:var(--text); }
-@media (min-width:640px){ .iv2-table tbody td{ padding:9px 14px; font-size:14px; } }
+.iv2-table tbody td{ padding:7px 8px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap; font-size:13px; color:var(--text); }
+@media (min-width:640px){ .iv2-table tbody td{ padding:9px 14px; font-size:13.5px; } }
 .iv2-table tbody tr{ cursor:pointer; }
 .iv2-table tbody tr:hover{ background:var(--bg3); }
 .iv2-table tbody tr.sel{ background:var(--accent-bg); }
 .iv2-table tbody tr.sel td:first-child{ box-shadow:inset 3px 0 0 var(--accent); }
 .iv2-table tbody tr.faded{ opacity:.7; }
-.iv2-code{ font-family:'JetBrains Mono',monospace; font-size:12px; color:#fff; background:#8b5a2b; padding:3px 8px; border-radius:6px; font-weight:700; }
-@media (max-width:639px){ .iv2-code{ font-size:11.5px; padding:2px 6px; } }
+.iv2-code{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#fff; background:#8b5a2b; padding:3px 8px; border-radius:6px; font-weight:700; }
+@media (max-width:639px){ .iv2-code{ font-size:11px; padding:2px 6px; } }
 .iv2-table td.l{ text-align:left; }
-.iv2-nm{ color:var(--text); text-decoration:none; font-weight:700; border-bottom:1.5px dashed var(--text3); padding-bottom:1px; font-size:14px; }
-@media (max-width:639px){ .iv2-nm{ font-size:13.5px; } }
+.iv2-nm{ color:var(--text); text-decoration:none; font-weight:700; border-bottom:1.5px dashed var(--text3); padding-bottom:1px; font-size:13.5px; }
+@media (max-width:639px){ .iv2-nm{ font-size:13px; } }
 .iv2-nm:hover{ color:var(--accent); border-bottom-color:var(--accent); }
 .iv2-tv{ font-size:10px; color:var(--text3); border:1px solid var(--border); border-radius:5px; padding:1px 5px; margin-left:6px; }
 .iv2-mkt{ font-size:10px; color:var(--text2); background:var(--bg3); border-radius:5px; padding:2px 6px; margin-left:5px; }
@@ -557,9 +557,9 @@ main:has(.iv2){ padding:0 !important; }
 [data-theme="light"] .iv2-table tr.limit{ background:rgba(217,54,62,.07); }
 .iv2-table tr.limit td{ border-color:rgba(255,68,68,.25); }
 .iv2-chgbox{ display:inline-block; background:var(--red); color:#fff; border-radius:7px; padding:3px 9px; font-weight:800; }
-@media (max-width:639px){ .iv2-chgbox,.iv2-chg{ font-size:13px; } }
-.iv2-k15{ font-size:11.5px; font-weight:700; border-radius:7px; padding:3px 8px; display:inline-block; }
-@media (max-width:639px){ .iv2-k15{ font-size:10.5px; padding:2px 6px; } }
+@media (max-width:639px){ .iv2-chgbox,.iv2-chg{ font-size:12.5px; } }
+.iv2-k15{ font-size:11px; font-weight:700; border-radius:7px; padding:3px 8px; display:inline-block; }
+@media (max-width:639px){ .iv2-k15{ font-size:10px; padding:2px 6px; } }
 .iv2-k15.ok{ color:var(--green); background:var(--green-bg); }
 .iv2-k15.no{ color:var(--red); background:rgba(255,68,68,.12); }
 .iv2-k15.na{ color:var(--text3); background:var(--bg3); }
@@ -1981,7 +1981,7 @@ function renderStockNews(el, items) {
     const t = isNaN(d) ? '' : d.toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
     const display = hidden ? 'none' : 'block';
     const cls = hidden ? ' news-extra' : '';
-    return '<a href="' + n.link + '" target="_blank" rel="noopener" class="news-item' + cls + '" style="text-decoration:none;display:' + display + ';margin-bottom:6px;"><div style="padding:8px 10px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);"><div style="font-size:13px;color:var(--text);line-height:1.4;margin-bottom:3px;">' + n.title + '</div><div style="font-size:12px;color:var(--text3);display:flex;gap:8px;"><span style=\'color:var(--accent);\'>' + n.src + '</span><span>' + t + '</span></div></div></a>';
+    return '<a href="' + n.link + '" target="_blank" rel="noopener" class="news-item' + cls + '" style="text-decoration:none;display:' + display + ';margin-bottom:6px;"><div style="padding:8px 10px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);"><div style="font-size:12px;color:var(--text);line-height:1.4;margin-bottom:3px;">' + n.title + '</div><div style="font-size:11px;color:var(--text3);display:flex;gap:8px;"><span style=\'color:var(--accent);\'>' + n.src + '</span><span>' + t + '</span></div></div></a>';
   };
   const allHtml = items.map((n, i) => renderItem(n, i >= PREVIEW)).join('');
   if (items.length <= PREVIEW) { el.innerHTML = allHtml; return; }
