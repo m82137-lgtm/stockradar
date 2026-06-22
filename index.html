@@ -16,7 +16,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="pixel-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="pixel-180.png">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1a1b1e">
+<meta name="theme-color" content="#22273a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="龍珠雷達">
@@ -25,21 +25,21 @@
 <style>
 /* ══ 暗色主題（預設）══════════════════════════ */
 :root, [data-theme="dark"] {
-  --bg:       #1a1b1e;
-  --bg2:      #212328;
-  --bg3:      #2a2d33;
-  --bg4:      #343841;
-  --border:   #3a3d44;
-  --border2:  #4c505a;
-  --text:     #f0f3f9;
-  --text2:    #9aa4ba;
-  --text3:    #6b7794;
-  --green:    #22d36a;
-  --green-bg: rgba(34,211,106,0.10);
-  --green-bg2:rgba(34,211,106,0.18);
-  --red:      #ff5a5a;
-  --red-bg:   rgba(255,90,90,0.10);
-  --red-bg2:  rgba(255,90,90,0.18);
+  --bg:       #22273a;
+  --bg2:      #2b3147;
+  --bg3:      #333b56;
+  --bg4:      #3e476a;
+  --border:   #3a4468;
+  --border2:  #4d5784;
+  --text:     #eef1fb;
+  --text2:    #9aa6c8;
+  --text3:    #6b76a0;
+  --green:    #33e57f;
+  --green-bg: rgba(51,229,127,0.12);
+  --green-bg2:rgba(51,229,127,0.20);
+  --red:      #ff7070;
+  --red-bg:   rgba(255,112,112,0.12);
+  --red-bg2:  rgba(255,112,112,0.20);
   --amber:    #ffb300;
   --red-soft: #ff8f8f;
   --green-soft:#74d68e;
@@ -47,9 +47,9 @@
   --blue:     #5b97f8;
   --blue-bg:  rgba(91,151,248,0.12);
   --accent:   #6b97f8;
-  --accent-bg:rgba(107,151,248,0.14);
+  --accent-bg:rgba(107,151,248,0.16);
   --purple:   #a87cf5;
-  --purple-bg:rgba(168,124,245,0.12);
+  --purple-bg:rgba(168,124,245,0.14);
   --sidebar-w:180px;
 }
 
@@ -537,8 +537,9 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-table tbody td{ padding:7px 8px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap; font-size:13px; color:var(--text); }
 @media (min-width:640px){ .iv2-table tbody td{ padding:9px 14px; font-size:13.5px; } }
 .iv2-table tbody tr{ cursor:pointer; }
-.iv2-table tbody tr:hover{ background:var(--bg3); }
-.iv2-table tbody tr.sel{ background:var(--accent-bg); }
+.iv2-table tbody tr td{ background:var(--bg2); }
+.iv2-table tbody tr:hover td{ background:var(--bg3); }
+.iv2-table tbody tr.sel td{ background:var(--accent-bg); }
 .iv2-table tbody tr.sel td:first-child{ box-shadow:inset 3px 0 0 var(--accent); }
 .iv2-table tbody tr.faded{ opacity:.7; }
 .iv2-code{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#fff; background:#8b5a2b; padding:3px 8px; border-radius:6px; font-weight:700; }
@@ -553,9 +554,9 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-num{ font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; }
 .iv2-chg{ font-weight:800; }
 .iv2-chg.up{ color:var(--red); } .iv2-chg.down{ color:var(--green); }
-.iv2-table tr.limit{ background:rgba(255,68,68,.08); }
-[data-theme="light"] .iv2-table tr.limit{ background:rgba(217,54,62,.07); }
-.iv2-table tr.limit td{ border-color:rgba(255,68,68,.25); }
+.iv2-table tr.limit td{ background:var(--red-bg2); }
+[data-theme="light"] .iv2-table tr.limit td{ background:rgba(217,54,62,.07); }
+.iv2-table tr.limit td{ border-color:rgba(255,112,112,.3); }
 .iv2-chgbox{ display:inline-block; background:var(--red); color:#fff; border-radius:7px; padding:3px 9px; font-weight:800; }
 @media (max-width:639px){ .iv2-chgbox,.iv2-chg{ font-size:12.5px; } }
 .iv2-k15{ font-size:11px; font-weight:700; border-radius:7px; padding:3px 8px; display:inline-block; }
