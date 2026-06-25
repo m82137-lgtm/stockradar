@@ -870,6 +870,15 @@ main:has(.iv2){ padding:0 !important; }
 .us-td-theme { text-align:left !important; color:var(--text3); font-size:13px; }
 .us-loading { text-align:center !important; padding:28px 12px !important; color:var(--text3); }
 
+/* 完整版新欄位 */
+.us-th-price, .us-th-days { text-align:right; }
+.us-td-price { font-variant-numeric:tabular-nums; color:var(--text2); }
+.us-td-days { font-variant-numeric:tabular-nums; color:var(--accent); font-weight:600; }
+.us-days-unit { font-size:11px; font-weight:400; color:var(--text3); margin-left:1px; }
+.us-new { display:inline-block; background:#d4a017; color:#1a1a1a; font-size:10px; font-weight:700; padding:1px 5px; border-radius:4px; margin-right:6px; vertical-align:middle; letter-spacing:0.5px; }
+.us-rank-up { display:block; font-size:10px; color:var(--red); font-weight:600; }
+.us-rank-down { display:block; font-size:10px; color:var(--green); font-weight:600; }
+
 .us-disclaimer { font-size:12px; color:var(--text3); line-height:1.6; padding:12px 14px; background:var(--bg2); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; }
 .us-source { font-size:11px; color:var(--text3); text-align:center; line-height:1.6; padding-bottom:8px; }
 
@@ -1644,6 +1653,7 @@ async function fetchAfterHours() {
 // ── 美股 Top50 ──────────────────────────────────
 let _usData = [];
 let _usSort = 'val';   // 'val' 成交金額 / 'chg' 漲跌幅
+let _usTags = {};      // 每檔題材標籤 {代碼:標籤}
 
 async function fetchUsTop50() {
   const tbody = document.getElementById('us-tbody');
@@ -1679,6 +1689,11 @@ async function fetchUsAnalysis() {
     setUsAi('us-focus-body',    a.focus);
     setUsAi('us-newcomer-body', a.newcomer);
     setUsAi('us-theme-body',    a.theme);
+    // 每檔題材標籤 → 存起來、重繪表格讓「題材」欄填入
+    if (a.tags && typeof a.tags === 'object') {
+      _usTags = a.tags;
+      renderUsTable();
+    }
   } catch(err) {
     // AI 失敗不影響表格，靜默
   }
@@ -1712,12 +1727,25 @@ function renderUsTable() {
   tbody.innerHTML = rows.map((s,i)=>{
     const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
+    // NEW 標籤 + 排名變化箭頭
+    const newBadge = s.isNew ? '<span class="us-new">NEW</span>' : '';
+    let rankMark = '';
+    if (!s.isNew && s.rankChange) {
+      if (s.rankChange > 0) rankMark = `<span class="us-rank-up">▲${s.rankChange}</span>`;
+      else if (s.rankChange < 0) rankMark = `<span class="us-rank-down">▼${Math.abs(s.rankChange)}</span>`;
+    }
+    // 在榜天數
+    const days = s.days || 1;
+    // 題材標籤（從 AI 分析的 tags 拿，沒有就 —）
+    const tag = (_usTags && _usTags[s.code]) ? _usTags[s.code] : '—';
     return `<tr onclick="openTradingView('${s.code}')">
-      <td class="us-td-rank">${i+1}</td>
-      <td class="us-td-code">${s.code}<span class="us-td-name">${s.name||''}</span></td>
+      <td class="us-td-rank">${i+1}${rankMark}</td>
+      <td class="us-td-code">${newBadge}${s.code}<span class="us-td-name">${s.name||''}</span></td>
+      <td class="us-td-price">$${(s.price ?? 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td class="us-td-chg ${chgCls}">${chgTxt}</td>
+      <td class="us-td-days">${days}<span class="us-days-unit">天</span></td>
       <td class="us-td-val">${fmtDollarVol(s.dollarVol)}</td>
-      <td class="us-td-theme">—</td>
+      <td class="us-td-theme">${tag}</td>
     </tr>`;
   }).join('');
 }
@@ -1912,13 +1940,15 @@ const pages = {
       <tr>
         <th class="us-th-rank">#</th>
         <th class="us-th-code">代碼</th>
+        <th class="us-th-price">價格</th>
         <th class="us-th-chg us-sortable" onclick="sortUs('chg')">漲跌幅</th>
+        <th class="us-th-days">在榜天數</th>
         <th class="us-th-val us-sortable us-sort-active" onclick="sortUs('val')">成交金額<span class="us-arrow">▼</span></th>
-        <th class="us-th-theme">題材</th>
+        <th class="us-th-theme">題材/族群</th>
       </tr>
     </thead>
     <tbody id="us-tbody">
-      <tr><td colspan="5" class="us-loading">載入中，請稍候…</td></tr>
+      <tr><td colspan="7" class="us-loading">載入中，請稍候…</td></tr>
     </tbody>
   </table>
 </div>
