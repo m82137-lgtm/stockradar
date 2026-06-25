@@ -879,6 +879,20 @@ main:has(.iv2){ padding:0 !important; }
 .us-rank-up { display:block; font-size:10px; color:var(--red); font-weight:600; }
 .us-rank-down { display:block; font-size:10px; color:var(--green); font-weight:600; }
 
+/* 發動題材卡片網格（第三批，比照原版）*/
+.us-ai-sub { font-size:12px; font-weight:400; color:var(--text3); margin-left:8px; }
+.us-theme-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px; margin-top:4px; }
+.us-theme-card { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+.us-theme-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.us-theme-name { font-size:15px; font-weight:700; color:var(--text); }
+.us-theme-chg { font-size:14px; font-weight:700; font-variant-numeric:tabular-nums; }
+.us-theme-chg.us-up { color:var(--red); }
+.us-theme-chg.us-down { color:var(--green); }
+.us-theme-desc { font-size:12.5px; color:var(--text2); line-height:1.5; margin-bottom:10px; }
+.us-theme-codes { display:flex; flex-wrap:wrap; gap:5px; }
+.us-theme-code { display:inline-block; background:var(--bg4); color:var(--text2); font-size:11px; font-weight:600; padding:2px 7px; border-radius:5px; cursor:pointer; transition:background 0.12s; }
+.us-theme-code:hover { background:var(--accent); color:#fff; }
+
 .us-disclaimer { font-size:12px; color:var(--text3); line-height:1.6; padding:12px 14px; background:var(--bg2); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; }
 .us-source { font-size:11px; color:var(--text3); text-align:center; line-height:1.6; padding-bottom:8px; }
 
@@ -1688,7 +1702,7 @@ async function fetchUsAnalysis() {
     if (stateEl) { stateEl.textContent = 'AI 已啟用'; stateEl.classList.add('on'); }
     setUsAi('us-focus-body',    a.focus);
     setUsAi('us-newcomer-body', a.newcomer);
-    setUsAi('us-theme-body',    a.theme);
+    renderThemeCards(a.themeCards);
     // 每檔題材標籤 → 存起來、重繪表格讓「題材」欄填入
     if (a.tags && typeof a.tags === 'object') {
       _usTags = a.tags;
@@ -1697,6 +1711,29 @@ async function fetchUsAnalysis() {
   } catch(err) {
     // AI 失敗不影響表格，靜默
   }
+}
+
+// 渲染發動題材卡片（截圖①：每題材一卡，帶族群漲跌幅+成員代碼）
+function renderThemeCards(cards) {
+  const grid = document.getElementById('us-theme-grid');
+  if (!grid) return;
+  if (!Array.isArray(cards) || !cards.length) {
+    grid.innerHTML = '<div class="us-ai-body" style="color:var(--text3);">今日無題材資料。</div>';
+    return;
+  }
+  grid.innerHTML = cards.map(t=>{
+    const chgCls = t.chg > 0 ? 'us-up' : (t.chg < 0 ? 'us-down' : '');
+    const chgTxt = (t.chg > 0 ? '+' : '') + (t.chg ?? 0).toFixed(2) + '%';
+    const codeBtns = (t.codes||[]).map(c=>`<span class="us-theme-code" onclick="event.stopPropagation();openTradingView('${c}')">${c}</span>`).join('');
+    return `<div class="us-theme-card">
+      <div class="us-theme-top">
+        <span class="us-theme-name">${t.name}</span>
+        <span class="us-theme-chg ${chgCls}">${chgTxt}</span>
+      </div>
+      <div class="us-theme-desc">${t.desc||''}</div>
+      <div class="us-theme-codes">${codeBtns}</div>
+    </div>`;
+  }).join('');
 }
 
 // 把 Gemini 回的文字（可能含 **粗體** / 換行）簡單轉成 HTML 填入
@@ -1929,8 +1966,10 @@ const pages = {
 
 <!-- ⑥ 今日發動題材（Gemini） -->
 <div class="us-ai-card" id="us-theme-card">
-  <div class="us-ai-head"><span class="us-ai-emoji">🔥</span>今日發動題材</div>
-  <div class="us-ai-body" id="us-theme-body">AI 分析準備中…依族群熱度排序，由 Gemini 說明。</div>
+  <div class="us-ai-head"><span class="us-ai-emoji">🔥</span>今日發動題材<span class="us-ai-sub">依族群強度排序 · 由 AI 分析</span></div>
+  <div class="us-theme-grid" id="us-theme-grid">
+    <div class="us-ai-body" style="color:var(--text3);">AI 分析準備中…依族群熱度排序，由 Gemini 說明。</div>
+  </div>
 </div>
 
 <!-- ③ 完整排行表 -->
