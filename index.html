@@ -834,6 +834,41 @@ main:has(.iv2){ padding:0 !important; }
   display:flex; gap:10px; font-size:14px; color:var(--text2); line-height:1.6;
 }
 
+/* ══ 美股 Top50 ══════════════════════════ */
+.us-status { display:flex; align-items:center; gap:14px; margin:2px 0 14px; font-size:13px; color:var(--text2); flex-wrap:wrap; }
+.us-status b { color:var(--text); font-weight:600; }
+.us-status-tag { color:var(--accent); font-size:12px; }
+.us-tbl-wrap { background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px; overflow-x:auto; }
+.us-tbl { width:100%; border-collapse:collapse; font-size:14px; }
+.us-tbl thead th { background:var(--bg3); color:var(--text2); font-weight:600; font-size:13px; padding:11px 10px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--border); }
+.us-tbl th.us-th-rank { text-align:center; width:48px; }
+.us-tbl th.us-th-code, .us-tbl th.us-th-theme { text-align:left; }
+.us-sortable { cursor:pointer; user-select:none; transition:color 0.15s; }
+.us-sortable:hover { color:var(--text); }
+.us-sort-active { color:var(--accent); }
+.us-arrow { font-size:10px; margin-left:2px; }
+.us-tbl tbody td { padding:11px 10px; text-align:right; border-bottom:1px solid var(--border); vertical-align:middle; white-space:nowrap; }
+.us-tbl tbody tr { cursor:pointer; transition:background 0.12s; }
+.us-tbl tbody tr:hover { background:var(--bg3); }
+.us-tbl tbody tr:last-child td { border-bottom:none; }
+.us-td-rank { text-align:center !important; color:var(--text3); font-variant-numeric:tabular-nums; }
+.us-td-code { text-align:left !important; font-weight:600; color:var(--text); }
+.us-td-name { display:block; font-size:11px; font-weight:400; color:var(--text3); margin-top:2px; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.us-td-price { font-variant-numeric:tabular-nums; color:var(--text2); }
+.us-td-chg { font-variant-numeric:tabular-nums; font-weight:600; }
+.us-td-chg.us-up   { color:var(--red); }
+.us-td-chg.us-down { color:var(--green); }
+.us-td-days { font-variant-numeric:tabular-nums; color:var(--accent); font-weight:600; }
+.us-days-unit { font-size:11px; font-weight:400; color:var(--text3); margin-left:1px; }
+.us-td-val { font-variant-numeric:tabular-nums; color:var(--text); }
+.us-td-theme { text-align:left !important; color:var(--text3); font-size:13px; }
+.us-loading { text-align:center !important; padding:28px 12px !important; color:var(--text3); }
+.us-new { display:inline-block; background:#d4a017; color:#1a1a1a; font-size:10px; font-weight:700; padding:1px 5px; border-radius:4px; margin-right:6px; vertical-align:middle; letter-spacing:0.5px; }
+.us-rank-up { display:block; font-size:10px; color:var(--red); font-weight:600; }
+.us-rank-down { display:block; font-size:10px; color:var(--green); font-weight:600; }
+.us-disclaimer { font-size:12px; color:var(--text3); line-height:1.6; padding:12px 14px; background:var(--bg2); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; }
+.us-source { font-size:11px; color:var(--text3); text-align:center; line-height:1.6; padding-bottom:8px; }
+
 .after-card {
   background:var(--bg2); border:1px solid var(--border);
   border-radius:12px; padding:11px 14px; margin-bottom:8px;
@@ -940,6 +975,11 @@ main:has(.iv2){ padding:0 !important; }
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     盤後追蹤
   </div>
+  <div class="sidebar-section-label" style="margin-top:8px;">美股市場</div>
+  <div class="sidebar-link" onclick="goto('us',this)">
+    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+    美股 Top50
+  </div>
   <div class="sidebar-section-label" style="margin-top:8px;">追蹤新聞</div>
   <div class="sidebar-link" onclick="goto('sectors',this)">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
@@ -968,6 +1008,9 @@ main:has(.iv2){ padding:0 !important; }
   </div>
   <div class="nav-link" onclick="goto('after',this)">
     <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span><span class="tab-label">盤後</span>
+  </div>
+  <div class="nav-link" onclick="goto('us',this)">
+    <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span><span class="tab-label">美股</span>
   </div>
   <div class="nav-link" onclick="goto('sectors',this)">
     <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span class="tab-label">族群</span>
@@ -1594,9 +1637,83 @@ async function fetchAfterHours() {
   }
 }
 
+// ── 美股 Top50（第一批：行情7欄表格）──────────────
+let _usData = [];
+let _usSort = 'val';
+let _usTags = {};   // 每檔題材標籤（後續批次填）
+
+async function fetchUsTop50() {
+  const tbody = document.getElementById('us-tbody');
+  if (!tbody) return;
+  try {
+    const res  = await fetch(`${NEWS_API}/api/us-top50`);
+    const json = await res.json();
+    if (!json.ok || !Array.isArray(json.data) || !json.data.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="us-loading">美股資料尚未產生<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">每交易日約台北 13:30 自動更新</span></td></tr>';
+      return;
+    }
+    _usData = json.data;
+    const dateEl = document.getElementById('us-date');
+    if (dateEl && json.date) dateEl.textContent = json.date;
+    const updEl = document.getElementById('us-updated');
+    if (updEl && json.updatedAt) updEl.textContent = new Date(json.updatedAt).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    renderUsTable();
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="7" class="us-loading">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchUsTop50()">重試</button></td></tr>`;
+  }
+}
+
+function sortUs(key) {
+  _usSort = key;
+  document.querySelectorAll('.us-tbl th.us-sortable').forEach(th=>th.classList.remove('us-sort-active'));
+  const th = document.querySelector(key==='val' ? '.us-th-val' : '.us-th-chg');
+  if (th) th.classList.add('us-sort-active');
+  renderUsTable();
+}
+
+function renderUsTable() {
+  const tbody = document.getElementById('us-tbody');
+  if (!tbody || !_usData.length) return;
+  const rows = [..._usData];
+  if (_usSort === 'val') rows.sort((a,b)=>(b.dollarVol||0)-(a.dollarVol||0));
+  else                   rows.sort((a,b)=>(b.chg||0)-(a.chg||0));
+  tbody.innerHTML = rows.map((s,i)=>{
+    const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
+    const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
+    const newBadge = s.isNew ? '<span class="us-new">NEW</span>' : '';
+    let rankMark = '';
+    if (!s.isNew && s.rankChange) {
+      if (s.rankChange > 0) rankMark = `<span class="us-rank-up">▲${s.rankChange}</span>`;
+      else if (s.rankChange < 0) rankMark = `<span class="us-rank-down">▼${Math.abs(s.rankChange)}</span>`;
+    }
+    const tag = (_usTags && _usTags[s.code]) ? _usTags[s.code] : '—';
+    return `<tr onclick="openTradingView('${s.code}')">
+      <td class="us-td-rank">${i+1}${rankMark}</td>
+      <td class="us-td-code">${newBadge}${s.code}<span class="us-td-name">${s.name||''}</span></td>
+      <td class="us-td-price">$${(s.price ?? 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td class="us-td-chg ${chgCls}">${chgTxt}</td>
+      <td class="us-td-days">${s.days||1}<span class="us-days-unit">天</span></td>
+      <td class="us-td-val">${fmtDollarVol(s.dollarVol)}</td>
+      <td class="us-td-theme">${tag}</td>
+    </tr>`;
+  }).join('');
+}
+
+function fmtDollarVol(v) {
+  if (!v) return '—';
+  if (v >= 1e12) return '$' + (v/1e12).toFixed(2) + 'T';
+  if (v >= 1e9)  return '$' + (v/1e9).toFixed(2) + 'B';
+  if (v >= 1e6)  return '$' + (v/1e6).toFixed(1) + 'M';
+  return '$' + v.toLocaleString();
+}
+
+function openTradingView(code) {
+  window.open(`https://www.tradingview.com/symbols/${encodeURIComponent(code)}/`, '_blank');
+}
+
 // ── Pages ──────────────────────────────────────
 const PAGE_TITLES = {
-  wind:'風度', intraday:'盤中警示', after:'盤後追蹤', sectors:'熱門族群', news:'台股新聞', guide:'網站說明'
+  wind:'風度', intraday:'盤中警示', after:'盤後追蹤', us:'美股 Top50', sectors:'熱門族群', news:'台股新聞', guide:'網站說明'
 };
 
 const pages = {
@@ -1722,6 +1839,56 @@ const pages = {
 <div id="after-list">
   <div class="loading-card">載入中，請稍候…</div>
 </div>
+</div>`;
+  },
+
+  us() {
+    setTimeout(fetchUsTop50, 0);
+    return `<div class="page-wrap us-page">
+<div class="page-header">
+  <div class="page-title">美股成交值排行 Top 50</div>
+  <div class="page-desc">全美股市場依成交金額（價格 × 成交量）排序。點欄位標題可切換排序。</div>
+  <span class="head-clock"></span>
+</div>
+<div class="us-status">
+  <span>美股收盤：<b id="us-date">—</b></span>
+  <span class="us-status-sep">更新於：<b id="us-updated">—</b></span>
+  <span class="us-status-tag">全市場資料 · Polygon</span>
+  <span class="us-status-tag">題材分析 · Gemini</span>
+</div>
+
+<div class="after-info-box">
+  <span style="font-size:14px;flex-shrink:0;">ℹ️</span>
+  <span style="font-size:12px;">顯示「前一個美股交易日」的收盤資料；每個交易日約台北 13:00–14:00 自動更新（免費資料源於美股收盤後隔日才提供，早上看到的多為前一交易日）。</span>
+</div>
+
+<!-- Gemini 區塊容器（後續批次填入）-->
+<div id="us-focus-slot"></div>
+<div id="us-newcomer-slot"></div>
+<div id="us-theme-slot"></div>
+
+<!-- 排行表 -->
+<div class="us-tbl-wrap">
+  <table class="us-tbl">
+    <thead>
+      <tr>
+        <th class="us-th-rank">#</th>
+        <th class="us-th-code">代碼</th>
+        <th class="us-th-price">價格</th>
+        <th class="us-th-chg us-sortable" onclick="sortUs('chg')">漲跌幅</th>
+        <th class="us-th-days">在榜天數</th>
+        <th class="us-th-val us-sortable us-sort-active" onclick="sortUs('val')">成交金額<span class="us-arrow">▼</span></th>
+        <th class="us-th-theme">題材/族群</th>
+      </tr>
+    </thead>
+    <tbody id="us-tbody">
+      <tr><td colspan="7" class="us-loading">載入中，請稍候…</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="us-disclaimer">⚠️ 本站數據與「題材／族群」「市場焦點」等分析皆由程式與 AI 自動產生，僅供參考、非投資建議，且可能延遲、不完整或有誤。投資決策請自行查證並自負風險。</div>
+<div class="us-source">行情：Polygon.io（前一美股交易日收盤）｜題材分析：Google Gemini｜走勢圖：TradingView</div>
 </div>`;
   },
 
