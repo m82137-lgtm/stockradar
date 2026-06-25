@@ -1659,9 +1659,40 @@ async function fetchUsTop50() {
     const dateEl = document.getElementById('us-date');
     if (dateEl && json.date) dateEl.textContent = json.date;
     renderUsTable();
+    fetchUsAnalysis();   // 接著抓 AI 分析填入 3 區塊
   } catch(err) {
     tbody.innerHTML = `<tr><td colspan="5" class="us-loading">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchUsTop50()">重試</button></td></tr>`;
   }
+}
+
+// 抓 Gemini AI 分析，填入市場焦點/新進榜/發動題材 3 區塊
+async function fetchUsAnalysis() {
+  try {
+    const res  = await fetch(`${NEWS_API}/api/us-analysis`);
+    const a = await res.json();
+    const stateEl = document.getElementById('us-ai-state');
+    if (!a.ok) {
+      if (stateEl) stateEl.textContent = 'AI 準備中';
+      return;
+    }
+    if (stateEl) { stateEl.textContent = 'AI 已啟用'; stateEl.classList.add('on'); }
+    setUsAi('us-focus-body',    a.focus);
+    setUsAi('us-newcomer-body', a.newcomer);
+    setUsAi('us-theme-body',    a.theme);
+  } catch(err) {
+    // AI 失敗不影響表格，靜默
+  }
+}
+
+// 把 Gemini 回的文字（可能含 **粗體** / 換行）簡單轉成 HTML 填入
+function setUsAi(id, text) {
+  const el = document.getElementById(id);
+  if (!el || !text) return;
+  const html = text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')   // **粗體**
+    .replace(/\n/g, '<br>');
+  el.innerHTML = html;
 }
 
 function sortUs(key) {
