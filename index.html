@@ -886,6 +886,19 @@ main:has(.iv2){ padding:0 !important; }
 .us-theme-code { display:inline-block; background:var(--bg4); color:var(--text2); font-size:11px; font-weight:600; padding:2px 7px; border-radius:5px; cursor:pointer; transition:background 0.12s; }
 .us-theme-code:hover { background:var(--accent); color:#fff; }
 
+/* 新進榜雷達卡片 */
+.us-nc-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:10px; }
+.us-nc-card { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:12px 14px; cursor:pointer; transition:border-color 0.12s; }
+.us-nc-card:hover { border-color:var(--accent); }
+.us-nc-top { display:flex; align-items:center; justify-content:space-between; }
+.us-nc-code { font-size:15px; font-weight:700; color:var(--text); }
+.us-nc-chg { font-size:14px; font-weight:700; font-variant-numeric:tabular-nums; }
+.us-nc-chg.us-up { color:var(--red); }
+.us-nc-chg.us-down { color:var(--green); }
+.us-nc-name { font-size:12px; color:var(--text3); margin-top:2px; }
+.us-nc-tag { display:inline-block; font-size:11px; color:var(--accent); background:var(--bg4); padding:1px 7px; border-radius:5px; margin-top:8px; }
+.us-nc-event { font-size:12.5px; color:var(--text2); line-height:1.5; margin-top:8px; }
+
 .after-card {
   background:var(--bg2); border:1px solid var(--border);
   border-radius:12px; padding:11px 14px; margin-bottom:8px;
@@ -1688,8 +1701,32 @@ async function fetchUsAnalysis() {
     const a = await res.json();
     if (!a.ok) return;
     if (a.tags && typeof a.tags === 'object') { _usTags = a.tags; renderUsTable(); }
+    renderNewcomers(a.newcomerCards);
     renderThemeCards(a.themeCards);
   } catch(err) { /* AI失敗不影響表格 */ }
+}
+
+function renderNewcomers(cards) {
+  const slot = document.getElementById('us-newcomer-slot');
+  if (!slot) return;
+  if (!Array.isArray(cards) || !cards.length) { slot.innerHTML = ''; return; }
+  const cardsHtml = cards.map(s=>{
+    const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
+    const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
+    return `<div class="us-nc-card" onclick="openTradingView('${s.code}')">
+      <div class="us-nc-top">
+        <span class="us-nc-code">${s.code}</span>
+        <span class="us-nc-chg ${chgCls}">${chgTxt}</span>
+      </div>
+      <div class="us-nc-name">${s.name||''}</div>
+      ${s.tag ? `<div class="us-nc-tag">${s.tag}</div>` : ''}
+      <div class="us-nc-event">${s.event||''}</div>
+    </div>`;
+  }).join('');
+  slot.innerHTML = `<div class="us-ai-card">
+    <div class="us-ai-head"><span class="us-ai-emoji">🆕</span>新進榜雷達<span class="us-ai-sub">今日首次衝進前 50 · AI + Google 搜尋分析「發生了什麼」</span></div>
+    <div class="us-nc-grid">${cardsHtml}</div>
+  </div>`;
 }
 
 function renderThemeCards(cards) {
