@@ -899,6 +899,24 @@ main:has(.iv2){ padding:0 !important; }
 .us-nc-tag { display:inline-block; font-size:11px; color:var(--accent); background:var(--bg4); padding:1px 7px; border-radius:5px; margin-top:8px; }
 .us-nc-event { font-size:12.5px; color:var(--text2); line-height:1.5; margin-top:8px; }
 
+/* 市場焦點雙欄（第四批）*/
+.us-focus-summary { font-size:13px; color:var(--text2); line-height:1.6; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+.us-focus-cols { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.us-focus-col-head { font-size:13px; font-weight:700; color:var(--text); margin-bottom:10px; }
+.us-focus-head-happened { color:var(--red); }
+.us-focus-head-upcoming { color:var(--accent); }
+.us-focus-head-note { font-size:10.5px; font-weight:400; color:var(--text3); margin-left:4px; }
+.us-focus-item { background:var(--bg3); border:1px solid var(--border); border-radius:9px; padding:10px 12px; margin-bottom:8px; }
+.us-focus-item-up { border-left:3px solid var(--accent); }
+.us-focus-item-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:4px; }
+.us-focus-item-title { font-size:13px; font-weight:700; color:var(--text); line-height:1.35; }
+.us-focus-item-date { font-size:11px; font-weight:600; color:var(--red); background:var(--bg4); padding:1px 7px; border-radius:5px; white-space:nowrap; flex-shrink:0; }
+.us-focus-date-up { color:var(--accent); }
+.us-focus-item-desc { font-size:12px; color:var(--text2); line-height:1.5; }
+.us-focus-ai-note { font-size:10.5px; color:var(--text3); font-style:italic; }
+.us-focus-empty { font-size:12px; color:var(--text3); padding:8px 0; }
+@media (max-width:639px){ .us-focus-cols { grid-template-columns:1fr; gap:12px; } }
+
 .after-card {
   background:var(--bg2); border:1px solid var(--border);
   border-radius:12px; padding:11px 14px; margin-bottom:8px;
@@ -1701,9 +1719,46 @@ async function fetchUsAnalysis() {
     const a = await res.json();
     if (!a.ok) return;
     if (a.tags && typeof a.tags === 'object') { _usTags = a.tags; renderUsTable(); }
+    renderMarketFocus(a.marketFocus);
     renderNewcomers(a.newcomerCards);
     renderThemeCards(a.themeCards);
   } catch(err) { /* AI失敗不影響表格 */ }
+}
+
+function renderMarketFocus(mf) {
+  const slot = document.getElementById('us-focus-slot');
+  if (!slot) return;
+  if (!mf || (!mf.summary && !(mf.happened||[]).length && !(mf.upcoming||[]).length)) { slot.innerHTML = ''; return; }
+  const happenedHtml = (mf.happened||[]).map(e=>`
+    <div class="us-focus-item">
+      <div class="us-focus-item-top">
+        <span class="us-focus-item-title">${e.title||''}</span>
+        ${e.date ? `<span class="us-focus-item-date">${e.date}</span>` : ''}
+      </div>
+      <div class="us-focus-item-desc">${e.desc||''}</div>
+    </div>`).join('');
+  const upcomingHtml = (mf.upcoming||[]).map(e=>`
+    <div class="us-focus-item us-focus-item-up">
+      <div class="us-focus-item-top">
+        <span class="us-focus-item-title">${e.title||''}</span>
+        ${e.date ? `<span class="us-focus-item-date us-focus-date-up">${e.date}</span>` : ''}
+      </div>
+      <div class="us-focus-item-desc">${e.desc||''}<span class="us-focus-ai-note"> · AI 推測僅供參考</span></div>
+    </div>`).join('');
+  slot.innerHTML = `<div class="us-ai-card">
+    <div class="us-ai-head"><span class="us-ai-emoji">📰</span>今日市場焦點<span class="us-ai-sub">AI + Google 搜尋分析</span></div>
+    ${mf.summary ? `<div class="us-focus-summary">${mf.summary}</div>` : ''}
+    <div class="us-focus-cols">
+      <div class="us-focus-col">
+        <div class="us-focus-col-head us-focus-head-happened">📌 重大事件（已發生）</div>
+        ${happenedHtml || '<div class="us-focus-empty">今日無重大事件資料。</div>'}
+      </div>
+      <div class="us-focus-col">
+        <div class="us-focus-col-head us-focus-head-upcoming">🔮 即將到來<span class="us-focus-head-note">（AI 推測僅供參考）</span></div>
+        ${upcomingHtml || '<div class="us-focus-empty">暫無即將到來的事件。</div>'}
+      </div>
+    </div>
+  </div>`;
 }
 
 function renderNewcomers(cards) {
