@@ -876,6 +876,11 @@ main:has(.iv2){ padding:0 !important; }
 /* 美股 AI 卡片 + 發動題材卡片 */
 .us-ai-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
 .us-ai-head { font-size:16px; font-weight:600; color:var(--text); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+.us-ai-head-click { cursor:pointer; user-select:none; margin-bottom:0; }
+.us-ai-head-click:hover { color:var(--accent); }
+.us-collapse-arrow { margin-left:auto; font-size:12px; font-weight:600; color:var(--accent); white-space:nowrap; }
+.us-ai-body { margin-top:12px; }
+.us-ai-card.us-collapsed .us-ai-body { display:none; }
 .us-ai-emoji { font-size:18px; }
 .us-ai-sub { font-size:12px; font-weight:400; color:var(--text3); margin-left:4px; }
 .us-theme-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px; }
@@ -1805,8 +1810,9 @@ function renderMarketFocus(mf) {
       </div>
       <div class="us-focus-item-desc">${e.desc||''}<span class="us-focus-ai-note"> · AI 推測僅供參考</span></div>
     </div>`).join('');
-  slot.innerHTML = `<div class="us-ai-card">
-    <div class="us-ai-head"><span class="us-ai-emoji">📰</span>今日市場焦點<span class="us-ai-sub">AI + Google 搜尋分析</span></div>
+  slot.innerHTML = `<div class="us-ai-card us-collapsed" id="us-card-focus">
+    <div class="us-ai-head us-ai-head-click" onclick="toggleUsCard('us-card-focus')"><span class="us-ai-emoji">📰</span>今日市場焦點<span class="us-ai-sub">AI + Google 搜尋分析</span><span class="us-collapse-arrow">展開 ▼</span></div>
+    <div class="us-ai-body">
     ${mf.summary ? `<div class="us-focus-summary">${mf.summary}</div>` : ''}
     <div class="us-focus-cols">
       <div class="us-focus-col">
@@ -1818,13 +1824,18 @@ function renderMarketFocus(mf) {
         ${upcomingHtml || '<div class="us-focus-empty">暫無即將到來的事件。</div>'}
       </div>
     </div>
+    </div>
   </div>`;
 }
 
 function renderNewcomers(cards) {
   const slot = document.getElementById('us-newcomer-slot');
   if (!slot) return;
-  if (!Array.isArray(cards) || !cards.length) { slot.innerHTML = ''; return; }
+  const head = `<div class="us-ai-head us-ai-head-click" onclick="toggleUsCard('us-card-nc')"><span class="us-ai-emoji">🆕</span>新進榜雷達<span class="us-ai-sub">今日首次衝進前 50 · AI + Google 搜尋分析「發生了什麼」</span><span class="us-collapse-arrow">展開 ▼</span></div>`;
+  if (!Array.isArray(cards) || !cards.length) {
+    slot.innerHTML = `<div class="us-ai-card us-collapsed" id="us-card-nc">${head}<div class="us-ai-body"><div class="us-focus-empty">今日無新進榜個股（無個股首次衝進前 50）。</div></div></div>`;
+    return;
+  }
   const cardsHtml = cards.map(s=>{
     const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
@@ -1838,10 +1849,7 @@ function renderNewcomers(cards) {
       <div class="us-nc-event">${s.event||''}</div>
     </div>`;
   }).join('');
-  slot.innerHTML = `<div class="us-ai-card">
-    <div class="us-ai-head"><span class="us-ai-emoji">🆕</span>新進榜雷達<span class="us-ai-sub">今日首次衝進前 50 · AI + Google 搜尋分析「發生了什麼」</span></div>
-    <div class="us-nc-grid">${cardsHtml}</div>
-  </div>`;
+  slot.innerHTML = `<div class="us-ai-card us-collapsed" id="us-card-nc">${head}<div class="us-ai-body"><div class="us-nc-grid">${cardsHtml}</div></div></div>`;
 }
 
 function renderThemeCards(cards) {
@@ -1858,10 +1866,18 @@ function renderThemeCards(cards) {
       <div class="us-theme-codes">${codeBtns}</div>
     </div>`;
   }).join('');
-  slot.innerHTML = `<div class="us-ai-card">
-    <div class="us-ai-head"><span class="us-ai-emoji">🔥</span>今日發動題材<span class="us-ai-sub">依族群強度排序 · 由 AI 分析</span></div>
-    <div class="us-theme-grid">${cardsHtml}</div>
+  slot.innerHTML = `<div class="us-ai-card us-collapsed" id="us-card-theme">
+    <div class="us-ai-head us-ai-head-click" onclick="toggleUsCard('us-card-theme')"><span class="us-ai-emoji">🔥</span>今日發動題材<span class="us-ai-sub">依族群強度排序 · 由 AI 分析</span><span class="us-collapse-arrow">展開 ▼</span></div>
+    <div class="us-ai-body"><div class="us-theme-grid">${cardsHtml}</div></div>
   </div>`;
+}
+
+function toggleUsCard(id) {
+  const card = document.getElementById(id);
+  if (!card) return;
+  card.classList.toggle('us-collapsed');
+  const arrow = card.querySelector('.us-collapse-arrow');
+  if (arrow) arrow.textContent = card.classList.contains('us-collapsed') ? '展開 ▼' : '收起 ▲';
 }
 
 function sortUs(key) {
