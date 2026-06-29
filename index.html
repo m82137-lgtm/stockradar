@@ -838,6 +838,10 @@ main:has(.iv2){ padding:0 !important; }
 .us-status { display:flex; align-items:center; gap:14px; margin:2px 0 14px; font-size:13px; color:var(--text2); flex-wrap:wrap; }
 .us-status b { color:var(--text); font-weight:600; }
 .us-status-tag { color:var(--accent); font-size:12px; }
+.us-date-wrap { display:inline-flex; align-items:center; gap:2px; }
+.us-date-select { background:var(--bg3); color:var(--text); font-weight:600; font-size:13px; border:1px solid var(--border); border-radius:6px; padding:2px 24px 2px 8px; cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8a94' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 7px center; transition:border-color 0.12s; }
+.us-date-select:hover { border-color:var(--accent); }
+.us-date-select:focus { outline:none; border-color:var(--accent); }
 .us-tbl-wrap { background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px; overflow-x:auto; }
 .us-tbl { width:100%; border-collapse:collapse; font-size:14px; }
 .us-tbl thead th { background:var(--bg3); color:var(--text2); font-weight:600; font-size:13px; padding:11px 10px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--border); }
@@ -1697,18 +1701,74 @@ async function fetchUsTop50() {
     const res  = await fetch(`${NEWS_API}/api/us-top50`);
     const json = await res.json();
     if (!json.ok || !Array.isArray(json.data) || !json.data.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="us-loading">美股資料尚未產生<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">每交易日約台北 13:30 自動更新</span></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="us-loading">美股資料尚未產生<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">每交易日約台北 06:00 自動更新</span></td></tr>';
       return;
     }
     _usData = json.data;
-    const dateEl = document.getElementById('us-date');
-    if (dateEl && json.date) dateEl.textContent = json.date;
     const updEl = document.getElementById('us-updated');
     if (updEl && json.updatedAt) updEl.textContent = new Date(json.updatedAt).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
     renderUsTable();
-    fetchUsAnalysis();   // 接著抓 AI 題材分析
+    fetchUsAnalysis();          // 抓最新 AI 分析
+    fetchUsDates(json.date);    // 填歷史日期下拉、預設選最新
   } catch(err) {
     tbody.innerHTML = `<tr><td colspan="7" class="us-loading">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchUsTop50()">重試</button></td></tr>`;
+  }
+}
+
+// 第五批：抓可選歷史日期、填下拉、預設選 currentDate
+async function fetchUsDates(currentDate) {
+  const sel = document.getElementById('us-date-select');
+  if (!sel) return;
+  try {
+    const res = await fetch(`${NEWS_API}/api/us-dates`);
+    const j = await res.json();
+    let dates = (j.ok && Array.isArray(j.dates)) ? j.dates : [];
+    if (currentDate && !dates.includes(currentDate)) dates.unshift(currentDate);
+    if (!dates.length && currentDate) dates = [currentDate];
+    sel.innerHTML = dates.map(d => `<option value="${d}">${d}</option>`).join('');
+    sel.value = currentDate || dates[0] || '';
+  } catch(err) {
+    // 失敗就退化成只顯示當前日期
+    if (currentDate) { sel.innerHTML = `<option value="${currentDate}">${currentDate}</option>`; sel.value = currentDate; }
+  }
+}
+
+// 第五批：切換日期 → 載入該天快照（最新那天走即時 us-top50，歷史走 us-snapshot）
+async function onUsDateChange(date) {
+  if (!date) return;
+  const sel = document.getElementById('us-date-select');
+  const latest = sel && sel.options.length ? sel.options[0].value : '';
+  const tbody = document.getElementById('us-tbody');
+  try {
+    let data;
+    if (date === latest) {
+      // 選最新 → 用即時資料（含當前 analysis）
+      const res = await fetch(`${NEWS_API}/api/us-top50`);
+      data = await res.json();
+      if (data.ok) {
+        _usData = data.data; renderUsTable(); fetchUsAnalysis();
+        const updEl = document.getElementById('us-updated');
+        if (updEl && data.updatedAt) updEl.textContent = new Date(data.updatedAt).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      }
+      return;
+    }
+    // 歷史某天 → 讀快照
+    const res = await fetch(`${NEWS_API}/api/us-snapshot?date=${date}`);
+    data = await res.json();
+    if (!data.ok || !Array.isArray(data.data)) {
+      if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="us-loading">查無 ${date} 的資料</td></tr>`;
+      return;
+    }
+    _usData = data.data;
+    _usTags = data.tags && typeof data.tags === 'object' ? data.tags : {};
+    renderUsTable();
+    renderMarketFocus(data.marketFocus);
+    renderNewcomers(data.newcomerCards);
+    renderThemeCards(data.themeCards);
+    const updEl = document.getElementById('us-updated');
+    if (updEl && data.updatedAt) updEl.textContent = new Date(data.updatedAt).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  } catch(err) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="us-loading">⚠️ 載入失敗：${err.message}</td></tr>`;
   }
 }
 
@@ -1992,7 +2052,7 @@ const pages = {
   <span class="head-clock"></span>
 </div>
 <div class="us-status">
-  <span>美股收盤：<b id="us-date">—</b></span>
+  <span class="us-date-wrap">美股收盤：<select id="us-date-select" class="us-date-select" onchange="onUsDateChange(this.value)"><option value="">—</option></select></span>
   <span class="us-status-sep">更新於：<b id="us-updated">—</b></span>
   <span class="us-status-tag">全市場資料 · Polygon</span>
   <span class="us-status-tag">題材分析 · Gemini</span>
