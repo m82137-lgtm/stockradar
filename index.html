@@ -1925,7 +1925,8 @@ function fmtDollarVol(v) {
 }
 
 function openTradingView(code) {
-  window.open(`https://www.tradingview.com/symbols/${encodeURIComponent(code)}/`, '_blank');
+  // 點個股 → 開 Google News 搜尋該股新聞
+  window.open(`https://news.google.com/search?q=${encodeURIComponent(code + ' stock')}&hl=zh-TW&gl=TW`, '_blank');
 }
 
 // ── Pages ──────────────────────────────────────
@@ -2105,7 +2106,7 @@ const pages = {
 </div>
 
 <div class="us-disclaimer">⚠️ 本站數據與「題材／族群」「市場焦點」等分析皆由程式與 AI 自動產生，僅供參考、非投資建議，且可能延遲、不完整或有誤。投資決策請自行查證並自負風險。</div>
-<div class="us-source">行情：Polygon.io（前一美股交易日收盤）｜題材分析：Google Gemini｜走勢圖：TradingView</div>
+<div class="us-source">行情：Polygon.io（前一美股交易日收盤）｜題材分析：Google Gemini｜個股新聞：Google News</div>
 </div>`;
   },
 
