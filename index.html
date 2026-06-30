@@ -1666,14 +1666,66 @@ async function fetchTwTop50() {
       return;
     }
     _twData = json.data;
-    const dateEl = document.getElementById('tw-date');
-    if (dateEl && json.date) dateEl.textContent = json.date;
     const updEl = document.getElementById('tw-updated');
     if (updEl && json.updatedAt) updEl.textContent = new Date(json.updatedAt).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
     renderTwTable();
-    fetchTwAnalysis();   // 抓題材分析（第二批）
+    fetchTwAnalysis();          // 抓題材分析（第二三四批）
+    fetchTwDates(json.date);    // 填歷史日期下拉（第五批）
   } catch(err) {
     tbody.innerHTML = `<tr><td colspan="7" class="us-loading">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchTwTop50()">重試</button></td></tr>`;
+  }
+}
+
+// 第五批：抓台股可選歷史日期、填下拉、預設選最新
+async function fetchTwDates(currentDate) {
+  const sel = document.getElementById('tw-date-select');
+  if (!sel) return;
+  try {
+    const res = await fetch(`${NEWS_API}/api/tw-dates`);
+    const j = await res.json();
+    let dates = (j.ok && Array.isArray(j.dates)) ? j.dates : [];
+    if (currentDate && !dates.includes(currentDate)) dates.unshift(currentDate);
+    if (!dates.length && currentDate) dates = [currentDate];
+    sel.innerHTML = dates.map(d => `<option value="${d}">${d}</option>`).join('');
+    sel.value = currentDate || dates[0] || '';
+  } catch(err) {
+    if (currentDate) { sel.innerHTML = `<option value="${currentDate}">${currentDate}</option>`; sel.value = currentDate; }
+  }
+}
+
+// 第五批：切換台股日期 → 最新走即時，歷史走快照
+async function onTwDateChange(date) {
+  if (!date) return;
+  const sel = document.getElementById('tw-date-select');
+  const latest = sel && sel.options.length ? sel.options[0].value : '';
+  const tbody = document.getElementById('tw-tbody');
+  try {
+    if (date === latest) {
+      const res = await fetch(`${NEWS_API}/api/tw-top50`);
+      const data = await res.json();
+      if (data.ok) {
+        _twData = data.data; renderTwTable(); fetchTwAnalysis();
+        const updEl = document.getElementById('tw-updated');
+        if (updEl && data.updatedAt) updEl.textContent = new Date(data.updatedAt).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      }
+      return;
+    }
+    const res = await fetch(`${NEWS_API}/api/tw-snapshot?date=${date}`);
+    const data = await res.json();
+    if (!data.ok || !Array.isArray(data.data)) {
+      if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="us-loading">查無 ${date} 的資料</td></tr>`;
+      return;
+    }
+    _twData = data.data;
+    _twTags = data.tags && typeof data.tags === 'object' ? data.tags : {};
+    renderTwTable();
+    renderTwMarketFocus(data.marketFocus);
+    renderTwNewcomers(data.newcomerCards);
+    renderTwThemeCards(data.themeCards);
+    const updEl = document.getElementById('tw-updated');
+    if (updEl && data.updatedAt) updEl.textContent = new Date(data.updatedAt).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  } catch(err) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="us-loading">⚠️ 載入失敗：${err.message}</td></tr>`;
   }
 }
 
@@ -2218,7 +2270,7 @@ const pages = {
   <span class="head-clock"></span>
 </div>
 <div class="us-status">
-  <span class="us-date-wrap">台股收盤：<b id="tw-date">—</b></span>
+  <span class="us-date-wrap">台股收盤：<select id="tw-date-select" class="us-date-select" onchange="onTwDateChange(this.value)"><option value="">—</option></select></span>
   <span class="us-status-sep">更新於：<b id="tw-updated">—</b></span>
   <span class="us-status-tag">上市＋上櫃 · TWSE / 櫃買</span>
   <span class="us-status-tag">題材分析 · Gemini</span>
