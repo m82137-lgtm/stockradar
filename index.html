@@ -1248,70 +1248,13 @@ function showWindGaugeInfo() {
   alert(`市場風度圖：${w.label}\n${desc}\n\n${cond1}\n${cond2}\n\n櫃買指數 ${w.close}（20MA ${w.ma20}）`);
 }
 
-// ── 風度頁：讀 env-history,渲染儀表板 + 歷史表格 ──
-function windDrawGauge(dev, color, label, twseDev) {
-  // 畫分段色塊半圓(11段,左綠中白右紅)
-  const layer = document.getElementById('wind-seg-layer');
-  if (!layer) return;
-  layer.innerHTML = '';
-  const cx=110, cy=118, r=85, NSEG=11, gap=7, span=180/NSEG;
-  const colors=['#2ecc71','#52d98a','#7ee0a5','#b8e6c8','#e8c477','#f0d060','#e8c477','#f0b5b6','#f08a8c','#f06163','#e74c3c'];
-  const pol = (a)=>{ const rad=a*Math.PI/180; return [cx+r*Math.cos(rad), cy-r*Math.sin(rad)]; };
-  for (let i=0;i<NSEG;i++){
-    const a0=180 - i*span - gap/2, a1=180 - (i+1)*span + gap/2;
-    const [x0,y0]=pol(a0), [x1,y1]=pol(a1);
-    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
-    p.setAttribute('d',`M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`);
-    p.setAttribute('stroke',colors[i]);
-    layer.appendChild(p);
-  }
-  // 偏離率轉角度的函式:±6%滿格。dev+6→0°(右), -6→180°(左), 0→90°(上)
-  const devToRot = (d) => {
-    const clamp=Math.max(-6,Math.min(6, d||0));
-    const ang=90 - (clamp/6)*90;
-    return (90-ang).toFixed(1);
-  };
-  // 橘色主指針:櫃買 dev
-  const needle=document.getElementById('wind-needle');
-  if (needle) needle.setAttribute('transform',`rotate(${devToRot(dev)} ${cx} ${cy})`);
-  // 藍色輔指針:加權 twseDev(抓不到就藏起來,例如假日)
-  const needleTwse=document.getElementById('wind-needle-twse');
-  if (needleTwse) {
-    if (twseDev===null || twseDev===undefined) {
-      needleTwse.style.display='none';
-    } else {
-      needleTwse.style.display='';
-      needleTwse.setAttribute('transform',`rotate(${devToRot(twseDev)} ${cx} ${cy})`);
-    }
-  }
-}
+// ── 風度頁：讀 env-history,渲染歷史表格 ──
 
 async function loadWindPage() {
   try {
     const res = await fetch(`${WORKER}/api/env-history`);
     const hist = await res.json();
     const list = Array.isArray(hist) ? hist : [];
-    // 最新一筆(陣列尾端)當今日儀表板
-    const latest = list.length ? list[list.length-1] : null;
-
-    // 儀表板
-    const stateEl = document.getElementById('wind-state');
-    const metaEl  = document.getElementById('wind-meta');
-    if (latest && latest.wind) {
-      windDrawGauge(latest.dev, latest.color, latest.wind, latest.twseDev);
-      if (stateEl) { stateEl.textContent = latest.wind; stateEl.className = `state ${windClass(latest.wind)}`; }
-      if (metaEl) {
-        const otcLine = `櫃買 ${latest.close??'—'}｜偏離 ${latest.dev>=0?'+':''}${latest.dev??'—'}%`;
-        const twseLine = (latest.twseDev!==null && latest.twseDev!==undefined)
-          ? `<br>加權 ${latest.twseClose??'—'}｜偏離 ${latest.twseDev>=0?'+':''}${latest.twseDev}%`
-          : '';
-        metaEl.innerHTML = otcLine + twseLine;
-      }
-    } else {
-      windDrawGauge(0, null, null, null);
-      if (stateEl) { stateEl.textContent = '—'; stateEl.className = 'state'; }
-      if (metaEl) metaEl.textContent = '尚無風度資料（收盤後更新）';
-    }
 
     // 歷史表格(新到舊)
     const tbody = document.getElementById('wind-tbody');
@@ -1943,40 +1886,6 @@ const pages = {
     <span class="wind-sub">收盤後記錄大環境走向</span>
     <span class="head-clock"></span>
     <span class="wind-guide-btn" onclick="goto('guide')" role="button" aria-label="網站說明" title="網站說明"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
-  </div>
-  <div class="wind-top-row">
-    <div class="wind-gauge-card">
-      <div class="wind-gauge-toplabel">循環交界</div>
-      <svg viewBox="0 28 220 102" width="100%" id="wind-gauge-svg" xmlns="http://www.w3.org/2000/svg">
-        <g id="wind-seg-layer" fill="none" stroke-width="9" stroke-linecap="round"></g>
-        <g id="wind-needle-twse"><polygon points="110,118 108,112 110,62 112,112" fill="#3b9eff"/></g>
-        <g id="wind-needle"><polygon points="110,118 107,110 110,42 113,110" fill="var(--amber)"/></g>
-        <circle cx="110" cy="118" r="7" fill="#fff" stroke="var(--bg2)" stroke-width="2"/>
-      </svg>
-      <div class="wind-gauge-labels"><span class="l">無風循環</span><span class="r">強風循環</span></div>
-      <div class="wind-gauge-legend" style="display:flex;justify-content:center;gap:16px;margin-top:6px;font-size:11px;">
-        <span style="color:var(--amber);font-weight:600;">▲ 櫃買指數</span>
-        <span style="color:#3b9eff;font-weight:600;">▲ 加權指數</span>
-      </div>
-      <div class="wind-gauge-now">
-        <div class="state" id="wind-state">—</div>
-        <div class="meta" id="wind-meta">載入中…</div>
-      </div>
-    </div>
-    <div class="wind-desc-box">
-      <div class="wind-desc-item">
-        <div class="h"><span class="dot red"></span>強風循環 <small>強風、亂流</small></div>
-        <div class="t">漲勢延續性強，勝率偏高。</div>
-      </div>
-      <div class="wind-desc-item">
-        <div class="h"><span class="dot white"></span>循環交界</div>
-        <div class="t">震盪區間，無明顯行情方向。</div>
-      </div>
-      <div class="wind-desc-item">
-        <div class="h"><span class="dot green"></span>無風循環 <small>陣風、無風</small></div>
-        <div class="t">漲勢延續性差，低買的好機會。</div>
-      </div>
-    </div>
   </div>
   <div class="wind-tbl-title">近 10 個交易日記錄</div>
   <div class="wind-tbl-wrap">
