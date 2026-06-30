@@ -2178,7 +2178,7 @@ function renderNewcomers(cards) {
   const cardsHtml = cards.map(s=>{
     const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
-    return `<div class="us-nc-card" onclick="openTradingView('${s.code}')">
+    return `<div class="us-nc-card" onclick="openUsNews('${s.code}')">
       <div class="us-nc-top">
         <span class="us-nc-code">${s.code}</span>
         <span class="us-nc-chg ${chgCls}">${chgTxt}</span>
@@ -2198,7 +2198,7 @@ function renderThemeCards(cards) {
   const cardsHtml = cards.map(t=>{
     const chgCls = t.chg > 0 ? 'us-up' : (t.chg < 0 ? 'us-down' : '');
     const chgTxt = (t.chg > 0 ? '+' : '') + (t.chg ?? 0).toFixed(2) + '%';
-    const codeBtns = (t.codes||[]).map(c=>`<span class="us-theme-code" onclick="event.stopPropagation();openTradingView('${c}')">${c}</span>`).join('');
+    const codeBtns = (t.codes||[]).map(c=>`<span class="us-theme-code" onclick="event.stopPropagation();openUsNews('${c}')">${c}</span>`).join('');
     return `<div class="us-theme-card">
       <div class="us-theme-top"><span class="us-theme-name">${t.name}</span><span class="us-theme-chg ${chgCls}">${chgTxt}</span></div>
       <div class="us-theme-desc">${t.desc||''}</div>
@@ -2283,7 +2283,7 @@ function renderUsTable() {
       else if (s.rankChange < 0) rankMark = `<span class="us-rank-down">▼${Math.abs(s.rankChange)}</span>`;
     }
     const tag = (_usTags && _usTags[s.code]) ? _usTags[s.code] : '—';
-    return `<tr onclick="openTradingView('${s.code}')">
+    return `<tr onclick="openUsNews('${s.code}')">
       <td class="us-td-rank">${s.rank||i+1}${rankMark}</td>
       <td class="us-td-code">${newBadge}${s.code}<span class="us-td-name">${s.name||''}</span></td>
       <td class="us-td-price">$${(s.price ?? 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
@@ -2303,9 +2303,50 @@ function fmtDollarVol(v) {
   return '$' + v.toLocaleString();
 }
 
-function openTradingView(code) {
-  // 點個股 → 開 Google News 搜尋該股新聞
-  window.open(`https://news.google.com/search?q=${encodeURIComponent(code + ' stock')}&hl=zh-TW&gl=TW`, '_blank');
+// 點美股個股 → 開 app 內個股新聞面板（中文新聞，資料源同台股 /api/stock-news，共用面板）
+function openUsNews(code) {
+  const s = _usData.find(x => x.code === code) || { code };
+  const ov     = document.getElementById('tw-news-overlay');
+  const stockEl= document.getElementById('twn-stock');
+  const cntEl  = document.getElementById('twn-cnt');
+  const listEl = document.getElementById('tw-news-list');
+  if (!ov || !stockEl || !listEl) return;
+  const chg = +(s.chg || 0);
+  const col = chg >= 0 ? 'var(--red)' : 'var(--green)';
+  const pr  = (s.price != null)
+    ? `<span class="pr" style="color:${col}">$${(+s.price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}　${chg>=0?'↗':'↘'} ${(chg>=0?'+':'')+chg.toFixed(2)}%</span>`
+    : '';
+  const nm = s.name ? `<span style="color:var(--text2);font-size:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.name}</span>` : '';
+  stockEl.innerHTML = `<span class="nm">${code}</span><span style="background:var(--bg3);color:var(--text2);font-size:10px;padding:1px 5px;border-radius:4px;flex-shrink:0;">美股</span>${nm}${pr}`;
+  if (cntEl) cntEl.textContent = '';
+  ov.hidden = false;
+  document.body.style.overflow = 'hidden';
+  listEl.innerHTML = '<div class="twn-empty">📰 載入新聞中…</div>';
+  fetchUsNews(code);
+}
+
+async function fetchUsNews(code) {
+  const listEl = document.getElementById('tw-news-list');
+  if (!listEl) return;
+  const cacheKey = `us-${code}`;
+  let base = newsCache[cacheKey];
+  if (!base) {
+    try {
+      // 中文模式：搜「美股 + 代號」，偏向台灣/中文媒體寫的美股新聞（短代號仍可能有雜訊）
+      const res  = await fetch(`${NEWS_API}/api/stock-news?name=${encodeURIComponent('美股')}&code=${encodeURIComponent(code)}`);
+      const rows = await res.json();
+      base = normalizeRenderStockNews(rows, code, code);
+      newsCache[cacheKey] = base;
+    } catch {
+      listEl.innerHTML = '<div class="twn-empty">⚠️ 新聞載入失敗，請稍後再試<br><span style="font-size:11px;">（Render 免費版若休眠中，第一次查詢需等幾秒喚醒，再點一次即可）</span></div>';
+      return;
+    }
+  }
+  // 按發稿時間新→舊排序，取最新 15 則
+  const items = base.slice().sort((a, b) =>
+    (new Date(b.pub).getTime() || 0) - (new Date(a.pub).getTime() || 0)
+  ).slice(0, 15);
+  renderTwNews(items);
 }
 
 // ── Pages ──────────────────────────────────────
