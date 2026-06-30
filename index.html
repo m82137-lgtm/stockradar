@@ -752,12 +752,20 @@ main:has(.iv2){ padding:0 !important; }
 .twn-stock .pr{ font-size:12px; font-family:'JetBrains Mono',monospace; white-space:nowrap; }
 .twn-cnt{ color:var(--text3); font-size:11px; white-space:nowrap; flex-shrink:0; }
 .twn-list{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-.twn-empty{ padding:40px 16px; text-align:center; color:var(--text3); font-size:13px; line-height:1.6; grid-column:1/-1; }
+.twn-list-inner{ display:flex; flex-direction:column; gap:12px; padding:14px; }
+.twn-empty{ padding:40px 16px; text-align:center; color:var(--text3); font-size:13px; line-height:1.6; }
+.twn-card{ display:flex; gap:14px; align-items:flex-start; text-decoration:none; color:var(--text); background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:16px 18px; transition:border-color .15s, background .15s; }
+.twn-card:hover{ border-color:var(--border2); background:var(--bg3); }
+.twn-card-num{ font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; color:var(--text3); opacity:.5; min-width:28px; flex-shrink:0; line-height:1.45; }
+.twn-card-body{ flex:1; min-width:0; }
+.twn-card-title{ font-size:15px; font-weight:600; color:var(--text); line-height:1.55; margin-bottom:9px; }
+.twn-card-meta{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); flex-wrap:wrap; }
 @media (min-width:640px){
   .twn-overlay{ left:var(--sidebar-w); }
   .twn-head{ padding:13px 22px; }
-  .twn-list{ display:grid; grid-template-columns:1fr 1fr; align-content:start; }
-  .twn-list .stock-news-card:nth-child(odd){ border-right:1px solid var(--border); }
+  .twn-list-inner{ max-width:640px; margin:0 auto; gap:16px; padding:24px 22px; }
+  .twn-card{ padding:18px 22px; }
+  .twn-card-title{ font-size:15.5px; }
 }
 
 /* ══ 熱門族群卡片 ═════════════════════════════ */
@@ -1983,10 +1991,10 @@ async function fetchTwNews(code, keyword) {
       return;
     }
   }
-  // 保險：前端再按發稿時間新→舊排序（後端已排，這裡確保萬無一失），取最新 10 則
+  // 保險：前端再按發稿時間新→舊排序（後端已排，這裡確保萬無一失），取最新 15 則
   const items = base.slice().sort((a, b) =>
     (new Date(b.pub).getTime() || 0) - (new Date(a.pub).getTime() || 0)
-  ).slice(0, 10);
+  ).slice(0, 15);
   renderTwNews(items);
 }
 
@@ -2000,16 +2008,21 @@ function renderTwNews(items) {
     return;
   }
   if (cntEl) cntEl.textContent = `共 ${items.length} 則`;
-  listEl.innerHTML = items.map((n, i) => {
+  const cards = items.map((n, i) => {
     const d = new Date(n.pub);
     const t = isNaN(d) ? '' : d.toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-    return `<a href="${n.link}" target="_blank" rel="noopener" class="stock-news-card" style="animation:fadeIn2 0.2s ease ${i*0.015}s both">
-      <div class="stock-news-card-title">${n.title}</div>
-      <div class="stock-news-card-meta">
-        <span>🕐</span><span style="font-family:'JetBrains Mono',monospace;">${t}</span>
-        <span>📋</span><span class="news-source">${n.src || 'Google 新聞'}</span>
+    const num = String(i + 1).padStart(2, '0');
+    return `<a href="${n.link}" target="_blank" rel="noopener" class="twn-card" style="animation:fadeIn2 0.2s ease ${i*0.015}s both">
+      <span class="twn-card-num">${num}</span>
+      <div class="twn-card-body">
+        <div class="twn-card-title">${n.title}</div>
+        <div class="twn-card-meta">
+          <span>🕐</span><span style="font-family:'JetBrains Mono',monospace;">${t}</span>
+          <span>📋</span><span class="news-source">${n.src || 'Google 新聞'}</span>
+        </div>
       </div></a>`;
   }).join('');
+  listEl.innerHTML = `<div class="twn-list-inner">${cards}</div>`;
   listEl.scrollTop = 0;
 }
 
