@@ -873,7 +873,9 @@ main:has(.iv2){ padding:0 !important; }
 .us-td-theme { text-align:left !important; color:var(--text3); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .us-loading { text-align:center !important; padding:28px 12px !important; color:var(--text3); }
 .us-new { display:inline-block; background:#d4a017; color:#1a1a1a; font-size:10px; font-weight:700; padding:1px 5px; border-radius:4px; margin-right:6px; vertical-align:middle; letter-spacing:0.5px; }
-.tw-mkt { display:inline-block; background:var(--bg4); color:var(--text2); font-size:10px; font-weight:600; padding:1px 4px; border-radius:3px; margin-left:5px; vertical-align:middle; }
+.tw-mkt { display:inline-block; font-size:9px; font-weight:700; padding:1px 4px; border-radius:3px; margin-left:5px; vertical-align:middle; letter-spacing:0.3px; }
+.tw-mkt-tse { background:rgba(91,141,248,0.15); color:#5b8df8; }
+.tw-mkt-otc { background:rgba(217,160,23,0.18); color:#d4a017; }
 .us-rank-up { display:block; font-size:10px; color:var(--red); font-weight:600; }
 .us-rank-down { display:block; font-size:10px; color:var(--green); font-weight:600; }
 .us-disclaimer { font-size:12px; color:var(--text3); line-height:1.6; padding:12px 14px; background:var(--bg2); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; }
@@ -1888,7 +1890,8 @@ function renderTwTable() {
       else if (s.rankChange < 0) rankMark = `<span class="us-rank-down">▼${Math.abs(s.rankChange)}</span>`;
     }
     const tag = (_twTags && _twTags[s.code]) ? _twTags[s.code] : '—';
-    const mktBadge = s.market === 'OTC' ? '<span class="tw-mkt">櫃</span>' : '';
+    const isOtc = s.market === 'OTC';
+    const mktBadge = `<span class="tw-mkt ${isOtc ? 'tw-mkt-otc' : 'tw-mkt-tse'}">${isOtc ? '櫃' : '市'}</span>`;
     return `<tr onclick="openTwNews('${s.code}','${(s.name||'').replace(/'/g,'')}')">
       <td class="us-td-rank">${s.rank||i+1}${rankMark}</td>
       <td class="us-td-code">${newBadge}${s.code}${mktBadge}<span class="us-td-name">${s.name||''}</span></td>
