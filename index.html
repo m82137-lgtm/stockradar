@@ -1671,9 +1671,45 @@ async function fetchTwTop50() {
     const updEl = document.getElementById('tw-updated');
     if (updEl && json.updatedAt) updEl.textContent = new Date(json.updatedAt).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
     renderTwTable();
+    fetchTwAnalysis();   // 抓題材分析（第二批）
   } catch(err) {
     tbody.innerHTML = `<tr><td colspan="7" class="us-loading">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchTwTop50()">重試</button></td></tr>`;
   }
+}
+
+// 台股題材分析（第二批）：填表格題材欄 + 渲染發動題材卡片
+async function fetchTwAnalysis() {
+  try {
+    const res = await fetch(`${NEWS_API}/api/tw-analysis`);
+    const a = await res.json();
+    if (!a.ok) return;
+    if (a.tags && typeof a.tags === 'object') { _twTags = a.tags; renderTwTable(); }
+    renderTwThemeCards(a.themeCards);
+  } catch(err) { /* AI失敗不影響表格 */ }
+}
+
+function renderTwThemeCards(cards) {
+  const slot = document.getElementById('tw-theme-slot');
+  if (!slot) return;
+  if (!Array.isArray(cards) || !cards.length) { slot.innerHTML = ''; return; }
+  const cardsHtml = cards.map(t=>{
+    const chgCls = t.chg > 0 ? 'us-up' : (t.chg < 0 ? 'us-down' : '');
+    const chgTxt = (t.chg > 0 ? '+' : '') + (t.chg ?? 0).toFixed(2) + '%';
+    const codeBtns = (t.codes||[]).map(c=>{
+      const st = _twData.find(x=>x.code===c);
+      const nm = st ? st.name : '';
+      return `<span class="us-theme-code" onclick="event.stopPropagation();openTwNews('${c}','${nm.replace(/'/g,'')}')">${c}</span>`;
+    }).join('');
+    return `<div class="us-theme-card">
+      <div class="us-theme-top"><span class="us-theme-name">${t.name}</span><span class="us-theme-chg ${chgCls}">${chgTxt}</span></div>
+      <div class="us-theme-desc">${t.desc||''}</div>
+      <div class="us-theme-codes">${codeBtns}</div>
+    </div>`;
+  }).join('');
+  slot.innerHTML = `<div class="us-ai-card us-collapsed" id="tw-card-theme">
+    <div class="us-ai-head us-ai-head-click" onclick="toggleUsCard('tw-card-theme')"><span class="us-ai-emoji">🔥</span>今日發動題材<span class="us-ai-sub">依族群強度排序 · 由 AI 分析</span><span class="us-collapse-arrow">展開 ▼</span></div>
+    <div class="us-ai-body"><div class="us-theme-grid">${cardsHtml}</div></div>
+  </div>`;
 }
 
 function sortTw(key) {
