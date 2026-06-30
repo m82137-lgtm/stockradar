@@ -1662,7 +1662,7 @@ async function fetchTwTop50() {
     const res  = await fetch(`${NEWS_API}/api/tw-top50`);
     const json = await res.json();
     if (!json.ok || !Array.isArray(json.data) || !json.data.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="us-loading">台股資料尚未產生<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">每交易日約台北 14:30 自動更新</span></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="us-loading">台股資料尚未產生<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">每交易日約下午 5 點自動更新</span></td></tr>';
       return;
     }
     _twData = json.data;
@@ -2278,7 +2278,7 @@ const pages = {
 
 <div class="after-info-box">
   <span style="font-size:14px;flex-shrink:0;">ℹ️</span>
-  <span style="font-size:12px;">顯示台股最近一個交易日的收盤資料；台股下午 1:30 收盤，約下午 2:30 自動更新當日收盤。資料來源為證交所（上市）與櫃買中心（上櫃）。</span>
+  <span style="font-size:12px;">顯示台股最近一個交易日的收盤資料；台股下午 1:30 收盤，全市場彙總資料約下午 5 點更新完整，故每交易日約下午 5 點自動更新當日收盤。資料來源為證交所（上市）與櫃買中心（上櫃）。</span>
 </div>
 
 <!-- Gemini 區塊容器（後續批次填入）-->
