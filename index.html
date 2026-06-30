@@ -883,14 +883,14 @@ main:has(.iv2){ padding:0 !important; }
 
 /* 美股 AI 卡片 + 發動題材卡片 */
 .us-ai-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
-.us-ai-head { font-size:14px; font-weight:600; color:var(--text); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.us-ai-head { font-size:14px; font-weight:600; color:var(--text); margin-bottom:10px; display:flex; align-items:center; gap:6px; flex-wrap:nowrap; }
 .us-ai-head-click { cursor:pointer; user-select:none; margin-bottom:0; }
 .us-ai-head-click:hover { color:var(--accent); }
 .us-collapse-arrow { margin-left:auto; font-size:11px; font-weight:600; color:var(--accent); white-space:nowrap; }
 .us-ai-body { margin-top:12px; }
 .us-ai-card.us-collapsed .us-ai-body { display:none; }
 .us-ai-emoji { font-size:16px; }
-.us-ai-sub { font-size:11px; font-weight:400; color:var(--text3); margin-left:4px; }
+.us-ai-sub { font-size:11px; font-weight:400; color:var(--text3); margin-left:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
 .us-theme-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px; }
 .us-theme-card { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
 .us-theme-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
@@ -1788,7 +1788,7 @@ function renderTwMarketFocus(mf) {
 function renderTwNewcomers(cards) {
   const slot = document.getElementById('tw-newcomer-slot');
   if (!slot) return;
-  const head = `<div class="us-ai-head us-ai-head-click" onclick="toggleUsCard('tw-card-nc')"><span class="us-ai-emoji">🆕</span>新進榜雷達<span class="us-ai-sub">今日首次衝進前 50 · AI + Google 搜尋分析「發生了什麼」</span><span class="us-collapse-arrow">展開 ▼</span></div>`;
+  const head = `<div class="us-ai-head us-ai-head-click" onclick="toggleUsCard('tw-card-nc')"><span class="us-ai-emoji">🆕</span>新進榜雷達<span class="us-ai-sub">今日新進前 50 · AI 分析發生什麼</span><span class="us-collapse-arrow">展開 ▼</span></div>`;
   if (!Array.isArray(cards) || !cards.length) {
     slot.innerHTML = `<div class="us-ai-card us-collapsed" id="tw-card-nc">${head}<div class="us-ai-body"><div class="us-focus-empty">今日無新進榜個股（無個股首次衝進前 50）。</div></div></div>`;
     return;
@@ -2056,7 +2056,7 @@ function renderMarketFocus(mf) {
 function renderNewcomers(cards) {
   const slot = document.getElementById('us-newcomer-slot');
   if (!slot) return;
-  const head = `<div class="us-ai-head us-ai-head-click" onclick="toggleUsCard('us-card-nc')"><span class="us-ai-emoji">🆕</span>新進榜雷達<span class="us-ai-sub">今日首次衝進前 50 · AI + Google 搜尋分析「發生了什麼」</span><span class="us-collapse-arrow">展開 ▼</span></div>`;
+  const head = `<div class="us-ai-head us-ai-head-click" onclick="toggleUsCard('us-card-nc')"><span class="us-ai-emoji">🆕</span>新進榜雷達<span class="us-ai-sub">今日新進前 50 · AI 分析發生什麼</span><span class="us-collapse-arrow">展開 ▼</span></div>`;
   if (!Array.isArray(cards) || !cards.length) {
     slot.innerHTML = `<div class="us-ai-card us-collapsed" id="us-card-nc">${head}<div class="us-ai-body"><div class="us-focus-empty">今日無新進榜個股（無個股首次衝進前 50）。</div></div></div>`;
     return;
