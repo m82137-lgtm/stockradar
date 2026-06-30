@@ -740,6 +740,26 @@ main:has(.iv2){ padding:0 !important; }
 .stock-news-card-title{ font-size:15px; font-weight:600; color:var(--text); line-height:1.5; margin-bottom:7px; }
 .stock-news-card-meta{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); flex-wrap:wrap; }
 
+/* ══ 台股 Top50 個股新聞面板 ══════════════════ */
+.twn-overlay{ position:fixed; inset:0; z-index:300; background:var(--bg); display:flex; flex-direction:column; }
+.twn-overlay[hidden]{ display:none; }
+.twn-head{ display:flex; align-items:center; gap:10px; padding:11px 14px; background:var(--bg2); border-bottom:1px solid var(--border); flex-shrink:0; }
+.twn-back{ display:inline-flex; align-items:center; gap:4px; background:none; border:1px solid var(--border2); color:var(--accent); font-size:13px; padding:6px 12px; border-radius:8px; cursor:pointer; flex-shrink:0; font-family:inherit; }
+.twn-back:hover{ background:var(--bg3); }
+.twn-stock{ flex:1; min-width:0; display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.twn-stock .nm{ color:var(--text); font-size:15px; font-weight:600; }
+.twn-stock .cd{ color:var(--text3); font-size:12px; font-family:'JetBrains Mono',monospace; }
+.twn-stock .pr{ font-size:12px; font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+.twn-cnt{ color:var(--text3); font-size:11px; white-space:nowrap; flex-shrink:0; }
+.twn-list{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.twn-empty{ padding:40px 16px; text-align:center; color:var(--text3); font-size:13px; line-height:1.6; grid-column:1/-1; }
+@media (min-width:640px){
+  .twn-overlay{ left:var(--sidebar-w); }
+  .twn-head{ padding:13px 22px; }
+  .twn-list{ display:grid; grid-template-columns:1fr 1fr; align-content:start; }
+  .twn-list .stock-news-card:nth-child(odd){ border-right:1px solid var(--border); }
+}
+
 /* ══ 熱門族群卡片 ═════════════════════════════ */
 .sector-news-card {
   background:var(--bg2); border:1px solid var(--border);
@@ -1066,6 +1086,15 @@ main:has(.iv2){ padding:0 !important; }
 </div>
 
 <main id="main"></main>
+
+<div id="tw-news-overlay" class="twn-overlay" hidden>
+  <div class="twn-head">
+    <button class="twn-back" onclick="closeTwNews()" aria-label="上一頁"><span style="font-size:15px;line-height:1;">←</span>上一頁</button>
+    <div class="twn-stock" id="twn-stock"></div>
+    <div class="twn-cnt" id="twn-cnt"></div>
+  </div>
+  <div class="twn-list" id="tw-news-list"></div>
+</div>
 
 <!-- 手機版底部 Tab -->
 <div class="bottom-nav">
@@ -1912,10 +1941,82 @@ function fmtTwVal(v) {
   return v.toLocaleString();
 }
 
-// 點台股個股 → 開 Google News 搜該股新聞（用股名+股號）
+// 點台股個股 → 開 app 內個股新聞面板（資料源同盤後追蹤 /api/stock-news）
 function openTwNews(code, name) {
-  const q = (name ? name + ' ' : '') + code + ' 股票';
-  window.open(`https://news.google.com/search?q=${encodeURIComponent(q)}&hl=zh-TW&gl=TW`, '_blank');
+  const s = _twData.find(x => x.code === code) || { code, name };
+  const ov     = document.getElementById('tw-news-overlay');
+  const stockEl= document.getElementById('twn-stock');
+  const cntEl  = document.getElementById('twn-cnt');
+  const listEl = document.getElementById('tw-news-list');
+  if (!ov || !stockEl || !listEl) return;
+  // 標頭：股名 + 市/櫃 + 股號 + 報價漲跌（紅漲綠跌）
+  const isOtc = s.market === 'OTC';
+  const mkt = `<span class="tw-mkt ${isOtc ? 'tw-mkt-otc' : 'tw-mkt-tse'}">${isOtc ? '櫃' : '市'}</span>`;
+  const chg = +(s.chg || 0);
+  const col = chg >= 0 ? 'var(--red)' : 'var(--green)';
+  const pr  = (s.price != null)
+    ? `<span class="pr" style="color:${col}">${(+s.price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}　${chg>=0?'↗':'↘'} ${(chg>=0?'+':'')+chg.toFixed(2)}%</span>`
+    : '';
+  stockEl.innerHTML = `<span class="nm">${s.name || name || code}</span>${mkt}<span class="cd">${code}</span>${pr}`;
+  if (cntEl) cntEl.textContent = '';
+  ov.hidden = false;
+  document.body.style.overflow = 'hidden';
+  listEl.innerHTML = '<div class="twn-empty">📰 載入新聞中…</div>';
+  // 關鍵字比照盤後追蹤：只帶股名（抓不到才用股號）
+  const keyword = String(s.name || name || code || '').trim();
+  fetchTwNews(code, keyword);
+}
+
+async function fetchTwNews(code, keyword) {
+  const listEl = document.getElementById('tw-news-list');
+  if (!listEl) return;
+  const cacheKey = `${code}-${keyword}`;
+  let base = newsCache[cacheKey];
+  if (!base) {
+    try {
+      const res  = await fetch(`${NEWS_API}/api/stock-news?name=${encodeURIComponent(keyword)}&code=${encodeURIComponent(code)}`);
+      const rows = await res.json();
+      base = normalizeRenderStockNews(rows, code, keyword);
+      newsCache[cacheKey] = base;
+    } catch {
+      listEl.innerHTML = '<div class="twn-empty">⚠️ 新聞載入失敗，請稍後再試<br><span style="font-size:11px;">（Render 免費版若休眠中，第一次查詢需等幾秒喚醒，再點一次即可）</span></div>';
+      return;
+    }
+  }
+  // 保險：前端再按發稿時間新→舊排序（後端已排，這裡確保萬無一失），取最新 10 則
+  const items = base.slice().sort((a, b) =>
+    (new Date(b.pub).getTime() || 0) - (new Date(a.pub).getTime() || 0)
+  ).slice(0, 10);
+  renderTwNews(items);
+}
+
+function renderTwNews(items) {
+  const listEl = document.getElementById('tw-news-list');
+  const cntEl  = document.getElementById('twn-cnt');
+  if (!listEl) return;
+  if (!items || !items.length) {
+    listEl.innerHTML = '<div class="twn-empty">目前查無相關新聞</div>';
+    if (cntEl) cntEl.textContent = '';
+    return;
+  }
+  if (cntEl) cntEl.textContent = `共 ${items.length} 則`;
+  listEl.innerHTML = items.map((n, i) => {
+    const d = new Date(n.pub);
+    const t = isNaN(d) ? '' : d.toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<a href="${n.link}" target="_blank" rel="noopener" class="stock-news-card" style="animation:fadeIn2 0.2s ease ${i*0.015}s both">
+      <div class="stock-news-card-title">${n.title}</div>
+      <div class="stock-news-card-meta">
+        <span>🕐</span><span style="font-family:'JetBrains Mono',monospace;">${t}</span>
+        <span>📋</span><span class="news-source">${n.src || 'Google 新聞'}</span>
+      </div></a>`;
+  }).join('');
+  listEl.scrollTop = 0;
+}
+
+function closeTwNews() {
+  const ov = document.getElementById('tw-news-overlay');
+  if (ov) ov.hidden = true;
+  document.body.style.overflow = '';
 }
 
 // ── 美股 Top50（第一批：行情7欄表格）──────────────
@@ -2960,6 +3061,7 @@ function renderNews(contentEl, items) {
 
 // ── 導航 ───────────────────────────────────────
 function goto(page, el) {
+  closeTwNews();
   stopIntradayAutoRefresh();
   document.querySelectorAll('.sidebar-link').forEach(n=>n.classList.remove('active'));
   document.querySelectorAll('.bottom-nav .nav-link').forEach(n=>n.classList.remove('active'));
