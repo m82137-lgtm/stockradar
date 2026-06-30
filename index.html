@@ -928,7 +928,7 @@ main:has(.iv2){ padding:0 !important; }
 .us-theme-chg.us-down { color:var(--green); }
 .us-theme-desc { font-size:11px; color:var(--text2); line-height:1.5; margin-bottom:10px; }
 .us-theme-codes { display:flex; flex-wrap:wrap; gap:5px; }
-.us-theme-code { display:inline-block; background:var(--bg4); color:var(--text2); font-size:10px; font-weight:600; padding:2px 7px; border-radius:5px; cursor:pointer; transition:background 0.12s; }
+.us-theme-code { display:inline-block; white-space:nowrap; background:var(--bg4); color:var(--text2); font-size:10px; font-weight:600; padding:2px 7px; border-radius:5px; cursor:pointer; transition:background 0.12s; }
 .us-theme-code:hover { background:var(--accent); color:#fff; }
 
 /* 新進榜雷達卡片 */
@@ -1856,7 +1856,7 @@ function renderTwThemeCards(cards) {
     const codeBtns = (t.codes||[]).map(c=>{
       const st = _twData.find(x=>x.code===c);
       const nm = st ? st.name : '';
-      return `<span class="us-theme-code" onclick="event.stopPropagation();openTwNews('${c}','${nm.replace(/'/g,'')}')">${c}</span>`;
+      return `<span class="us-theme-code" onclick="event.stopPropagation();openTwNews('${c}','${nm.replace(/'/g,'')}')">${c}${nm ? ' ' + nm : ''}</span>`;
     }).join('');
     return `<div class="us-theme-card">
       <div class="us-theme-top"><span class="us-theme-name">${t.name}</span><span class="us-theme-chg ${chgCls}">${chgTxt}</span></div>
