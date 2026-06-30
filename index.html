@@ -843,26 +843,26 @@ main:has(.iv2){ padding:0 !important; }
 .us-date-select:hover { border-color:var(--accent); }
 .us-date-select:focus { outline:none; border-color:var(--accent); }
 .us-tbl-wrap { background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px; overflow-x:auto; }
-.us-tbl { width:100%; min-width:560px; border-collapse:collapse; font-size:14px; table-layout:fixed; }
-.us-tbl thead th { background:var(--bg3); color:var(--text2); font-weight:600; font-size:13px; padding:11px 8px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--border); }
-.us-tbl th.us-th-rank { text-align:center; width:8%; }
-.us-tbl th.us-th-code  { text-align:left; width:19%; }
+.us-tbl { width:100%; min-width:480px; border-collapse:collapse; font-size:12.5px; table-layout:fixed; }
+.us-tbl thead th { background:var(--bg3); color:var(--text2); font-weight:600; font-size:11.5px; padding:9px 5px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--border); }
+.us-tbl th.us-th-rank { text-align:center; width:9%; }
+.us-tbl th.us-th-code  { text-align:left; width:17%; }
 .us-tbl th.us-th-price { width:15%; }
 .us-tbl th.us-th-chg   { width:14%; }
-.us-tbl th.us-th-days  { width:12%; }
+.us-tbl th.us-th-days  { width:13%; }
 .us-tbl th.us-th-val   { width:16%; }
 .us-tbl th.us-th-theme { text-align:left; width:16%; }
 .us-sortable { cursor:pointer; user-select:none; transition:color 0.15s; }
 .us-sortable:hover { color:var(--text); }
 .us-sort-active { color:var(--accent); }
-.us-arrow { font-size:10px; margin-left:2px; }
-.us-tbl tbody td { padding:11px 10px; text-align:right; border-bottom:1px solid var(--border); vertical-align:middle; white-space:nowrap; }
+.us-arrow { font-size:9px; margin-left:1px; }
+.us-tbl tbody td { padding:10px 5px; text-align:right; border-bottom:1px solid var(--border); vertical-align:middle; white-space:nowrap; }
 .us-tbl tbody tr { cursor:pointer; transition:background 0.12s; }
 .us-tbl tbody tr:hover { background:var(--bg3); }
 .us-tbl tbody tr:last-child td { border-bottom:none; }
 .us-td-rank { text-align:center !important; color:var(--text3); font-variant-numeric:tabular-nums; }
 .us-td-code { text-align:left !important; font-weight:600; color:var(--text); }
-.us-td-name { display:block; font-size:11px; font-weight:400; color:var(--text3); margin-top:2px; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.us-td-name { display:block; font-size:10.5px; font-weight:400; color:var(--text3); margin-top:2px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .us-td-price { font-variant-numeric:tabular-nums; color:var(--text2); }
 .us-td-chg { font-variant-numeric:tabular-nums; font-weight:600; }
 .us-td-chg.us-up   { color:var(--red); }
@@ -870,7 +870,7 @@ main:has(.iv2){ padding:0 !important; }
 .us-td-days { font-variant-numeric:tabular-nums; color:var(--accent); font-weight:600; }
 .us-days-unit { font-size:11px; font-weight:400; color:var(--text3); margin-left:1px; }
 .us-td-val { font-variant-numeric:tabular-nums; color:var(--text); }
-.us-td-theme { text-align:left !important; color:var(--text3); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.us-td-theme { text-align:left !important; color:var(--text3); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .us-loading { text-align:center !important; padding:28px 12px !important; color:var(--text3); }
 .us-new { display:inline-block; background:#d4a017; color:#1a1a1a; font-size:10px; font-weight:700; padding:1px 5px; border-radius:4px; margin-right:6px; vertical-align:middle; letter-spacing:0.5px; }
 .tw-mkt { display:inline-block; background:var(--bg4); color:var(--text2); font-size:10px; font-weight:600; padding:1px 4px; border-radius:3px; margin-left:5px; vertical-align:middle; }
@@ -1863,17 +1863,18 @@ function renderTwTable() {
   const tbody = document.getElementById('tw-tbody');
   if (!tbody || !_twData.length) return;
   const rows = twSortRows([..._twData]);
-  // 更新表頭箭頭與 active 樣式
-  const headMap = { rank:'.us-th-rank', code:'.us-th-code', price:'.us-th-price', chg:'.us-th-chg', days:'.us-th-days', val:'.us-th-val', theme:'.us-th-theme' };
-  Object.entries(headMap).forEach(([key, sel])=>{
-    const th = document.querySelector('.tw-page ' + sel);
+  // 更新表頭箭頭與 active 樣式（用 tbody 往上找同一張表的 thead）
+  const table = tbody.closest('table');
+  const headMap = { rank:'us-th-rank', code:'us-th-code', price:'us-th-price', chg:'us-th-chg', days:'us-th-days', val:'us-th-val', theme:'us-th-theme' };
+  if (table) Object.entries(headMap).forEach(([key, cls])=>{
+    const th = table.querySelector('th.' + cls);
     if (!th) return;
     th.classList.toggle('us-sort-active', _twSort === key);
     const old = th.querySelector('.us-arrow'); if (old) old.remove();
     if (_twSort === key) {
       const sp = document.createElement('span');
       sp.className = 'us-arrow';
-      sp.textContent = _twAsc ? '▲' : '▼';
+      sp.textContent = _twAsc ? ' ▲' : ' ▼';
       th.appendChild(sp);
     }
   });
@@ -2140,17 +2141,18 @@ function renderUsTable() {
   const tbody = document.getElementById('us-tbody');
   if (!tbody || !_usData.length) return;
   const rows = usSortRows([..._usData]);
-  // 更新表頭箭頭與 active 樣式
-  const headMap = { rank:'.us-th-rank', code:'.us-th-code', price:'.us-th-price', chg:'.us-th-chg', days:'.us-th-days', val:'.us-th-val', theme:'.us-th-theme' };
-  Object.entries(headMap).forEach(([key, sel])=>{
-    const th = document.querySelector('.us-page ' + sel) || document.querySelector(sel);
+  // 更新表頭箭頭與 active 樣式（用 tbody 往上找同一張表的 thead，不依賴頁面 class）
+  const table = tbody.closest('table');
+  const headMap = { rank:'us-th-rank', code:'us-th-code', price:'us-th-price', chg:'us-th-chg', days:'us-th-days', val:'us-th-val', theme:'us-th-theme' };
+  if (table) Object.entries(headMap).forEach(([key, cls])=>{
+    const th = table.querySelector('th.' + cls);
     if (!th) return;
     th.classList.toggle('us-sort-active', _usSort === key);
     const old = th.querySelector('.us-arrow'); if (old) old.remove();
     if (_usSort === key) {
       const sp = document.createElement('span');
       sp.className = 'us-arrow';
-      sp.textContent = _usAsc ? '▲' : '▼';
+      sp.textContent = _usAsc ? ' ▲' : ' ▼';
       th.appendChild(sp);
     }
   });
@@ -2338,7 +2340,7 @@ const pages = {
 
   tw() {
     setTimeout(fetchTwTop50, 0);
-    return `<div class="page-wrap us-page">
+    return `<div class="page-wrap us-page tw-page">
 <div class="page-header">
   <div class="page-title">台股成交值排行 Top 50</div>
   <div class="page-desc">上市＋上櫃全市場依成交金額（價格 × 成交量）排序。點欄位標題可切換排序。</div>
