@@ -843,15 +843,15 @@ main:has(.iv2){ padding:0 !important; }
 .us-date-select:hover { border-color:var(--accent); }
 .us-date-select:focus { outline:none; border-color:var(--accent); }
 .us-tbl-wrap { background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px; overflow-x:auto; }
-.us-tbl { width:100%; min-width:680px; border-collapse:collapse; font-size:14px; table-layout:fixed; }
-.us-tbl thead th { background:var(--bg3); color:var(--text2); font-weight:600; font-size:13px; padding:11px 10px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--border); }
-.us-tbl th.us-th-rank { text-align:center; width:6%; }
-.us-tbl th.us-th-code  { text-align:left; width:20%; }
+.us-tbl { width:100%; min-width:560px; border-collapse:collapse; font-size:14px; table-layout:fixed; }
+.us-tbl thead th { background:var(--bg3); color:var(--text2); font-weight:600; font-size:13px; padding:11px 8px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--border); }
+.us-tbl th.us-th-rank { text-align:center; width:8%; }
+.us-tbl th.us-th-code  { text-align:left; width:19%; }
 .us-tbl th.us-th-price { width:15%; }
-.us-tbl th.us-th-chg   { width:13%; }
+.us-tbl th.us-th-chg   { width:14%; }
 .us-tbl th.us-th-days  { width:12%; }
 .us-tbl th.us-th-val   { width:16%; }
-.us-tbl th.us-th-theme { text-align:left; width:18%; }
+.us-tbl th.us-th-theme { text-align:left; width:16%; }
 .us-sortable { cursor:pointer; user-select:none; transition:color 0.15s; }
 .us-sortable:hover { color:var(--text); }
 .us-sort-active { color:var(--accent); }
@@ -1653,6 +1653,7 @@ async function fetchAfterHours() {
 // ── 台股 Top50（第一批：行情7欄表格，比照美股）──────────────
 let _twData = [];
 let _twSort = 'val';
+let _twAsc = false;
 let _twTags = {};   // 每檔題材標籤（後續批次填）
 
 async function fetchTwTop50() {
@@ -1831,17 +1832,51 @@ function renderTwThemeCards(cards) {
 }
 
 function sortTw(key) {
-  _twSort = key;
-  document.querySelectorAll('.tw-page .us-sortable, .us-page .us-th-chg, .us-page .us-th-val').forEach(()=>{});
+  if (_twSort === key) {
+    _twAsc = !_twAsc;
+  } else {
+    _twSort = key;
+    _twAsc = (key === 'rank' || key === 'code');
+  }
   renderTwTable();
+}
+
+function twSortRows(rows) {
+  const dir = _twAsc ? 1 : -1;
+  const k = _twSort;
+  const tagOf = s => (_twTags && _twTags[s.code]) ? _twTags[s.code] : '';
+  rows.sort((a,b)=>{
+    let av, bv;
+    if (k === 'rank')       { av = a.rank||0;        bv = b.rank||0; }
+    else if (k === 'code')  { return dir * String(a.code).localeCompare(String(b.code)); }
+    else if (k === 'price') { av = a.price||0;       bv = b.price||0; }
+    else if (k === 'chg')   { av = a.chg||0;         bv = b.chg||0; }
+    else if (k === 'days')  { av = a.days||0;        bv = b.days||0; }
+    else if (k === 'theme') { return dir * tagOf(a).localeCompare(tagOf(b), 'zh-Hant'); }
+    else                    { av = a.tradeValue||0;  bv = b.tradeValue||0; }   // val
+    return dir * (av - bv);
+  });
+  return rows;
 }
 
 function renderTwTable() {
   const tbody = document.getElementById('tw-tbody');
   if (!tbody || !_twData.length) return;
-  const rows = [..._twData];
-  if (_twSort === 'val') rows.sort((a,b)=>(b.tradeValue||0)-(a.tradeValue||0));
-  else                   rows.sort((a,b)=>(b.chg||0)-(a.chg||0));
+  const rows = twSortRows([..._twData]);
+  // 更新表頭箭頭與 active 樣式
+  const headMap = { rank:'.us-th-rank', code:'.us-th-code', price:'.us-th-price', chg:'.us-th-chg', days:'.us-th-days', val:'.us-th-val', theme:'.us-th-theme' };
+  Object.entries(headMap).forEach(([key, sel])=>{
+    const th = document.querySelector('.tw-page ' + sel);
+    if (!th) return;
+    th.classList.toggle('us-sort-active', _twSort === key);
+    const old = th.querySelector('.us-arrow'); if (old) old.remove();
+    if (_twSort === key) {
+      const sp = document.createElement('span');
+      sp.className = 'us-arrow';
+      sp.textContent = _twAsc ? '▲' : '▼';
+      th.appendChild(sp);
+    }
+  });
   tbody.innerHTML = rows.map((s,i)=>{
     const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
@@ -1854,7 +1889,7 @@ function renderTwTable() {
     const tag = (_twTags && _twTags[s.code]) ? _twTags[s.code] : '—';
     const mktBadge = s.market === 'OTC' ? '<span class="tw-mkt">櫃</span>' : '';
     return `<tr onclick="openTwNews('${s.code}','${(s.name||'').replace(/'/g,'')}')">
-      <td class="us-td-rank">${i+1}${rankMark}</td>
+      <td class="us-td-rank">${s.rank||i+1}${rankMark}</td>
       <td class="us-td-code">${newBadge}${s.code}${mktBadge}<span class="us-td-name">${s.name||''}</span></td>
       <td class="us-td-price">${(s.price ?? 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td class="us-td-chg ${chgCls}">${chgTxt}</td>
@@ -1882,6 +1917,7 @@ function openTwNews(code, name) {
 // ── 美股 Top50（第一批：行情7欄表格）──────────────
 let _usData = [];
 let _usSort = 'val';
+let _usAsc = false;   // false=降序(大→小)、true=升序
 let _usTags = {};   // 每檔題材標籤（後續批次填）
 
 async function fetchUsTop50() {
@@ -2066,19 +2102,58 @@ function toggleUsCard(id) {
 }
 
 function sortUs(key) {
-  _usSort = key;
-  document.querySelectorAll('.us-tbl th.us-sortable').forEach(th=>th.classList.remove('us-sort-active'));
-  const th = document.querySelector(key==='val' ? '.us-th-val' : '.us-th-chg');
-  if (th) th.classList.add('us-sort-active');
+  // 同欄再點 = 切換升/降序；換欄 = 預設降序（名次/代碼預設升序）
+  if (_usSort === key) {
+    _usAsc = !_usAsc;
+  } else {
+    _usSort = key;
+    _usAsc = (key === 'rank' || key === 'code');   // 名次、代碼預設小→大；其餘大→小
+  }
   renderUsTable();
+}
+
+function usSortRows(rows) {
+  const dir = _usAsc ? 1 : -1;
+  const k = _usSort;
+  const tagOf = s => (_usTags && _usTags[s.code]) ? _usTags[s.code] : '';
+  rows.sort((a,b)=>{
+    let av, bv;
+    if (k === 'rank')       { av = a.rank||0;       bv = b.rank||0; }
+    else if (k === 'code')  { return dir * String(a.code).localeCompare(String(b.code)); }
+    else if (k === 'price') { av = a.price||0;      bv = b.price||0; }
+    else if (k === 'chg')   { av = a.chg||0;        bv = b.chg||0; }
+    else if (k === 'days')  { av = a.days||0;       bv = b.days||0; }
+    else if (k === 'theme') { return dir * tagOf(a).localeCompare(tagOf(b), 'zh-Hant'); }
+    else                    { av = a.dollarVol||0;  bv = b.dollarVol||0; }   // val
+    return dir * (av - bv);
+  });
+  return rows;
+}
+
+// 在表頭該欄標題加箭頭
+function usSortArrow(key) {
+  if (_usSort !== key) return '';
+  return `<span class="us-arrow">${_usAsc ? '▲' : '▼'}</span>`;
 }
 
 function renderUsTable() {
   const tbody = document.getElementById('us-tbody');
   if (!tbody || !_usData.length) return;
-  const rows = [..._usData];
-  if (_usSort === 'val') rows.sort((a,b)=>(b.dollarVol||0)-(a.dollarVol||0));
-  else                   rows.sort((a,b)=>(b.chg||0)-(a.chg||0));
+  const rows = usSortRows([..._usData]);
+  // 更新表頭箭頭與 active 樣式
+  const headMap = { rank:'.us-th-rank', code:'.us-th-code', price:'.us-th-price', chg:'.us-th-chg', days:'.us-th-days', val:'.us-th-val', theme:'.us-th-theme' };
+  Object.entries(headMap).forEach(([key, sel])=>{
+    const th = document.querySelector('.us-page ' + sel) || document.querySelector(sel);
+    if (!th) return;
+    th.classList.toggle('us-sort-active', _usSort === key);
+    const old = th.querySelector('.us-arrow'); if (old) old.remove();
+    if (_usSort === key) {
+      const sp = document.createElement('span');
+      sp.className = 'us-arrow';
+      sp.textContent = _usAsc ? '▲' : '▼';
+      th.appendChild(sp);
+    }
+  });
   tbody.innerHTML = rows.map((s,i)=>{
     const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
@@ -2090,7 +2165,7 @@ function renderUsTable() {
     }
     const tag = (_usTags && _usTags[s.code]) ? _usTags[s.code] : '—';
     return `<tr onclick="openTradingView('${s.code}')">
-      <td class="us-td-rank">${i+1}${rankMark}</td>
+      <td class="us-td-rank">${s.rank||i+1}${rankMark}</td>
       <td class="us-td-code">${newBadge}${s.code}<span class="us-td-name">${s.name||''}</span></td>
       <td class="us-td-price">$${(s.price ?? 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td class="us-td-chg ${chgCls}">${chgTxt}</td>
@@ -2241,13 +2316,13 @@ const pages = {
   <table class="us-tbl">
     <thead>
       <tr>
-        <th class="us-th-rank">#</th>
-        <th class="us-th-code">代碼</th>
-        <th class="us-th-price">價格</th>
+        <th class="us-th-rank us-sortable" onclick="sortUs('rank')">#</th>
+        <th class="us-th-code us-sortable" onclick="sortUs('code')">代碼</th>
+        <th class="us-th-price us-sortable" onclick="sortUs('price')">價格</th>
         <th class="us-th-chg us-sortable" onclick="sortUs('chg')">漲跌幅</th>
-        <th class="us-th-days">在榜天數</th>
+        <th class="us-th-days us-sortable" onclick="sortUs('days')">在榜天數</th>
         <th class="us-th-val us-sortable us-sort-active" onclick="sortUs('val')">成交金額</th>
-        <th class="us-th-theme">題材/族群</th>
+        <th class="us-th-theme us-sortable" onclick="sortUs('theme')">題材/族群</th>
       </tr>
     </thead>
     <tbody id="us-tbody">
@@ -2291,13 +2366,13 @@ const pages = {
   <table class="us-tbl">
     <thead>
       <tr>
-        <th class="us-th-rank">#</th>
-        <th class="us-th-code">代碼</th>
-        <th class="us-th-price">價格</th>
+        <th class="us-th-rank us-sortable" onclick="sortTw('rank')">#</th>
+        <th class="us-th-code us-sortable" onclick="sortTw('code')">代碼</th>
+        <th class="us-th-price us-sortable" onclick="sortTw('price')">價格</th>
         <th class="us-th-chg us-sortable" onclick="sortTw('chg')">漲跌幅</th>
-        <th class="us-th-days">在榜天數</th>
+        <th class="us-th-days us-sortable" onclick="sortTw('days')">在榜天數</th>
         <th class="us-th-val us-sortable us-sort-active" onclick="sortTw('val')">成交金額</th>
-        <th class="us-th-theme">題材/族群</th>
+        <th class="us-th-theme us-sortable" onclick="sortTw('theme')">題材/族群</th>
       </tr>
     </thead>
     <tbody id="tw-tbody">
