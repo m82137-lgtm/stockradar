@@ -843,10 +843,15 @@ main:has(.iv2){ padding:0 !important; }
 .us-date-select:hover { border-color:var(--accent); }
 .us-date-select:focus { outline:none; border-color:var(--accent); }
 .us-tbl-wrap { background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px; overflow-x:auto; }
-.us-tbl { width:100%; border-collapse:collapse; font-size:14px; }
+.us-tbl { width:100%; min-width:680px; border-collapse:collapse; font-size:14px; table-layout:fixed; }
 .us-tbl thead th { background:var(--bg3); color:var(--text2); font-weight:600; font-size:13px; padding:11px 10px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--border); }
-.us-tbl th.us-th-rank { text-align:center; width:48px; }
-.us-tbl th.us-th-code, .us-tbl th.us-th-theme { text-align:left; }
+.us-tbl th.us-th-rank { text-align:center; width:6%; }
+.us-tbl th.us-th-code  { text-align:left; width:20%; }
+.us-tbl th.us-th-price { width:15%; }
+.us-tbl th.us-th-chg   { width:13%; }
+.us-tbl th.us-th-days  { width:12%; }
+.us-tbl th.us-th-val   { width:16%; }
+.us-tbl th.us-th-theme { text-align:left; width:18%; }
 .us-sortable { cursor:pointer; user-select:none; transition:color 0.15s; }
 .us-sortable:hover { color:var(--text); }
 .us-sort-active { color:var(--accent); }
@@ -865,7 +870,7 @@ main:has(.iv2){ padding:0 !important; }
 .us-td-days { font-variant-numeric:tabular-nums; color:var(--accent); font-weight:600; }
 .us-days-unit { font-size:11px; font-weight:400; color:var(--text3); margin-left:1px; }
 .us-td-val { font-variant-numeric:tabular-nums; color:var(--text); }
-.us-td-theme { text-align:left !important; color:var(--text3); font-size:13px; }
+.us-td-theme { text-align:left !important; color:var(--text3); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .us-loading { text-align:center !important; padding:28px 12px !important; color:var(--text3); }
 .us-new { display:inline-block; background:#d4a017; color:#1a1a1a; font-size:10px; font-weight:700; padding:1px 5px; border-radius:4px; margin-right:6px; vertical-align:middle; letter-spacing:0.5px; }
 .us-rank-up { display:block; font-size:10px; color:var(--red); font-weight:600; }
@@ -2004,7 +2009,7 @@ const pages = {
         <th class="us-th-price">價格</th>
         <th class="us-th-chg us-sortable" onclick="sortUs('chg')">漲跌幅</th>
         <th class="us-th-days">在榜天數</th>
-        <th class="us-th-val us-sortable us-sort-active" onclick="sortUs('val')">成交金額<span class="us-arrow">▼</span></th>
+        <th class="us-th-val us-sortable us-sort-active" onclick="sortUs('val')">成交金額</th>
         <th class="us-th-theme">題材/族群</th>
       </tr>
     </thead>
