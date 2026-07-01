@@ -768,6 +768,38 @@ main:has(.iv2){ padding:0 !important; }
   .twn-card-title{ font-size:15.5px; }
 }
 
+/* ══ 熱門族群內文閱讀器 ══════════════════════════ */
+.sec-read-btn{ margin-left:auto; display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:7px; cursor:pointer; flex-shrink:0; }
+.sec-read-btn svg{ width:17px; height:17px; stroke:var(--text3); }
+.sec-read-btn:hover{ background:var(--bg3); }
+.sec-read-btn:hover svg{ stroke:var(--accent); }
+.secr-overlay{ position:fixed; inset:0; z-index:310; background:var(--bg3); display:flex; flex-direction:column; }
+.secr-overlay[hidden]{ display:none; }
+.secr-head{ display:flex; align-items:center; gap:10px; padding:11px 14px; background:var(--bg2); border-bottom:1px solid var(--border); flex-shrink:0; }
+.secr-back{ display:inline-flex; align-items:center; gap:4px; background:none; border:1px solid var(--border2); color:var(--accent); font-size:13px; padding:6px 12px; border-radius:8px; cursor:pointer; flex-shrink:0; font-family:inherit; }
+.secr-back:hover{ background:var(--bg3); }
+.secr-src{ flex:1; min-width:0; color:var(--text2); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.secr-nav{ display:flex; gap:8px; flex-shrink:0; }
+.secr-nav button{ width:34px; height:32px; border:1px solid var(--border2); background:var(--bg2); border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.secr-nav button svg{ width:17px; height:17px; stroke:var(--text2); }
+.secr-nav button:hover{ background:var(--bg3); }
+.secr-nav button:disabled{ opacity:.35; cursor:default; }
+.secr-scroll{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.secr-body{ max-width:680px; margin:0 auto; padding:22px 20px 40px; }
+.secr-title{ font-size:21px; font-weight:800; line-height:1.45; color:var(--text); }
+.secr-meta{ display:flex; align-items:center; gap:8px; color:var(--text3); font-size:13px; margin:12px 0 20px; padding-bottom:16px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.secr-content{ font-size:16px; line-height:2; color:var(--text); }
+.secr-content p{ margin:0 0 18px; }
+.secr-content img,.secr-content figure,.secr-content picture,.secr-content video{ display:none !important; }  /* 純文字：藏圖 */
+.secr-content a{ color:var(--accent); text-decoration:none; }
+.secr-empty{ text-align:center; color:var(--text3); font-size:13px; padding:50px 16px; line-height:1.7; }
+@media (min-width:640px){
+  .secr-overlay{ left:var(--sidebar-w); }
+  .secr-head{ padding:12px 22px; }
+  .secr-body{ padding:28px 24px 48px; }
+  .secr-title{ font-size:23px; }
+}
+
 /* ══ 熱門族群卡片 ═════════════════════════════ */
 .sector-news-card {
   background:var(--bg2); border:1px solid var(--border);
@@ -1108,6 +1140,18 @@ main:has(.iv2){ padding:0 !important; }
     <div class="twn-cnt" id="twn-cnt"></div>
   </div>
   <div class="twn-list" id="tw-news-list"></div>
+</div>
+
+<div id="sec-reader-overlay" class="secr-overlay" hidden>
+  <div class="secr-head">
+    <button class="secr-back" onclick="closeSecReader()" aria-label="上一頁"><span style="font-size:15px;line-height:1;">←</span>上一頁</button>
+    <span class="secr-src" id="secr-src"></span>
+    <div class="secr-nav">
+      <button id="secr-prev" onclick="secReaderNav(-1)" aria-label="上一則"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button id="secr-next" onclick="secReaderNav(1)" aria-label="下一則"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+    </div>
+  </div>
+  <div class="secr-scroll" id="secr-scroll"><div class="secr-body" id="secr-body"></div></div>
 </div>
 
 <!-- 手機版底部 Tab -->
@@ -2038,6 +2082,73 @@ function closeTwNews() {
   document.body.style.overflow = '';
 }
 
+// ── 熱門族群內文閱讀器（Readability 後端 /api/article）──
+let _sectorItems = [];      // renderSectors 存的目前清單（給上一則/下一則翻頁）
+let _secReaderIdx = -1;
+const _articleCache = {};
+
+function openSecReader(idx) {
+  if (idx < 0 || idx >= _sectorItems.length) return;
+  _secReaderIdx = idx;
+  const n = _sectorItems[idx];
+  const ov = document.getElementById('sec-reader-overlay');
+  if (!ov) return;
+  ov.hidden = false;
+  document.body.style.overflow = 'hidden';
+  document.getElementById('secr-src').textContent = n.src || '富聯網';
+  // 翻頁鈕狀態
+  document.getElementById('secr-prev').disabled = (idx <= 0);
+  document.getElementById('secr-next').disabled = (idx >= _sectorItems.length - 1);
+  if (n.url) markRead(n.url);   // 讀過就標記（跟點卡片一致）
+  renderSecArticle(n);
+}
+
+function secReaderNav(dir) {
+  const next = _secReaderIdx + dir;
+  if (next < 0 || next >= _sectorItems.length) return;
+  openSecReader(next);
+  const sc = document.getElementById('secr-scroll');
+  if (sc) sc.scrollTop = 0;
+}
+
+function closeSecReader() {
+  const ov = document.getElementById('sec-reader-overlay');
+  if (ov) ov.hidden = true;
+  document.body.style.overflow = '';
+}
+
+async function renderSecArticle(n) {
+  const body = document.getElementById('secr-body');
+  if (!body) return;
+  const d = new Date(n.time || 0);
+  const dateStr = n.time && !isNaN(d.getTime())
+    ? d.toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})
+    : (n.time || '');
+  const rel = relTimeAgo(n.time);
+  const head =
+    `<div class="secr-title">${hlHotKw(n.title || '')}</div>` +
+    `<div class="secr-meta"><span>🕐</span>${rel ? `<span class="sec-rel">${rel}</span><span style="opacity:.55;">·</span>` : ''}<span class="sec-abs">${dateStr}</span><span>📋</span><span style="color:var(--accent);font-weight:500;">${n.src||'富聯網'}</span></div>`;
+  // 有快取直接用
+  if (_articleCache[n.url]) {
+    body.innerHTML = head + `<div class="secr-content">${_articleCache[n.url]}</div>`;
+    return;
+  }
+  body.innerHTML = head + `<div class="secr-empty">📖 載入內文中…</div>`;
+  try {
+    const res  = await fetch(`${NEWS_API}/api/article?url=${encodeURIComponent(n.url)}`);
+    const json = await res.json();
+    if (_secReaderIdx < 0 || _sectorItems[_secReaderIdx]?.url !== n.url) return; // 已翻頁，丟棄舊結果
+    if (json && json.ok && json.content) {
+      _articleCache[n.url] = json.content;
+      body.innerHTML = head + `<div class="secr-content">${json.content}</div>`;
+    } else {
+      body.innerHTML = head + `<div class="secr-empty">內文擷取失敗<br><span style="font-size:11px;">可點卡片改看原文，或稍後再試（Render 免費版若休眠中需等幾秒喚醒）</span></div>`;
+    }
+  } catch {
+    body.innerHTML = head + `<div class="secr-empty">⚠️ 載入失敗，請稍後再試<br><span style="font-size:11px;">（Render 免費版若休眠中，第一次需等幾秒喚醒，返回再點一次）</span></div>`;
+  }
+}
+
 // ── 美股 Top50（第一批：行情7欄表格）──────────────
 let _usData = [];
 let _usSort = 'val';
@@ -2915,6 +3026,7 @@ function relTimeAgo(ts){
   return `${Math.floor(hr/24)} 天前`;
 }
 function renderSectors(contentEl, items) {
+  _sectorItems = items || [];
   contentEl.innerHTML = items.map((n,i) => {
     const d = new Date(n.time||0);
     const dateStr = n.time && !isNaN(d.getTime())
@@ -2951,6 +3063,7 @@ function renderSectors(contentEl, items) {
   <div class="sector-meta-row">
     <span>🕐</span>${rel ? `<span class="sec-rel">${rel}</span><span style="opacity:.55;">·</span>` : ''}<span class="sec-abs">${dateStr}</span>
     <span>📋</span><span style="color:var(--accent);font-weight:500;">${n.src||'富聯網'}</span>
+    <span class="sec-read-btn" onclick="event.stopPropagation();openSecReader(${i})" title="閱讀"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
   </div>
 </div>`;
   }).join('');
@@ -3137,6 +3250,7 @@ function renderNews(contentEl, items) {
 // ── 導航 ───────────────────────────────────────
 function goto(page, el) {
   closeTwNews();
+  closeSecReader();
   stopIntradayAutoRefresh();
   document.querySelectorAll('.sidebar-link').forEach(n=>n.classList.remove('active'));
   document.querySelectorAll('.bottom-nav .nav-link').forEach(n=>n.classList.remove('active'));
