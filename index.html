@@ -1220,7 +1220,7 @@ function markRead(url) {
 function isRead(url) {
   const read = JSON.parse(localStorage.getItem('read_urls') || '{}');
   if (!read[url]) return false;
-  if (Date.now() - read[url] > 7 * 24 * 60 * 60 * 1000) return false;
+  if (Date.now() - read[url] > 30 * 24 * 60 * 60 * 1000) return false;
   return true;
 }
 
@@ -2099,7 +2099,12 @@ function openSecReader(idx) {
   // 翻頁鈕狀態
   document.getElementById('secr-prev').disabled = (idx <= 0);
   document.getElementById('secr-next').disabled = (idx >= _sectorItems.length - 1);
-  if (n.url) markRead(n.url);   // 讀過就標記（跟點卡片一致）
+  if (n.url) {
+    markRead(n.url);   // 讀過就標記（跟點卡片一致）
+    // 立刻把對應的族群卡片反灰（不用等重新 render）
+    const cards = document.querySelectorAll('.sector-news-card');
+    if (cards[idx]) cards[idx].classList.add('read');
+  }
   renderSecArticle(n);
 }
 
