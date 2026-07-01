@@ -853,7 +853,13 @@ main:has(.iv2){ padding:0 !important; }
   margin-top:10px; padding-top:10px;
   border-top:1px solid var(--border);
   font-size:13px; color:var(--text3);
+  flex-wrap:wrap;
 }
+/* 族群標題強勢字眼：紅字+底線 */
+.sec-hot-kw { color:var(--red); text-decoration:underline; text-underline-offset:2px; text-decoration-thickness:1.5px; }
+/* 相對時間：加粗、純灰（不上色） */
+.sec-rel { font-weight:700; color:var(--text2); }
+.sec-abs { font-family:'JetBrains Mono',monospace; color:var(--text3); }
 
 /* ══ 盤後追蹤 ═════════════════════════════════ */
 .after-info-box {
@@ -1061,7 +1067,7 @@ main:has(.iv2){ padding:0 !important; }
     風度
   </div>
   <div class="sidebar-link" onclick="goto('intraday',this)">
-    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M20.49 3.51a12 12 0 0 1 0 16.97"/><path d="M3.51 20.49a12 12 0 0 1 0-16.97"/></svg>
+    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     盤中警示
   </div>
   <div class="sidebar-link" onclick="goto('after',this)">
@@ -1072,11 +1078,6 @@ main:has(.iv2){ padding:0 !important; }
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
     台股 Top50
   </div>
-  <div class="sidebar-section-label" style="margin-top:8px;">美股市場</div>
-  <div class="sidebar-link" onclick="goto('us',this)">
-    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-    美股 Top50
-  </div>
   <div class="sidebar-section-label" style="margin-top:8px;">追蹤新聞</div>
   <div class="sidebar-link" onclick="goto('sectors',this)">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
@@ -1085,6 +1086,11 @@ main:has(.iv2){ padding:0 !important; }
   <div class="sidebar-link" onclick="goto('news',this)">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8z"/></svg>
     台股新聞
+  </div>
+  <div class="sidebar-section-label" style="margin-top:8px;">美股市場</div>
+  <div class="sidebar-link" onclick="goto('us',this)">
+    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    美股 Top50
   </div>
   <div class="sidebar-section-label" style="margin-top:8px;">說明</div>
   <div class="sidebar-link" onclick="goto('guide',this)">
@@ -1113,19 +1119,19 @@ main:has(.iv2){ padding:0 !important; }
     <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span class="tab-label">盤中</span>
   </div>
   <div class="nav-link" onclick="goto('after',this)">
-    <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span><span class="tab-label">盤後</span>
+    <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span><span class="tab-label">盤後</span>
   </div>
   <div class="nav-link" onclick="goto('tw',this)">
     <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span><span class="tab-label">台股</span>
   </div>
-  <div class="nav-link" onclick="goto('us',this)">
-    <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span><span class="tab-label">美股</span>
-  </div>
   <div class="nav-link" onclick="goto('sectors',this)">
-    <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span class="tab-label">族群</span>
+    <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span><span class="tab-label">族群</span>
   </div>
   <div class="nav-link" onclick="goto('news',this)">
     <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><line x1="10" y1="9" x2="17" y2="9"/><line x1="10" y1="13" x2="17" y2="13"/></svg></span><span class="tab-label">新聞</span>
+  </div>
+  <div class="nav-link" onclick="goto('us',this)">
+    <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span><span class="tab-label">美股</span>
   </div>
 </div>
 
@@ -2894,12 +2900,27 @@ async function forceRefreshSectors() {
   await fetchSectors();
 }
 
+// 族群標題強勢字眼標紅底線
+function hlHotKw(t){ return String(t||'').replace(/(紅燈|亮燈|漲停)/g,'<span class="sec-hot-kw">$1</span>'); }
+// 相對時間「多久前」（1分內=剛剛、60分內=N分鐘前、24hr內=N小時前、再久=N天前）
+function relTimeAgo(ts){
+  const t = new Date(ts).getTime();
+  if (!t || isNaN(t)) return '';
+  const diff = Date.now() - t; if (diff < 0) return '剛剛';
+  const min = Math.floor(diff/60000);
+  if (min < 1) return '剛剛';
+  if (min < 60) return `${min} 分鐘前`;
+  const hr = Math.floor(min/60);
+  if (hr < 24) return `${hr} 小時前`;
+  return `${Math.floor(hr/24)} 天前`;
+}
 function renderSectors(contentEl, items) {
   contentEl.innerHTML = items.map((n,i) => {
     const d = new Date(n.time||0);
     const dateStr = n.time && !isNaN(d.getTime())
       ? d.toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})
       : (n.time||'');
+    const rel = relTimeAgo(n.time);
     const readClass  = isRead(n.url) ? 'read' : '';
     const chipsHtml = (n.stocks && n.stocks.length) ? (() => {
       // 折疊:手機露前3顆、桌機露前6顆（CSS 控制），超過的依位置標記，多一顆「+N ▼」鈕
@@ -2926,9 +2947,9 @@ function renderSectors(contentEl, items) {
     return `
 <div class="sector-news-card ${readClass}" style="animation:fadeIn2 0.2s ease ${i*0.03}s both"
   onclick="markRead('${n.url}');this.classList.add('read');window.open('${n.url}','_blank')">
-  <div class="sector-news-card-title">${n.title}</div>${chipsHtml}
+  <div class="sector-news-card-title">${hlHotKw(n.title)}</div>${chipsHtml}
   <div class="sector-meta-row">
-    <span>🕐</span><span style="font-family:'JetBrains Mono',monospace;">${dateStr}</span>
+    <span>🕐</span>${rel ? `<span class="sec-rel">${rel}</span><span style="opacity:.55;">·</span>` : ''}<span class="sec-abs">${dateStr}</span>
     <span>📋</span><span style="color:var(--accent);font-weight:500;">${n.src||'富聯網'}</span>
   </div>
 </div>`;
