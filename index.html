@@ -2635,7 +2635,7 @@ const pages = {
 
 <div class="after-info-box">
   <span style="font-size:14px;flex-shrink:0;">ℹ️</span>
-  <span style="font-size:12px;">顯示台股最近一個交易日的收盤資料；台股下午 1:30 收盤，FinMind 全市場資料約 17:30 更新完整，故每交易日約 17:45 自動更新當日收盤（18:30 補跑一次）。資料來源為 FinMind（彙整證交所上市與櫃買中心上櫃）。</span>
+  <span style="font-size:12px;">顯示台股最近一個交易日的收盤資料；台股下午 1:30 收盤，全市場彙總資料約下午 5 點更新完整，故每交易日約下午 5 點自動更新當日收盤。資料來源為證交所（上市）與櫃買中心（上櫃）。</span>
 </div>
 
 <!-- Gemini 區塊容器（後續批次填入）-->
@@ -2664,7 +2664,7 @@ const pages = {
 </div>
 
 <div class="us-disclaimer">⚠️ 本站數據與「題材／族群」等分析皆由程式與 AI 自動產生，僅供參考、非投資建議，且可能延遲、不完整或有誤。投資決策請自行查證並自負風險。</div>
-<div class="us-source">行情：FinMind（證交所＋櫃買中心彙整，前一交易日收盤）｜題材分析：Google Gemini｜個股新聞：Google News</div>
+<div class="us-source">行情：證交所 TWSE＋櫃買中心（前一交易日收盤）｜題材分析：Google Gemini｜個股新聞：Google News</div>
 </div>`;
   },
 
@@ -2806,7 +2806,7 @@ const pages = {
       </div>
       <div style="display:flex;gap:12px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
         <span class="badge badge-blue" style="flex-shrink:0;margin-top:2px">盤後追蹤</span>
-        <span style="font-size:13px;color:var(--text2);line-height:1.6;">18:00 後抓取今日成交值前 60 名，篩選漲幅 &gt; 7% 的今日資金焦點。</span>
+        <span style="font-size:13px;color:var(--text2);line-height:1.6;">16:00 後抓取今日成交值前 60 名，篩選漲幅 &gt; 7% 的今日資金焦點。</span>
       </div>
       <div style="display:flex;gap:12px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
         <span class="badge badge-new" style="flex-shrink:0;margin-top:2px">熱門族群</span>
@@ -2824,7 +2824,7 @@ const pages = {
     <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;"><span style="width:3px;height:18px;background:var(--accent);border-radius:2px;display:inline-block;"></span>程式睡著了？手動喚醒</div>
     <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">台股 Top50 沒更新／缺上櫃股時點「重建台股 Top50」（看到 <b>otcCount</b> 有數字就成功）；若 120 檔掃描名單也沒更新，等它跑完後再點「重建 120 檔名單」。</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <a href="${NEWS_API}/api/tw-rebuild" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;padding:13px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:14px;">🔄 重建台股 Top50<div style="font-size:11px;font-weight:500;opacity:.85;margin-top:2px;">FinMind 手動重跑（含全市場資料）</div></a>
+      <a href="${NEWS_API}/api/tw-rebuild" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;padding:13px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:14px;">🔄 重建台股 Top50<div style="font-size:11px;font-weight:500;opacity:.85;margin-top:2px;">手動重跑（含喚醒 Render）</div></a>
       <a href="${WORKER}/api/update-stocklist" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;padding:13px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:14px;">🔄 重建 120 檔名單<div style="font-size:11px;font-weight:500;opacity:.85;margin-top:2px;">Worker 掃描池（先跑左邊再按這個）</div></a>
     </div>
   </div>
