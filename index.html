@@ -2822,10 +2822,9 @@ const pages = {
   <!-- 喚醒程式（Render / Worker） -->
   <div style="margin-bottom:24px;">
     <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;"><span style="width:3px;height:18px;background:var(--accent);border-radius:2px;display:inline-block;"></span>程式睡著了？手動喚醒</div>
-    <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">台股 Top50 沒更新／缺上櫃股時點「重建台股 Top50」（看到 <b>otcCount</b> 有數字就成功）；若 120 檔掃描名單也沒更新，等它跑完後再點「重建 120 檔名單」。</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">台股 Top50、120 檔掃描名單、盤後追蹤——任何一個沒更新，都按這一顆就好，會一鍵全部重建（看到 <b>otcCount</b> 有數字就成功）。</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <a href="${NEWS_API}/api/tw-rebuild" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;padding:13px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:14px;">🔄 重建台股 Top50<div style="font-size:11px;font-weight:500;opacity:.85;margin-top:2px;">手動重跑（含喚醒 Render）</div></a>
-      <a href="${WORKER}/api/update-stocklist" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;padding:13px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:14px;">🔄 重建 120 檔名單<div style="font-size:11px;font-weight:500;opacity:.85;margin-top:2px;">Worker 掃描池（先跑左邊再按這個）</div></a>
+      <a href="${NEWS_API}/api/tw-rebuild" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;padding:13px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:14px;">🔄 一鍵重建台股資料<div style="font-size:11px;font-weight:500;opacity:.85;margin-top:2px;">Top50＋掃描池＋盤後追蹤</div></a>
     </div>
   </div>
 
