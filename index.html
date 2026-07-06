@@ -418,6 +418,16 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .chip-zero { position:absolute; left:0; right:0; height:1px; background:var(--text3); opacity:.5; z-index:2; }
 .chip-x { display:flex; justify-content:space-between; font-size:10px; color:var(--text3); margin-top:4px; }
 .chip-src { font-size:10px; color:var(--text3); text-align:center; margin:2px 0 4px; }
+.chip-zone { position:relative; touch-action:none; cursor:crosshair; }
+.chip-cursor { position:absolute; top:0; bottom:0; width:1.5px; background:var(--accent); opacity:0; z-index:5; pointer-events:none; transition:opacity .1s; }
+.chip-sub.on { color:var(--accent); font-weight:700; }
+.chip-mmrow { display:flex; justify-content:space-between; align-items:baseline; margin:2px 0 3px; }
+.chip-mmlab { font-size:11px; color:var(--text2); font-weight:600; }
+.chip-mmval { font-size:14px; font-weight:800; color:var(--accent); font-variant-numeric:tabular-nums; }
+.chip-mmnote { display:flex; justify-content:space-between; font-size:9.5px; color:var(--text3); margin:2px 0 8px; }
+.chip-mmnote .warn { color:var(--red); opacity:.8; }
+.chip-barlab { font-size:11px; color:var(--text2); font-weight:600; margin:8px 0 3px; }
+.chip-mmsvg { width:100%; height:60px; display:block; }
 .wind-gauge-labels { display:flex; justify-content:space-between; font-size:11px; margin-top:-2px; }
 .wind-gauge-labels .l { color:var(--green); font-weight:600; }
 .wind-gauge-labels .r { color:var(--red); font-weight:600; }
@@ -2496,15 +2506,18 @@ const PAGE_TITLES = {
 };
 
 // ── 風度頁：籌碼三指標（FinMind → Render 22:10 產 KV → Worker 供讀）──
+// 三卡同步游標：手機按住圖上左右滑／桌機滑鼠移過 → 三卡一起顯示該日數字，放開回最新
+let CHIP = null;
 function chipFmt(v, unit) {
   if (unit === '億') return (Math.round(v * 10) / 10).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   return Math.round(v).toLocaleString('en-US');
 }
+function chipSgn(v, unit) { return (v >= 0 ? '+' : '') + chipFmt(v, unit); }
 function chipDelta(v, unit) {
   const cls = v >= 0 ? 'chip-up' : 'chip-dn';
-  return `<span class="${cls}">${(v >= 0 ? '+' : '') + chipFmt(v, unit)} ${unit}</span>`;
+  return `<span class="${cls}">${chipSgn(v, unit)} ${unit}</span>`;
 }
-function chipChart(series) {
+function chipBars(series) {
   const vals = series.map(p => p.v);
   const mx = Math.max(0, ...vals), mn = Math.min(0, ...vals);
   const rng = (mx - mn) || 1, zero = mx / rng * 100;
@@ -2514,11 +2527,88 @@ function chipChart(series) {
       ? `<div class="chip-bcol"><div class="chip-bar u" style="bottom:${(100 - zero).toFixed(2)}%;height:${h}%"></div></div>`
       : `<div class="chip-bcol"><div class="chip-bar d" style="top:${zero.toFixed(2)}%;height:${h}%"></div></div>`;
   }).join('');
-  const x0 = series[0].d, xm = series[Math.floor(series.length / 2)].d, x1 = series[series.length - 1].d;
-  return `<div class="chip-chart"><div class="chip-zero" style="top:${zero.toFixed(2)}%"></div>${bars}</div><div class="chip-x"><span>${x0}</span><span>${xm}</span><span>${x1}</span></div>`;
+  return `<div class="chip-chart"><div class="chip-zero" style="top:${zero.toFixed(2)}%"></div>${bars}</div>`;
 }
-function chipCard(title, tag, sub, bigHtml, unit, chg, chartHtml) {
-  return `<div class="chip-card"><div class="chip-head"><div><span class="chip-title">${title}</span><span class="chip-tag">${tag}</span><span class="chip-sub">${sub}</span></div><div class="chip-val">${bigHtml}<span class="chip-unit">${unit}</span><span class="chip-delta">今日變動 ${chipDelta(chg, unit)}</span></div></div>${chartHtml}`;
+function chipMmSvg(series) {
+  const W = 300, H = 60;
+  const vals = series.map(p => p.v);
+  const LO = Math.min(140, Math.min(...vals) - 2), HI = Math.max(172, Math.max(...vals) + 2);
+  const y = v => H - (v - LO) / (HI - LO) * H;
+  const pts = series.map((p, i) => `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+  return `<svg class="chip-mmsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
+    `<line x1="0" y1="${y(160).toFixed(1)}" x2="${W}" y2="${y(160).toFixed(1)}" stroke="var(--border)"/>` +
+    `<line x1="0" y1="${y(140).toFixed(1)}" x2="${W}" y2="${y(140).toFixed(1)}" stroke="var(--red)" stroke-dasharray="4 3" opacity=".55"/>` +
+    `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/></svg>`;
+}
+function chipXAxis(series) {
+  if (!series || !series.length) return '';
+  const m = series[Math.floor(series.length / 2)];
+  return `<div class="chip-x"><span>${series[0].d}</span><span>${m.d}</span><span>${series[series.length - 1].d}</span></div>`;
+}
+function chipZone(inner) { return `<div class="chip-zone" data-chipzone>${inner}<div class="chip-cursor"></div></div>`; }
+function chipSet(active, frac) {
+  const D = CHIP; if (!D) return;
+  const el = id => document.getElementById(id);
+  const pick = s => {
+    if (!s || !s.length) return null;
+    const k = active ? Math.round(frac * (s.length - 1)) : s.length - 1;
+    return { k, p: s[k], prev: k > 0 ? s[k - 1] : null };
+  };
+  const dd = o => (o && o.prev) ? o.p.v - o.prev.v : 0;
+  const cls = v => v >= 0 ? 'chip-up' : 'chip-dn';
+  const stamp = o => (active && o) ? `📅 ${o.p.d}　` : '';
+  const sub = (id, o) => {
+    const s = el(id); if (!s) return;
+    if (!s.dataset.orig) s.dataset.orig = s.textContent;
+    s.classList.toggle('on', !!active);
+    s.textContent = active && o ? `👆 ${o.p.d} 當日` : s.dataset.orig;
+  };
+  if (D.foreign && el('chipVF')) {
+    const o = pick(D.foreign.series);
+    el('chipVF').textContent = chipSgn(o.p.v, '口');
+    el('chipVF').className = 'chip-big ' + cls(o.p.v);
+    el('chipDF').innerHTML = stamp(o) + `變動 ${chipDelta(dd(o), '口')}`;
+    sub('chipSubF', o);
+  }
+  if (D.retail && el('chipVR')) {
+    const o = pick(D.retail.series);
+    el('chipVR').textContent = chipSgn(o.p.v, '口');
+    el('chipVR').className = 'chip-big ' + cls(o.p.v);
+    el('chipDR').innerHTML = stamp(o) + `變動 ${chipDelta(dd(o), '口')}`;
+    sub('chipSubR', o);
+  }
+  if (D.margin && el('chipVM')) {
+    const ob = pick(D.margin.balSeries || null);
+    const oc = pick(D.margin.series);
+    el('chipVM').textContent = chipFmt(ob ? ob.p.v : D.margin.bal, '億');
+    el('chipDM').innerHTML = stamp(oc) + `變動 ${chipDelta(oc ? oc.p.v : D.margin.chg, '億')}`;
+    sub('chipSubM', oc);
+    if (D.margin.mm && el('chipMMV')) {
+      const om = pick(D.margin.mm);
+      const v = om.p.v;
+      el('chipMMV').textContent = v.toFixed(1) + '%';
+      el('chipMMV').style.color = v < 140 ? 'var(--red)' : (v < 150 ? '#d97706' : 'var(--accent)');
+    }
+  }
+  document.querySelectorAll('.chip-cursor').forEach(c => {
+    c.style.opacity = active ? 1 : 0;
+    if (active) c.style.left = `calc(${(frac * 100).toFixed(2)}% - 1px)`;
+  });
+}
+function chipBindScrub() {
+  document.querySelectorAll('[data-chipzone]').forEach(z => {
+    const calc = e => {
+      const r = z.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+      return Math.max(0, Math.min(1, x / r.width));
+    };
+    const on = e => { chipSet(true, calc(e)); if (e.cancelable) e.preventDefault(); };
+    z.addEventListener('mousemove', on);
+    z.addEventListener('mouseleave', () => chipSet(false, 0));
+    z.addEventListener('touchstart', on, { passive: false });
+    z.addEventListener('touchmove', on, { passive: false });
+    z.addEventListener('touchend', () => chipSet(false, 0));
+  });
 }
 async function loadChipIndicators() {
   const box = document.getElementById('chip-cards');
@@ -2527,24 +2617,30 @@ async function loadChipIndicators() {
     const r = await fetch(`${WORKER}/api/chip-indicators`);
     const d = await r.json();
     if (!d || !d.ok) return;
+    CHIP = d;
     const cards = [];
     if (d.foreign && d.foreign.series && d.foreign.series.length) {
-      const v = d.foreign.latest, cls = v >= 0 ? 'chip-up' : 'chip-dn';
-      cards.push(chipCard('外資台指淨未平倉', '柱：餘額走勢', '外資期貨籌碼方向；負值＝淨空單',
-        `<span class="chip-big ${cls}">${(v >= 0 ? '+' : '') + chipFmt(v, '口')}</span>`, '口', d.foreign.chg, chipChart(d.foreign.series)) + '</div>');
+      cards.push(`<div class="chip-card"><div class="chip-head"><div><span class="chip-title">外資台指淨未平倉</span><span class="chip-tag">柱：餘額走勢</span><span class="chip-sub" id="chipSubF">外資期貨籌碼方向；負值＝淨空單</span></div><div class="chip-val"><span class="chip-big" id="chipVF"></span><span class="chip-unit">口</span><span class="chip-delta" id="chipDF"></span></div></div>${chipZone(chipBars(d.foreign.series))}${chipXAxis(d.foreign.series)}</div>`);
     }
     if (d.retail && d.retail.series && d.retail.series.length) {
-      const v = d.retail.latest, cls = v >= 0 ? 'chip-up' : 'chip-dn';
-      cards.push(chipCard(`散戶${d.retail.label || '微台'}淨未平倉`, '柱：餘額走勢', '散戶反指標；正值＝散戶偏多',
-        `<span class="chip-big ${cls}">${(v >= 0 ? '+' : '') + chipFmt(v, '口')}</span>`, '口', d.retail.chg, chipChart(d.retail.series)) + '</div>');
+      cards.push(`<div class="chip-card"><div class="chip-head"><div><span class="chip-title">散戶${d.retail.label || '微台'}淨未平倉</span><span class="chip-tag">柱：餘額走勢</span><span class="chip-sub" id="chipSubR">散戶反指標；正值＝散戶偏多</span></div><div class="chip-val"><span class="chip-big" id="chipVR"></span><span class="chip-unit">口</span><span class="chip-delta" id="chipDR"></span></div></div>${chipZone(chipBars(d.retail.series))}${chipXAxis(d.retail.series)}</div>`);
     }
     if (d.margin && d.margin.series && d.margin.series.length) {
-      cards.push(chipCard('融資餘額', '柱：每日增減', '散戶信用資金水位',
-        `<span class="chip-big">${chipFmt(d.margin.bal, '億')}</span>`, '億', d.margin.chg, chipChart(d.margin.series)) + '</div>');
+      let m = `<div class="chip-card"><div class="chip-head"><div><span class="chip-title">融資餘額</span><span class="chip-sub" id="chipSubM">散戶信用資金水位</span></div><div class="chip-val"><span class="chip-big" id="chipVM"></span><span class="chip-unit">億</span><span class="chip-delta" id="chipDM"></span></div></div>`;
+      if (d.margin.mm && d.margin.mm.length) {
+        m += `<div class="chip-mmrow"><span class="chip-mmlab">大盤融資維持率<span class="chip-tag">線：30日走勢</span></span><span class="chip-mmval" id="chipMMV"></span></div>` +
+             chipZone(chipMmSvg(d.margin.mm)) +
+             `<div class="chip-mmnote"><span>灰線 160%</span><span class="warn">─ ─ 140% 追繳警戒</span></div>` +
+             `<div class="chip-barlab">餘額每日增減<span class="chip-tag">柱：紅增綠減</span></div>`;
+      }
+      m += chipZone(chipBars(d.margin.series)) + chipXAxis(d.margin.series) + `</div>`;
+      cards.push(m);
     }
     if (!cards.length) return;
-    box.innerHTML = cards.join('') + `<div class="chip-src">籌碼資料：FinMind（期交所＋證交所彙整）· 每交易日約 22:10 更新</div>`;
+    box.innerHTML = cards.join('') + `<div class="chip-src">籌碼資料：FinMind（期交所＋證交所彙整）· 每交易日約 22:10 更新 · 按住圖表左右滑可看各日數字</div>`;
     box.style.display = '';
+    chipSet(false, 0);
+    chipBindScrub();
   } catch (e) { console.log('loadChipIndicators fail:', e.message); }
 }
 
