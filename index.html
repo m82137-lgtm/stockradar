@@ -558,11 +558,18 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-ws{ flex:1; min-height:0; display:flex; }
 .iv2-tablewrap{ flex:1; min-height:0; overflow:auto; background:var(--bg2); }
 .iv2-table{ width:100%; border-collapse:collapse; table-layout:fixed; }
-.iv2-table .c-code{ width:9%; } .iv2-table .c-name{ width:18%; } .iv2-table .c-price{ width:13%; }
-.iv2-table .c-chg{ width:15%; } .iv2-table .c-vol{ width:16%; } .iv2-table .c-est{ width:16%; } .iv2-table .c-k15{ width:13%; }
+.iv2-table .c-code{ width:8%; } .iv2-table .c-name{ width:16%; } .iv2-table .c-price{ width:11%; }
+.iv2-table .c-chg{ width:12%; } .iv2-table .c-vol{ width:14%; } .iv2-table .c-est{ width:14%; } .iv2-table .c-k15{ width:9%; }
+.iv2-table .c-kbar{ width:6%; } .iv2-table .c-spark{ width:10%; }
+.iv2-table td.iv2-kcell, .iv2-table td.iv2-spcell{ padding-top:3px; padding-bottom:3px; text-align:center; }
+.iv2-kcell svg, .iv2-spcell svg{ display:block; margin:0 auto; }
 @media (max-width:639px){
-  .iv2-table .c-code{ width:13%; } .iv2-table .c-name{ width:21%; } .iv2-table .c-price{ width:13%; }
-  .iv2-table .c-chg{ width:17%; } .iv2-table .c-vol{ width:24%; } .iv2-table .c-k15{ width:12%; }
+  /* 手機改整表橫向滑動（使用者授權）：表格保持完整欄位、超出畫面左右滑 */
+  .iv2-tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .iv2-table{ min-width:640px; }
+  .iv2-table .c-code{ width:64px; } .iv2-table .c-name{ width:120px; } .iv2-table .c-price{ width:64px; }
+  .iv2-table .c-chg{ width:78px; } .iv2-table .c-vol{ width:110px; } .iv2-table .c-k15{ width:56px; }
+  .iv2-table .c-kbar{ width:44px; } .iv2-table .c-spark{ width:104px; }
 }
 .iv2-table thead th{ font-size:11px; color:var(--text3); font-weight:700; text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); background:var(--bg2); position:sticky; top:0; z-index:2; white-space:nowrap; }
 @media (min-width:640px){ .iv2-table thead th{ font-size:11.5px; padding:7px 14px; } }
@@ -1587,7 +1594,8 @@ function isMarketHours() {
 }
 function startIntradayAutoRefresh() {
   clearInterval(intradayTimer);
-  intradayTimer = setInterval(() => { if (isMarketHours()) fetchAlerts(); }, 60000);
+  loadIvSeries(true).then(() => renderAlertsList());
+  intradayTimer = setInterval(() => { if (isMarketHours()) { fetchAlerts(); loadIvSeries(); } }, 60000);
 }
 function stopIntradayAutoRefresh() { clearInterval(intradayTimer); intradayTimer = null; }
 
@@ -1640,6 +1648,58 @@ function iv15(s){
   if (s.k15 === false) return '<span class="iv2-k15 no">✗不符</span>';
   return '<span class="iv2-k15 na">—</span>';
 }
+// ── 當日K棒／即時走勢（走勢資料由 Worker 掃描自養，每檔約 3 分鐘一點）──
+let IVSERIES = null, ivSeriesAt = 0;
+async function loadIvSeries(force) {
+  if (!force && Date.now() - ivSeriesAt < 120000) return;   // 2 分鐘節流
+  try {
+    const r = await fetch(`${WORKER}/api/intraday-series`);
+    const d = await r.json();
+    if (d && d.series) { IVSERIES = d; ivSeriesAt = Date.now(); }
+  } catch (e) {}
+}
+function ivKbar(s) {
+  const o = +(s.openPrice || 0), c = +(s.price || 0);
+  let h = +(s.h || 0), l = +(s.l || 0);
+  if (!o || !c) return '<span style="color:var(--text3)">—</span>';
+  if (!h) h = Math.max(o, c);
+  if (!l) l = Math.min(o, c);
+  const lo = Math.min(l, o, c), hi = Math.max(h, o, c), rng = (hi - lo) || 1;
+  const y = v => 34 - (v - lo) / rng * 30;
+  const col = c >= o ? 'var(--red)' : 'var(--green)';
+  const t = y(Math.max(o, c)), b = y(Math.min(o, c));
+  return `<svg width="20" height="38" viewBox="0 0 20 38"><line x1="10" y1="${y(hi).toFixed(1)}" x2="10" y2="${y(lo).toFixed(1)}" stroke="${col}" stroke-width="1.2"/><rect x="5.5" y="${t.toFixed(1)}" width="9" height="${Math.max(1.5, b - t).toFixed(1)}" fill="${col}"/></svg>`;
+}
+function ivSpark(s) {
+  const arr = IVSERIES && IVSERIES.series && IVSERIES.series[s.code];
+  if (!arr || arr.length < 2) return '<span style="color:var(--text3)">—</span>';
+  const chg = +(s.chg || 0), price = +(s.price || 0);
+  const prev = price ? price / (1 + chg / 100) : 0;
+  const W = 96, H = 34;
+  let lo = Infinity, hi = -Infinity;
+  arr.forEach(p => { lo = Math.min(lo, p[1]); hi = Math.max(hi, p[1]); });
+  if (prev) { lo = Math.min(lo, prev); hi = Math.max(hi, prev); }
+  const rng = (hi - lo) || 1;
+  const X = t => Math.min(W, t / 270 * W).toFixed(1);       // x 依時間定位，線隨盤勢長大
+  const Y = v => (H - 2 - (v - lo) / rng * (H - 4));
+  const segs = []; let cur = [[X(arr[0][0]), Y(arr[0][1]).toFixed(1)]];
+  let above = prev ? arr[0][1] >= prev : true;
+  for (let i = 1; i < arr.length; i++) {
+    const a = prev ? arr[i][1] >= prev : true;
+    if (a !== above) {
+      const xm = X(arr[i][0]);
+      cur.push([xm, Y(prev).toFixed(1)]);
+      segs.push([above, cur]);
+      cur = [[xm, Y(prev).toFixed(1)]];
+      above = a;
+    }
+    cur.push([X(arr[i][0]), Y(arr[i][1]).toFixed(1)]);
+  }
+  segs.push([above, cur]);
+  const paths = segs.map(([ab, pts]) => `<polyline points="${pts.map(p => p[0] + ',' + p[1]).join(' ')}" fill="none" stroke="${ab ? 'var(--red)' : 'var(--green)'}" stroke-width="1.3"/>`).join('');
+  const ref = prev ? `<line x1="0" y1="${Y(prev).toFixed(1)}" x2="${W}" y2="${Y(prev).toFixed(1)}" stroke="var(--text3)" stroke-dasharray="3 3" opacity=".55"/>` : '';
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${ref}${paths}</svg>`;
+}
 function ivRow(s){
   const chg = +(s.chg||0);
   const lim = chg >= 9.5;
@@ -1664,6 +1724,8 @@ function ivRow(s){
     <td class="iv2-num"><span class="iv2-vol-full">${ivFmtVol(s.vol)}張</span><span class="iv2-vol-m">${ivFmtVolM(s.vol)}張</span>${estInline}</td>
     <td class="iv2-num iv2-est-col">${estMain}</td>
     <td>${iv15(s)}</td>
+    <td class="iv2-kcell">${ivKbar(s)}</td>
+    <td class="iv2-spcell">${ivSpark(s)}</td>
   </tr>`;
 }
 
@@ -1677,7 +1739,7 @@ function renderAlertsList() {
   if (countEl) countEl.textContent = stocks.length;
   if (limitEl) limitEl.textContent = `漲停 ${stocks.filter(s=>(+(s.chg||0))>=9.5).length}`;
   if (!stocks.length) {
-    listEl.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px 16px;color:var(--text3);">目前無符合條件的強勢股，盤中每分鐘自動更新</td></tr>';
+    listEl.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px 16px;color:var(--text3);">目前無符合條件的強勢股，盤中每分鐘自動更新</td></tr>';
     return;
   }
   ivAlertIndex = {};
@@ -2745,7 +2807,7 @@ const pages = {
     <div class="iv2-tablewrap" id="iv2-tablewrap">
       <table class="iv2-table">
         <thead><tr>
-          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price">最新價</th><th class="c-chg">漲幅</th><th class="c-vol">成交量</th><th class="iv2-est-col c-est">預估量</th><th class="c-k15">15MK</th>
+          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price">最新價</th><th class="c-chg">漲幅</th><th class="c-vol">成交量</th><th class="iv2-est-col c-est">預估量</th><th class="c-k15">15MK</th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th>
         </tr></thead>
         <tbody id="strategy-list"></tbody>
       </table>
