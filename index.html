@@ -2772,11 +2772,11 @@ async function loadChipIndicators() {
     CHIP = d;
     const idxCard = (key, title, pack) => !pack ? chipPh(title) :
       `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v" id="${key}C"></span></div>` +
-      `<div class="cp-h2"><span id="${key}D"></span><span id="${key}M"></span></div>` +
+      `<div class="cp-h2"><span id="${key}M"></span><span id="${key}D" style="text-align:right"></span></div>` +
       chipZone(`<div>${chipIdxSvg(pack.series)}</div><div class="chip-windchip" id="${key}W"></div>`, pack.series.length) + `</div>`;
     const barCard = (key, title, pack) => !pack ? chipPh(title) :
       `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v" id="cp${key}V"></span></div>` +
-      `<div class="cp-h2"><span id="cp${key}D"></span></div>` +
+      `<div class="cp-h2"><span></span><span id="cp${key}D" style="text-align:right"></span></div>` +
       chipZone(chipBars2(pack.series), pack.series.length) + `</div>`;
     const rows = [];
     if (d.idx && (d.idx.tse || d.idx.otc)) {
@@ -2787,10 +2787,10 @@ async function loadChipIndicators() {
     }
     if (d.margin) {
       const balC = `<div class="cp-card"><div class="cp-h1"><span class="cp-t">融資餘額</span><span class="cp-v" id="cpmV"></span></div>` +
-        `<div class="cp-h2"><span id="cpmD"></span></div>` + chipZone(chipBars2(d.margin.series), d.margin.series.length) + `</div>`;
+        `<div class="cp-h2"><span></span><span id="cpmD" style="text-align:right"></span></div>` + chipZone(chipBars2(d.margin.series), d.margin.series.length) + `</div>`;
       const mmC = (d.margin.mm && d.margin.mm.length) ?
         `<div class="cp-card"><div class="cp-h1"><span class="cp-t">融資維持率</span><span class="cp-v" id="cpmmV"></span></div>` +
-        `<div class="cp-h2"><span id="cpmmD"></span></div>` + chipZone(`<div>${chipMm2Svg(d.margin.mm)}</div>`, d.margin.mm.length, true) + `</div>`
+        `<div class="cp-h2"><span></span><span id="cpmmD" style="text-align:right"></span></div>` + chipZone(`<div>${chipMm2Svg(d.margin.mm)}</div>`, d.margin.mm.length, true) + `</div>`
         : chipPh('融資維持率');
       rows.push(`<div class="chip-grid2">${balC}${mmC}</div>`);
     }
