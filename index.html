@@ -432,6 +432,17 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .chip-klegend { display:flex; flex-wrap:wrap; gap:8px; font-size:10px; font-weight:600; margin:2px 0 5px; }
 .chip-klegend b { font-variant-numeric:tabular-nums; font-weight:700; }
 .chip-kohlc { display:flex; gap:10px; font-size:10px; color:var(--text2); margin-top:3px; font-variant-numeric:tabular-nums; flex-wrap:wrap; }
+/* ── 風度頁 v3：六卡並排一屏版 ── */
+.chip-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+.cp-card { background:var(--bg2); border:1px solid var(--border); border-radius:11px; padding:8px 9px 6px; position:relative; }
+.cp-h1 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; }
+.cp-t { font-size:11.5px; font-weight:700; white-space:nowrap; color:var(--text); }
+.cp-v { font-size:14px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); }
+.cp-h2 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; font-size:9.5px; color:var(--text3); margin:1px 0 3px; min-height:13px; font-variant-numeric:tabular-nums; }
+.chip-windchip { position:absolute; top:2px; left:4px; font-size:10px; font-weight:800; padding:1px 7px; border-radius:6px; background:var(--bg2); border:1.5px solid currentColor; z-index:6; pointer-events:none; opacity:0; }
+.chip-ksvg2 { width:100%; height:96px; display:block; }
+.chip-chart2 { position:relative; height:50px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 17px; }
+.chip-mmsvg2 { width:100%; height:50px; display:block; }
 .wind-gauge-labels { display:flex; justify-content:space-between; font-size:11px; margin-top:-2px; }
 .wind-gauge-labels .l { color:var(--green); font-weight:600; }
 .wind-gauge-labels .r { color:var(--red); font-weight:600; }
@@ -558,18 +569,19 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-ws{ flex:1; min-height:0; display:flex; }
 .iv2-tablewrap{ flex:1; min-height:0; overflow:auto; background:var(--bg2); }
 .iv2-table{ width:100%; border-collapse:collapse; table-layout:fixed; }
-.iv2-table .c-code{ width:8%; } .iv2-table .c-name{ width:16%; } .iv2-table .c-price{ width:11%; }
-.iv2-table .c-chg{ width:12%; } .iv2-table .c-vol{ width:14%; } .iv2-table .c-est{ width:14%; } .iv2-table .c-k15{ width:9%; }
-.iv2-table .c-kbar{ width:6%; } .iv2-table .c-spark{ width:10%; }
-.iv2-table td.iv2-kcell, .iv2-table td.iv2-spcell{ padding-top:3px; padding-bottom:3px; text-align:center; }
-.iv2-kcell svg, .iv2-spcell svg{ display:block; margin:0 auto; }
+.iv2-table .c-code{ width:7%; } .iv2-table .c-name{ width:15%; } .iv2-table .c-price{ width:10%; }
+.iv2-table .c-chg{ width:11%; } .iv2-table .c-vol{ width:13%; } .iv2-table .c-est{ width:13%; } .iv2-table .c-k15{ width:8%; }
+.iv2-table .c-kbar{ width:6%; } .iv2-table .c-spark{ width:9%; } .iv2-table .c-k5{ width:8%; }
+.iv2-table td.iv2-kcell, .iv2-table td.iv2-spcell, .iv2-table td.iv2-k5cell{ padding-top:3px; padding-bottom:3px; text-align:center; }
+.iv2-kcell svg, .iv2-spcell svg, .iv2-k5cell svg{ display:block; margin:0 auto; }
 @media (max-width:639px){
-  /* 手機改整表橫向滑動（使用者授權）：表格保持完整欄位、超出畫面左右滑 */
-  .iv2-tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  .iv2-table{ min-width:640px; }
-  .iv2-table .c-code{ width:64px; } .iv2-table .c-name{ width:120px; } .iv2-table .c-price{ width:64px; }
-  .iv2-table .c-chg{ width:78px; } .iv2-table .c-vol{ width:110px; } .iv2-table .c-k15{ width:56px; }
-  .iv2-table .c-kbar{ width:44px; } .iv2-table .c-spark{ width:104px; }
+  /* 手機橫向滑動（使用者授權）：原六欄用 vw 精準佔滿一個螢幕寬（15MK 右緣＝畫面右緣，同改版前），
+     新欄位（當日K/走勢/近五日K）在畫面外，左右滑看 */
+  .iv2-tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:none; }
+  .iv2-table{ min-width:calc(100vw + 224px); }
+  .iv2-table .c-code{ width:13vw; } .iv2-table .c-name{ width:21vw; } .iv2-table .c-price{ width:13vw; }
+  .iv2-table .c-chg{ width:17vw; } .iv2-table .c-vol{ width:24vw; } .iv2-table .c-k15{ width:12vw; }
+  .iv2-table .c-kbar{ width:44px; } .iv2-table .c-spark{ width:104px; } .iv2-table .c-k5{ width:76px; }
 }
 .iv2-table thead th{ font-size:11px; color:var(--text3); font-weight:700; text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); background:var(--bg2); position:sticky; top:0; z-index:2; white-space:nowrap; }
 @media (min-width:640px){ .iv2-table thead th{ font-size:11.5px; padding:7px 14px; } }
@@ -1595,7 +1607,8 @@ function isMarketHours() {
 function startIntradayAutoRefresh() {
   clearInterval(intradayTimer);
   loadIvSeries(true).then(() => renderAlertsList());
-  intradayTimer = setInterval(() => { if (isMarketHours()) { fetchAlerts(); loadIvSeries(); } }, 60000);
+  loadOhlc5d(true).then(() => renderAlertsList());
+  intradayTimer = setInterval(() => { if (isMarketHours()) { fetchAlerts(); loadIvSeries(); loadOhlc5d(); } }, 60000);
 }
 function stopIntradayAutoRefresh() { clearInterval(intradayTimer); intradayTimer = null; }
 
@@ -1700,6 +1713,48 @@ function ivSpark(s) {
   const ref = prev ? `<line x1="0" y1="${Y(prev).toFixed(1)}" x2="${W}" y2="${Y(prev).toFixed(1)}" stroke="var(--text3)" stroke-dasharray="3 3" opacity=".55"/>` : '';
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${ref}${paths}</svg>`;
 }
+let OHLC5D = null, ohlc5dAt = 0;
+async function loadOhlc5d(force) {
+  if (!force && Date.now() - ohlc5dAt < 600000) return;   // 10 分鐘節流（盤後才會變）
+  try {
+    const r = await fetch(`${WORKER}/api/ohlc5d`);
+    const d = await r.json();
+    if (d && d.dates && d.map) { OHLC5D = d; ohlc5dAt = Date.now(); }
+  } catch (e) {}
+}
+function ivK5(s) {
+  // 前 4 根＝盤後滾動庫（排除今天那格，避免與即時重複）；最右根＝今日即時
+  const twToday = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+  const hist = [];
+  if (OHLC5D && OHLC5D.map && OHLC5D.map[s.code]) {
+    const arr = OHLC5D.map[s.code];
+    for (let i = 0; i < OHLC5D.dates.length; i++) {
+      if (OHLC5D.dates[i] === twToday) continue;
+      if (arr[i]) hist.push(arr[i]);
+    }
+  }
+  const past = hist.slice(-4);
+  const o = +(s.openPrice || 0), c = +(s.price || 0);
+  let h = +(s.h || 0), l = +(s.l || 0);
+  const today = (o && c) ? [o, h || Math.max(o, c), l || Math.min(o, c), c] : null;
+  const cs = today ? [...past, today] : past;
+  if (!cs.length) return '<span style="color:var(--text3)">—</span>';
+  let lo = Infinity, hi = -Infinity;
+  cs.forEach(d => { lo = Math.min(lo, d[2]); hi = Math.max(hi, d[1]); });
+  const rng = (hi - lo) || 1;
+  const W = 64, H = 38, slot = W / 5, off = 5 - cs.length;   // 靠右排（最新在最右）
+  const y = v => (H - 3 - (v - lo) / rng * (H - 6));
+  let g = '';
+  cs.forEach((d, i) => {
+    const x = (off + i) * slot, cx = x + slot / 2;
+    const up = d[3] >= d[0], col = up ? 'var(--red)' : 'var(--green)';
+    const t = y(Math.max(d[0], d[3])), b = y(Math.min(d[0], d[3]));
+    g += `<line x1="${cx.toFixed(1)}" y1="${y(d[1]).toFixed(1)}" x2="${cx.toFixed(1)}" y2="${y(d[2]).toFixed(1)}" stroke="${col}" stroke-width="1"/>`;
+    g += `<rect x="${(x + slot * 0.18).toFixed(1)}" y="${t.toFixed(1)}" width="${(slot * 0.64).toFixed(1)}" height="${Math.max(1.2, b - t).toFixed(1)}" fill="${col}"/>`;
+  });
+  if (today) g += `<circle cx="${(4.5 * slot).toFixed(1)}" cy="${H - 1}" r="1.4" fill="var(--accent)"/>`;
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${g}</svg>`;
+}
 function ivRow(s){
   const chg = +(s.chg||0);
   const lim = chg >= 9.5;
@@ -1726,6 +1781,7 @@ function ivRow(s){
     <td>${iv15(s)}</td>
     <td class="iv2-kcell">${ivKbar(s)}</td>
     <td class="iv2-spcell">${ivSpark(s)}</td>
+    <td class="iv2-k5cell">${ivK5(s)}</td>
   </tr>`;
 }
 
@@ -1739,7 +1795,7 @@ function renderAlertsList() {
   if (countEl) countEl.textContent = stocks.length;
   if (limitEl) limitEl.textContent = `漲停 ${stocks.filter(s=>(+(s.chg||0))>=9.5).length}`;
   if (!stocks.length) {
-    listEl.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px 16px;color:var(--text3);">目前無符合條件的強勢股，盤中每分鐘自動更新</td></tr>';
+    listEl.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px 16px;color:var(--text3);">目前無符合條件的強勢股，盤中每分鐘自動更新</td></tr>';
     return;
   }
   ivAlertIndex = {};
@@ -2571,21 +2627,21 @@ const PAGE_TITLES = {
   wind:'風度', intraday:'盤中警示', after:'盤後追蹤', tw:'台股 Top50', us:'美股 Top50', sectors:'熱門族群', news:'台股新聞', guide:'網站說明'
 };
 
-// ── 風度頁：籌碼三指標（FinMind → Render 22:10 產 KV → Worker 供讀）──
-// 三卡同步游標：手機按住圖上左右滑／桌機滑鼠移過 → 三卡一起顯示該日數字，放開回最新
+// ── 風度頁：指數雙K＋籌碼四卡（六卡並排一屏版；FinMind → Render 產 KV → Worker 供讀）──
+// 游標六卡同步、吸附格點；指數卡左上常駐當日風度章（刮動跟著跳）
 let CHIP = null;
-const CHIP_MA = { ma5: ['5MA', '#d99e17'], ma10: ['10MA', '#4f8bff'], ma20: ['20MA', '#9d5cf0'], ma60: ['60MA', '#8a6a4f'] };
+const CHIP_WCOL = { '強風': 'var(--red)', '亂流': '#e06a7a', '陣風': '#54ad7f', '無風': 'var(--green)' };
 const chipNum2 = v => (+v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 function chipFmt(v, unit) {
   if (unit === '億') return (Math.round(v * 10) / 10).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   return Math.round(v).toLocaleString('en-US');
 }
-function chipSgn(v, unit) { return (v >= 0 ? '+' : '') + chipFmt(v, unit); }
 function chipDelta(v, unit) {
   const cls = v >= 0 ? 'chip-up' : 'chip-dn';
-  return `<span class="${cls}">${chipSgn(v, unit)} ${unit}</span>`;
+  return `<span class="${cls}">${(v >= 0 ? '+' : '') + chipFmt(v, unit)} ${unit}</span>`;
 }
-function chipBars(series) {
+function chipZone(inner, n, line) { return `<div class="chip-zone" data-chipzone data-n="${n || 0}"${line ? ' data-line="1"' : ''}>${inner}<div class="chip-cursor"></div></div>`; }
+function chipBars2(series) {
   const vals = series.map(p => p.v);
   const mx = Math.max(0, ...vals), mn = Math.min(0, ...vals);
   const rng = (mx - mn) || 1, zero = mx / rng * 100;
@@ -2595,48 +2651,42 @@ function chipBars(series) {
       ? `<div class="chip-bcol"><div class="chip-bar u" style="bottom:${(100 - zero).toFixed(2)}%;height:${h}%"></div></div>`
       : `<div class="chip-bcol"><div class="chip-bar d" style="top:${zero.toFixed(2)}%;height:${h}%"></div></div>`;
   }).join('');
-  return `<div class="chip-chart"><div class="chip-zero" style="top:${zero.toFixed(2)}%"></div>${bars}</div>`;
+  return `<div class="chip-chart2"><div class="chip-zero" style="top:${zero.toFixed(2)}%"></div>${bars}</div>`;
 }
-function chipMmSvg(series) {
-  const W = 300, H = 60;
-  const vals = series.map(p => p.v);
-  const LO = Math.min(140, Math.min(...vals) - 2), HI = Math.max(172, Math.max(...vals) + 2);
-  const y = v => H - (v - LO) / (HI - LO) * H;
-  const pts = series.map((p, i) => `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
-  return `<svg class="chip-mmsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
-    `<line x1="0" y1="${y(160).toFixed(1)}" x2="${W}" y2="${y(160).toFixed(1)}" stroke="var(--border)"/>` +
-    `<line x1="0" y1="${y(140).toFixed(1)}" x2="${W}" y2="${y(140).toFixed(1)}" stroke="var(--red)" stroke-dasharray="4 3" opacity=".55"/>` +
-    `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/></svg>`;
-}
-function chipKSvg(series) {
-  const W = 330, H = 170, P = 2, n = series.length;
+function chipIdxSvg(series) {
+  const W = 200, H = 96, n = series.length;
   let lo = Infinity, hi = -Infinity;
-  series.forEach(p => {
-    lo = Math.min(lo, p.l); hi = Math.max(hi, p.h);
-    for (const k in CHIP_MA) { const v = p[k]; if (v != null) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }
-  });
+  series.forEach(p => { lo = Math.min(lo, p.l, p.m ?? p.l); hi = Math.max(hi, p.h, p.m ?? p.h); });
   const pad = (hi - lo) * 0.04 || 1; lo -= pad; hi += pad;
-  const y = v => H - P - (v - lo) / (hi - lo) * (H - 2 * P);
-  const slot = W / n, bw = Math.max(1.2, slot * 0.62);
+  const y = v => H - 1 - (v - lo) / (hi - lo) * (H - 2);
+  const slot = W / n, bw = Math.max(1, slot * 0.6);
   let g = '';
   series.forEach((p, i) => {
-    const x = slot * i + slot / 2, up = p.c >= p.o, col = up ? 'var(--red)' : 'var(--green)';
-    g += `<line x1="${x.toFixed(1)}" y1="${y(p.h).toFixed(1)}" x2="${x.toFixed(1)}" y2="${y(p.l).toFixed(1)}" stroke="${col}" stroke-width="1"/>`;
+    const x = slot * i + slot / 2, col = p.c >= p.o ? 'var(--red)' : 'var(--green)';
+    g += `<line x1="${x.toFixed(1)}" y1="${y(p.h).toFixed(1)}" x2="${x.toFixed(1)}" y2="${y(p.l).toFixed(1)}" stroke="${col}" stroke-width="0.7"/>`;
     const t = y(Math.max(p.o, p.c)), b2 = y(Math.min(p.o, p.c));
-    g += `<rect x="${(x - bw / 2).toFixed(1)}" y="${t.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, b2 - t).toFixed(1)}" fill="${col}"/>`;
+    g += `<rect x="${(x - bw / 2).toFixed(1)}" y="${t.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0.8, b2 - t).toFixed(1)}" fill="${col}"/>`;
   });
-  for (const k in CHIP_MA) {
-    const pts = series.map((p, i) => p[k] == null ? null : `${(slot * i + slot / 2).toFixed(1)},${y(p[k]).toFixed(1)}`).filter(Boolean).join(' ');
-    if (pts) g += `<polyline points="${pts}" fill="none" stroke="${CHIP_MA[k][1]}" stroke-width="1.4" opacity=".9"/>`;
-  }
-  return `<svg class="chip-ksvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg>`;
+  const pts = series.map((p, i) => p.m == null ? null : `${(slot * i + slot / 2).toFixed(1)},${y(p.m).toFixed(1)}`).filter(Boolean).join(' ');
+  if (pts) g += `<polyline points="${pts}" fill="none" stroke="#d99e17" stroke-width="1.3" opacity=".95"/>`;
+  return `<svg class="chip-ksvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg>`;
 }
-function chipXAxis(series) {
-  if (!series || !series.length) return '';
-  const m = series[Math.floor(series.length / 2)];
-  return `<div class="chip-x"><span>${series[0].d}</span><span>${m.d}</span><span>${series[series.length - 1].d}</span></div>`;
+function chipMm2Svg(series) {
+  const W = 180, H = 50;
+  const vals = series.map(p => p.v);
+  const LO = Math.min(140, Math.min(...vals) - 2), HI = Math.max(174, Math.max(...vals) + 2);
+  const y = v => H - (v - LO) / (HI - LO) * H;
+  const pts = series.map((p, i) => `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+  return `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
+    `<line x1="0" y1="${y(160).toFixed(1)}" x2="${W}" y2="${y(160).toFixed(1)}" stroke="var(--border)"/>` +
+    `<line x1="0" y1="${y(140).toFixed(1)}" x2="${W}" y2="${y(140).toFixed(1)}" stroke="var(--red)" stroke-dasharray="4 3" opacity=".55"/>` +
+    `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/>` +
+    `<text x="${W - 2}" y="${(y(160) - 2).toFixed(1)}" text-anchor="end" font-size="7.5" fill="var(--text3)">160%</text>` +
+    `<text x="${W - 2}" y="${(y(140) - 2).toFixed(1)}" text-anchor="end" font-size="7.5" fill="var(--red)" opacity=".85">140% 追繳</text></svg>`;
 }
-function chipZone(inner) { return `<div class="chip-zone" data-chipzone>${inner}<div class="chip-cursor"></div></div>`; }
+function chipPh(title) {
+  return `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span></div><div class="cp-h2"><span>資料準備中</span></div></div>`;
+}
 function chipSet(active, frac) {
   const D = CHIP; if (!D) return;
   const el = id => document.getElementById(id);
@@ -2647,55 +2697,54 @@ function chipSet(active, frac) {
   };
   const dd = o => (o && o.prev) ? o.p.v - o.prev.v : 0;
   const cls = v => v >= 0 ? 'chip-up' : 'chip-dn';
-  const stamp = o => (active && o) ? `📅 ${o.p.d}　` : '';
-  const sub = (id, o) => {
-    const s = el(id); if (!s) return;
-    if (!s.dataset.orig) s.dataset.orig = s.textContent;
-    s.classList.toggle('on', !!active);
-    s.textContent = active && o ? `👆 ${o.p.d} 當日` : s.dataset.orig;
-  };
-  if (D.kline && el('chipKC')) {
-    const o = pick(D.kline.series);
-    const p = o.p;
-    el('chipKC').textContent = chipNum2(p.c);
-    el('chipKC').className = 'chip-big ' + cls(p.chg);
-    el('chipKD').innerHTML = stamp(o) + `<span class="${cls(p.chg)}">${(p.chg >= 0 ? '+' : '') + chipNum2(p.chg)}（${(p.pct >= 0 ? '+' : '') + p.pct.toFixed(2)}%）</span>`;
-    const oh = el('chipKOHLC');
-    if (oh) oh.innerHTML = `<span>開 ${chipNum2(p.o)}</span><span>高 ${chipNum2(p.h)}</span><span>低 ${chipNum2(p.l)}</span><span>收 ${chipNum2(p.c)}</span>`;
-    const lg = el('chipKLG');
-    if (lg) lg.innerHTML = Object.keys(CHIP_MA).map(m => `<span style="color:${CHIP_MA[m][1]}">${CHIP_MA[m][0]} <b>${p[m] == null ? '—' : chipNum2(p[m])}</b></span>`).join('');
-    sub('chipKSub', o);
-  }
-  if (D.foreign && el('chipVF')) {
-    const o = pick(D.foreign.series);
-    el('chipVF').textContent = chipSgn(o.p.v, '口');
-    el('chipVF').className = 'chip-big ' + cls(o.p.v);
-    el('chipDF').innerHTML = stamp(o) + `變動 ${chipDelta(dd(o), '口')}`;
-    sub('chipSubF', o);
-  }
-  if (D.retail && el('chipVR')) {
-    const o = pick(D.retail.series);
-    el('chipVR').textContent = chipSgn(o.p.v, '口');
-    el('chipVR').className = 'chip-big ' + cls(o.p.v);
-    el('chipDR').innerHTML = stamp(o) + `變動 ${chipDelta(dd(o), '口')}`;
-    sub('chipSubR', o);
-  }
-  if (D.margin && el('chipVM')) {
-    const ob = pick(D.margin.balSeries || null);
-    const oc = pick(D.margin.series);
-    el('chipVM').textContent = chipFmt(ob ? ob.p.v : D.margin.bal, '億');
-    el('chipDM').innerHTML = stamp(oc) + `變動 ${chipDelta(oc ? oc.p.v : D.margin.chg, '億')}`;
-    sub('chipSubM', oc);
-    if (D.margin.mm && el('chipMMV')) {
-      const om = pick(D.margin.mm);
-      const v = om.p.v;
-      el('chipMMV').textContent = v.toFixed(1) + '%';
-      el('chipMMV').style.color = v < 140 ? 'var(--red)' : (v < 150 ? '#d97706' : 'var(--accent)');
+  const stamp = o => (active && o) ? `📅${o.p.d} ` : '';
+  // 指數雙卡
+  [['kt', D.idx && D.idx.tse], ['ko', D.idx && D.idx.otc]].forEach(([key, pack]) => {
+    if (!pack || !el(key + 'C')) return;
+    const o = pick(pack.series), p = o.p, c2 = cls(p.chg);
+    el(key + 'C').textContent = chipNum2(p.c);
+    el(key + 'C').className = 'cp-v ' + c2;
+    el(key + 'D').innerHTML = stamp(o) + `<span class="${c2}">${(p.chg >= 0 ? '+' : '') + chipNum2(p.chg)}（${(p.pct >= 0 ? '+' : '') + p.pct.toFixed(2)}%）</span>`;
+    el(key + 'M').innerHTML = p.m == null ? '' : `<span style="color:#b8860b">MA ${chipNum2(p.m)}</span> <span class="${p.s > 0 ? 'chip-up' : 'chip-dn'}" style="font-weight:800">${p.s > 0 ? '↗' : '↘'}</span>`;
+    const w = el(key + 'W');
+    if (w) {
+      if (p.w) { w.textContent = p.w; w.style.color = CHIP_WCOL[p.w]; w.style.opacity = 1; }
+      else w.style.opacity = 0;
+    }
+  });
+  // 外資 / 散戶
+  [['f', D.foreign], ['r', D.retail]].forEach(([key, pack]) => {
+    if (!pack || !el('cp' + key + 'V')) return;
+    const o = pick(pack.series);
+    el('cp' + key + 'V').textContent = (o.p.v >= 0 ? '+' : '') + chipFmt(o.p.v, '口');
+    el('cp' + key + 'V').className = 'cp-v ' + cls(o.p.v);
+    el('cp' + key + 'D').innerHTML = stamp(o) + `變動 ${chipDelta(dd(o), '口')}`;
+  });
+  // 融資餘額 / 維持率
+  if (D.margin && el('cpmV')) {
+    const ob = pick(D.margin.balSeries || null), oc = pick(D.margin.series);
+    el('cpmV').textContent = chipFmt(ob ? ob.p.v : D.margin.bal, '億');
+    el('cpmD').innerHTML = stamp(oc) + `變動 ${chipDelta(oc ? oc.p.v : D.margin.chg, '億')}`;
+    if (D.margin.mm && el('cpmmV')) {
+      const om = pick(D.margin.mm), v = om.p.v;
+      el('cpmmV').textContent = v.toFixed(1) + '%';
+      el('cpmmV').className = 'cp-v';
+      el('cpmmV').style.color = v < 140 ? 'var(--red)' : (v < 150 ? '#d97706' : 'var(--accent)');
+      const mc = om.prev ? v - om.prev.v : 0;
+      el('cpmmD').innerHTML = stamp(om) + `變動 <span class="${cls(mc)}">${(mc >= 0 ? '+' : '') + mc.toFixed(1)} pp</span>`;
     }
   }
   document.querySelectorAll('.chip-cursor').forEach(c => {
     c.style.opacity = active ? 1 : 0;
-    if (active) c.style.left = `calc(${(frac * 100).toFixed(2)}% - 1px)`;
+    if (!active) return;
+    const z = c.parentElement;
+    const n = +((z && z.dataset.n) || 0);
+    let pct;
+    if (n > 1) {
+      const k = Math.round(frac * (n - 1));
+      pct = z.dataset.line ? (k / (n - 1) * 100) : ((k + 0.5) / n * 100);
+    } else pct = frac * 100;
+    c.style.left = `calc(${pct.toFixed(2)}% - 1px)`;
   });
 }
 function chipBindScrub() {
@@ -2721,29 +2770,32 @@ async function loadChipIndicators() {
     const d = await r.json();
     if (!d || !d.ok) return;
     CHIP = d;
-    const cards = [];
-    if (d.kline && d.kline.series && d.kline.series.length) {
-      cards.push(`<div class="chip-card"><div class="chip-head"><div><span class="chip-title">加權指數 日K</span><span class="chip-tag">近${d.kline.series.length}個交易日</span><span class="chip-sub" id="chipKSub">K棒＋5/10/20/60日均線</span></div><div class="chip-val"><span class="chip-big" id="chipKC"></span><span class="chip-delta" id="chipKD"></span></div></div><div class="chip-klegend" id="chipKLG"></div>${chipZone(chipKSvg(d.kline.series))}<div class="chip-kohlc" id="chipKOHLC"></div>${chipXAxis(d.kline.series)}</div>`);
+    const idxCard = (key, title, pack) => !pack ? chipPh(title) :
+      `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v" id="${key}C"></span></div>` +
+      `<div class="cp-h2"><span id="${key}D"></span><span id="${key}M"></span></div>` +
+      chipZone(`<div>${chipIdxSvg(pack.series)}</div><div class="chip-windchip" id="${key}W"></div>`, pack.series.length) + `</div>`;
+    const barCard = (key, title, pack) => !pack ? chipPh(title) :
+      `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v" id="cp${key}V"></span></div>` +
+      `<div class="cp-h2"><span id="cp${key}D"></span></div>` +
+      chipZone(chipBars2(pack.series), pack.series.length) + `</div>`;
+    const rows = [];
+    if (d.idx && (d.idx.tse || d.idx.otc)) {
+      rows.push(`<div class="chip-grid2">${idxCard('kt', '加權', d.idx.tse)}${idxCard('ko', '櫃買', d.idx.otc)}</div>`);
     }
-    if (d.foreign && d.foreign.series && d.foreign.series.length) {
-      cards.push(`<div class="chip-card"><div class="chip-head"><div><span class="chip-title">外資台指淨未平倉</span><span class="chip-tag">柱：餘額走勢</span><span class="chip-sub" id="chipSubF">外資期貨籌碼方向；負值＝淨空單</span></div><div class="chip-val"><span class="chip-big" id="chipVF"></span><span class="chip-unit">口</span><span class="chip-delta" id="chipDF"></span></div></div>${chipZone(chipBars(d.foreign.series))}${chipXAxis(d.foreign.series)}</div>`);
+    if (d.foreign || d.retail) {
+      rows.push(`<div class="chip-grid2">${barCard('f', '外資台指OI', d.foreign)}${barCard('r', `散戶${(d.retail && d.retail.label) || '微台'}OI`, d.retail)}</div>`);
     }
-    if (d.retail && d.retail.series && d.retail.series.length) {
-      cards.push(`<div class="chip-card"><div class="chip-head"><div><span class="chip-title">散戶${d.retail.label || '微台'}淨未平倉</span><span class="chip-tag">柱：餘額走勢</span><span class="chip-sub" id="chipSubR">散戶反指標；正值＝散戶偏多</span></div><div class="chip-val"><span class="chip-big" id="chipVR"></span><span class="chip-unit">口</span><span class="chip-delta" id="chipDR"></span></div></div>${chipZone(chipBars(d.retail.series))}${chipXAxis(d.retail.series)}</div>`);
+    if (d.margin) {
+      const balC = `<div class="cp-card"><div class="cp-h1"><span class="cp-t">融資餘額</span><span class="cp-v" id="cpmV"></span></div>` +
+        `<div class="cp-h2"><span id="cpmD"></span></div>` + chipZone(chipBars2(d.margin.series), d.margin.series.length) + `</div>`;
+      const mmC = (d.margin.mm && d.margin.mm.length) ?
+        `<div class="cp-card"><div class="cp-h1"><span class="cp-t">融資維持率</span><span class="cp-v" id="cpmmV"></span></div>` +
+        `<div class="cp-h2"><span id="cpmmD"></span></div>` + chipZone(`<div>${chipMm2Svg(d.margin.mm)}</div>`, d.margin.mm.length, true) + `</div>`
+        : chipPh('融資維持率');
+      rows.push(`<div class="chip-grid2">${balC}${mmC}</div>`);
     }
-    if (d.margin && d.margin.series && d.margin.series.length) {
-      let m = `<div class="chip-card"><div class="chip-head"><div><span class="chip-title">融資餘額</span><span class="chip-sub" id="chipSubM">散戶信用資金水位</span></div><div class="chip-val"><span class="chip-big" id="chipVM"></span><span class="chip-unit">億</span><span class="chip-delta" id="chipDM"></span></div></div>`;
-      if (d.margin.mm && d.margin.mm.length) {
-        m += `<div class="chip-mmrow"><span class="chip-mmlab">大盤融資維持率<span class="chip-tag">線：30日走勢</span></span><span class="chip-mmval" id="chipMMV"></span></div>` +
-             chipZone(chipMmSvg(d.margin.mm)) +
-             `<div class="chip-mmnote"><span>灰線 160%</span><span class="warn">─ ─ 140% 追繳警戒</span></div>` +
-             `<div class="chip-barlab">餘額每日增減<span class="chip-tag">柱：紅增綠減</span></div>`;
-      }
-      m += chipZone(chipBars(d.margin.series)) + chipXAxis(d.margin.series) + `</div>`;
-      cards.push(m);
-    }
-    if (!cards.length) return;
-    box.innerHTML = cards.join('') + `<div class="chip-src">籌碼資料：FinMind（期交所＋證交所彙整）· 每交易日約 22:10 更新 · 按住圖表左右滑可看各日數字</div>`;
+    if (!rows.length) return;
+    box.innerHTML = rows.join('') + `<div class="chip-src">指數/籌碼：FinMind（證交所＋期交所彙整）· 每交易日 17:45／22:10 更新 · 按住圖表左右滑可看各日</div>`;
     box.style.display = '';
     chipSet(false, 0);
     chipBindScrub();
@@ -2807,7 +2859,7 @@ const pages = {
     <div class="iv2-tablewrap" id="iv2-tablewrap">
       <table class="iv2-table">
         <thead><tr>
-          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price">最新價</th><th class="c-chg">漲幅</th><th class="c-vol">成交量</th><th class="iv2-est-col c-est">預估量</th><th class="c-k15">15MK</th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th>
+          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price">最新價</th><th class="c-chg">漲幅</th><th class="c-vol">成交量</th><th class="iv2-est-col c-est">預估量</th><th class="c-k15">15MK</th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th><th class="c-k5">近五日K</th>
         </tr></thead>
         <tbody id="strategy-list"></tbody>
       </table>
