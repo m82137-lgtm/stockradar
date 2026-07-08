@@ -439,6 +439,7 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .cp-t { font-size:11.5px; font-weight:700; white-space:nowrap; color:var(--text); }
 .cp-v { font-size:14px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); }
 .cp-h2 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; font-size:9.5px; color:var(--text3); margin:1px 0 3px; min-height:13px; font-variant-numeric:tabular-nums; }
+.cp-vixtag { font-size:9px; font-weight:800; padding:1px 6px; border-radius:4px; letter-spacing:.5px; }
 .chip-windchip { position:absolute; top:2px; left:4px; font-size:10px; font-weight:800; padding:1px 7px; border-radius:6px; background:var(--bg2); border:1.5px solid currentColor; z-index:6; pointer-events:none; opacity:0; }
 .chip-ksvg2 { width:100%; height:96px; display:block; }
 .chip-chart2 { position:relative; height:50px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 17px; }
@@ -576,21 +577,12 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-kcell svg, .iv2-spcell svg, .iv2-k5cell svg{ display:block; margin:0 auto; max-width:100%; height:auto; }
 @media (max-width:639px){
   /* 手機橫向滑動（使用者授權）：原六欄用 vw 精準佔滿一個螢幕寬（15MK 右緣＝畫面右緣，同改版前），
-     新欄位（月K/當日K/走勢/近五日K）在畫面外，左右滑看。月K=64px，故 +288px（224+64） */
+     新欄位（當日K/走勢/近五日K）在畫面外，左右滑看 */
   .iv2-tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:none; }
-  .iv2-table{ min-width:calc(100vw + 288px); }
+  .iv2-table{ min-width:calc(100vw + 224px); }
   .iv2-table .c-code{ width:13vw; } .iv2-table .c-name{ width:21vw; } .iv2-table .c-price{ width:13vw; }
   .iv2-table .c-chg{ width:17vw; } .iv2-table .c-vol{ width:24vw; } .iv2-table .c-k15{ width:12vw; }
-  .iv2-table .c-mo{ width:64px; }
   .iv2-table .c-kbar{ width:44px; } .iv2-table .c-spark{ width:104px; } .iv2-table .c-k5{ width:76px; }
-}
-/* 桌機：改為固定像素欄寬＋整表 min-width，超出畫面時整區橫向滑動（比照手機，根治欄位擠壓字疊字）*/
-@media (min-width:640px){
-  .iv2-table{ min-width:1078px; }
-  .iv2-table .c-code{ width:68px; } .iv2-table .c-name{ width:152px; } .iv2-table .c-price{ width:92px; }
-  .iv2-table .c-chg{ width:98px; } .iv2-table .c-vol{ width:118px; } .iv2-table .c-est{ width:110px; }
-  .iv2-table .c-k15{ width:78px; } .iv2-table .c-mo{ width:84px; }
-  .iv2-table .c-kbar{ width:58px; } .iv2-table .c-spark{ width:122px; } .iv2-table .c-k5{ width:98px; }
 }
 .iv2-table thead th{ font-size:11px; color:var(--text3); font-weight:700; text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); background:var(--bg2); position:sticky; top:0; z-index:2; white-space:nowrap; }
 @media (min-width:640px){ .iv2-table thead th{ font-size:11.5px; padding:7px 14px; } }
@@ -621,13 +613,10 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-chgbox{ display:inline-block; background:var(--red); color:#fff; border-radius:7px; padding:3px 9px; font-weight:800; }
 @media (max-width:639px){ .iv2-chgbox,.iv2-chg{ font-size:12.5px; } }
 .iv2-k15{ font-size:11px; font-weight:700; border-radius:7px; padding:3px 8px; display:inline-block; }
-@media (max-width:639px){ .iv2-k15,.iv2-hi{ font-size:10px; padding:2px 6px; } }
+@media (max-width:639px){ .iv2-k15{ font-size:10px; padding:2px 6px; } }
 .iv2-k15.ok{ color:var(--green); background:var(--green-bg); }
 .iv2-k15.no{ color:var(--red); background:rgba(255,68,68,.12); }
 .iv2-k15.na{ color:var(--text3); background:var(--bg3); }
-/* 月K欄：創新高（突破近五年高點，台股紅漲＝紅底火焰）／—（未突破）*/
-.iv2-table td.iv2-mocell{ text-align:center; }
-.iv2-hi{ font-size:11px; font-weight:800; color:var(--red); background:var(--red-bg); border-radius:7px; padding:3px 8px; display:inline-block; white-space:nowrap; }
 .iv2-esttag{ font-size:10.5px; font-weight:700; border-radius:5px; padding:1px 5px; margin:0; white-space:nowrap; }
 .iv2-esttag.inc{ color:var(--amber); background:rgba(255,179,0,.14); }
 .iv2-esttag.dec{ color:var(--text3); background:var(--bg3); }
@@ -982,32 +971,6 @@ main:has(.iv2){ padding:0 !important; }
 .us-tbl th.us-th-days  { width:13%; }
 .us-tbl th.us-th-val   { width:16%; }
 .us-tbl th.us-th-theme { text-align:left; width:16%; }
-.us-tbl th.us-th-nh    { width:13%; }
-.us-td-nh { text-align:center !important; }
-.us-hi { display:inline-block; background:var(--red-bg); color:var(--red); font-size:11.5px; font-weight:800; padding:2px 8px; border-radius:6px; white-space:nowrap; }
-/* 桌機：Top50 用百分比欄寬均勻攤滿整表寬。台股8欄(含創新高)、美股7欄(無創新高)共用同組 class，
-   故用 :has(tbody id) 分別鎖定，各自百分比湊滿 100%，兩張表都不左寬右擠。min-width 1000 保底，窄螢幕才橫向捲動 */
-@media (min-width:640px){
-  .us-tbl{ min-width:1000px; }
-  /* 台股 8 欄（含創新高）*/
-  .us-tbl:has(#tw-tbody) th.us-th-rank { width:6%; }  .us-tbl:has(#tw-tbody) th.us-th-code { width:15%; }
-  .us-tbl:has(#tw-tbody) th.us-th-price{ width:13%; } .us-tbl:has(#tw-tbody) th.us-th-chg { width:12%; }
-  .us-tbl:has(#tw-tbody) th.us-th-val  { width:15%; } .us-tbl:has(#tw-tbody) th.us-th-nh  { width:11%; }
-  .us-tbl:has(#tw-tbody) th.us-th-days { width:11%; } .us-tbl:has(#tw-tbody) th.us-th-theme{ width:17%; }
-  /* 美股 7 欄（無創新高，題材給最寬 21%）*/
-  .us-tbl:has(#us-tbody) th.us-th-rank { width:7%; }  .us-tbl:has(#us-tbody) th.us-th-code { width:17%; }
-  .us-tbl:has(#us-tbody) th.us-th-price{ width:14%; } .us-tbl:has(#us-tbody) th.us-th-chg { width:13%; }
-  .us-tbl:has(#us-tbody) th.us-th-days { width:12%; } .us-tbl:has(#us-tbody) th.us-th-val  { width:16%; }
-  .us-tbl:has(#us-tbody) th.us-th-theme{ width:21%; }
-}
-/* 桌機：橫向捲軸加粗好抓（手機用觸控滑，不需要）*/
-@media (min-width:640px){
-  .iv2-tablewrap::-webkit-scrollbar, .us-tbl-wrap::-webkit-scrollbar{ height:13px; }
-  .iv2-tablewrap::-webkit-scrollbar-thumb, .us-tbl-wrap::-webkit-scrollbar-thumb{ background:var(--text3); border-radius:7px; border:2px solid var(--bg2); }
-  .iv2-tablewrap::-webkit-scrollbar-thumb:hover, .us-tbl-wrap::-webkit-scrollbar-thumb:hover{ background:var(--text2); }
-  .iv2-tablewrap::-webkit-scrollbar-track, .us-tbl-wrap::-webkit-scrollbar-track{ background:var(--bg3); }
-  .iv2-tablewrap, .us-tbl-wrap{ scrollbar-width:auto; scrollbar-color:var(--text3) var(--bg3); }
-}
 .us-sortable { cursor:pointer; user-select:none; transition:color 0.15s; }
 .us-sortable:hover { color:var(--text); }
 .us-sort-active { color:var(--accent); }
@@ -1699,10 +1662,6 @@ function iv15(s){
   if (s.k15 === false) return '<span class="iv2-k15 no">✗不符</span>';
   return '<span class="iv2-k15 na">—</span>';
 }
-// 月K欄：newHigh（盤中即時價 > 近五年到昨天為止最高）→ 🔥新高，否則 —
-function ivMonthly(s){
-  return s.newHigh ? '<span class="iv2-hi">🔥新高</span>' : '<span style="color:var(--text3)">—</span>';
-}
 // ── 當日K棒／即時走勢（走勢資料由 Worker 掃描自養，每檔約 3 分鐘一點）──
 let IVSERIES = null, ivSeriesAt = 0;
 async function loadIvSeries(force) {
@@ -1824,7 +1783,6 @@ function ivRow(s){
     <td class="iv2-num"><span class="iv2-vol-full">${ivFmtVol(s.vol)}張</span><span class="iv2-vol-m">${ivFmtVolM(s.vol)}張</span>${estInline}</td>
     <td class="iv2-num iv2-est-col">${estMain}</td>
     <td>${iv15(s)}</td>
-    <td class="iv2-mocell">${ivMonthly(s)}</td>
     <td class="iv2-kcell">${ivKbar(s)}</td>
     <td class="iv2-spcell">${ivSpark(s)}</td>
     <td class="iv2-k5cell">${ivK5(s)}</td>
@@ -1841,7 +1799,7 @@ function renderAlertsList() {
   if (countEl) countEl.textContent = stocks.length;
   if (limitEl) limitEl.textContent = `漲停 ${stocks.filter(s=>(+(s.chg||0))>=9.5).length}`;
   if (!stocks.length) {
-    listEl.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px 16px;color:var(--text3);">目前無符合條件的強勢股，盤中每分鐘自動更新</td></tr>';
+    listEl.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px 16px;color:var(--text3);">目前無符合條件的強勢股，盤中每分鐘自動更新</td></tr>';
     return;
   }
   ivAlertIndex = {};
@@ -2181,9 +2139,8 @@ function renderTwTable() {
       <td class="us-td-code">${newBadge}${s.code}${mktBadge}<span class="us-td-name">${s.name||''}</span></td>
       <td class="us-td-price">${(s.price ?? 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td class="us-td-chg ${chgCls}">${chgTxt}</td>
-      <td class="us-td-val">${fmtTwVal(s.tradeValue)}</td>
-      <td class="us-td-nh">${s.newHigh ? '<span class="us-hi">🔥新高</span>' : '<span style="color:var(--text3)">—</span>'}</td>
       <td class="us-td-days">${s.days||1}<span class="us-days-unit">天</span></td>
+      <td class="us-td-val">${fmtTwVal(s.tradeValue)}</td>
       <td class="us-td-theme">${tag}</td>
     </tr>`;
   }).join('');
@@ -2734,6 +2691,27 @@ function chipMm2Svg(series) {
 function chipPh(title) {
   return `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span></div><div class="cp-h2"><span>資料準備中</span></div></div>`;
 }
+// 台指 VIX 折線（含 20 平靜線／30 偏高警戒虛線；沿用 chip-mmsvg2 尺寸）
+function chipVixSvg(series) {
+  const W = 180, H = 50;
+  const vals = series.map(p => p.v);
+  const LO = Math.min(18, Math.min(...vals) - 2), HI = Math.max(32, Math.max(...vals) + 2);
+  const y = v => H - (v - LO) / (HI - LO) * H;
+  const pts = series.map((p, i) => `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+  return `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
+    `<line x1="0" y1="${y(20).toFixed(1)}" x2="${W}" y2="${y(20).toFixed(1)}" stroke="var(--border)"/>` +
+    `<line x1="0" y1="${y(30).toFixed(1)}" x2="${W}" y2="${y(30).toFixed(1)}" stroke="var(--red)" stroke-dasharray="4 3" opacity=".5"/>` +
+    `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/>` +
+    `<text x="${W - 2}" y="${(y(20) - 2).toFixed(1)}" text-anchor="end" font-size="7.5" fill="var(--text3)">20</text>` +
+    `<text x="${W - 2}" y="${(y(30) - 2).toFixed(1)}" text-anchor="end" font-size="7.5" fill="var(--red)" opacity=".85">30 偏高</text></svg>`;
+}
+// VIX 水位標籤（市場公認門檻：<20平靜、>30恐慌）→ [文字, 底色, 字色]
+function vixZone(v) {
+  if (v < 20) return ['偏低', 'rgba(51,209,122,.16)', 'var(--green)'];
+  if (v < 30) return ['正常', 'var(--bg3)', 'var(--text2)'];
+  if (v < 40) return ['偏高', 'rgba(255,179,0,.18)', 'var(--amber)'];
+  return ['高', 'rgba(255,91,91,.18)', 'var(--red)'];
+}
 function chipSet(active, frac) {
   const D = CHIP; if (!D) return;
   const el = id => document.getElementById(id);
@@ -2767,19 +2745,20 @@ function chipSet(active, frac) {
     el('cp' + key + 'V').className = 'cp-v ' + cls(o.p.v);
     el('cp' + key + 'D').innerHTML = stamp(o) + `變動 ${chipDelta(dd(o), '口')}`;
   });
-  // 融資餘額 / 維持率
+  // 融資餘額
   if (D.margin && el('cpmV')) {
     const ob = pick(D.margin.balSeries || null), oc = pick(D.margin.series);
     el('cpmV').textContent = chipFmt(ob ? ob.p.v : D.margin.bal, '億');
     el('cpmD').innerHTML = stamp(oc) + `變動 ${chipDelta(oc ? oc.p.v : D.margin.chg, '億')}`;
-    if (D.margin.mm && el('cpmmV')) {
-      const om = pick(D.margin.mm), v = om.p.v;
-      el('cpmmV').textContent = v.toFixed(1) + '%';
-      el('cpmmV').className = 'cp-v';
-      el('cpmmV').style.color = v < 140 ? 'var(--red)' : (v < 150 ? '#d97706' : 'var(--accent)');
-      const mc = om.prev ? v - om.prev.v : 0;
-      el('cpmmD').innerHTML = stamp(om) + `變動 <span class="${cls(mc)}">${(mc >= 0 ? '+' : '') + mc.toFixed(1)} pp</span>`;
-    }
+  }
+  // 台指 VIX（大字現值＋水位標籤＋升紅降綠變動）
+  if (D.vix && D.vix.series && el('cpvixV')) {
+    const ov = pick(D.vix.series), v = ov.p.v;
+    el('cpvixV').textContent = v.toFixed(2);
+    const t = el('cpvixT');
+    if (t) { const z = vixZone(v); t.textContent = z[0]; t.style.background = z[1]; t.style.color = z[2]; }
+    const vc = ov.prev ? (v - ov.prev.v) : (D.vix.chg || 0);
+    el('cpvixD').innerHTML = stamp(ov) + `變動 <span class="${cls(vc)}">${(vc >= 0 ? '+' : '') + vc.toFixed(2)}</span>`;
   }
   document.querySelectorAll('.chip-cursor').forEach(c => {
     c.style.opacity = active ? 1 : 0;
@@ -2832,17 +2811,19 @@ async function loadChipIndicators() {
     if (d.foreign || d.retail) {
       rows.push(`<div class="chip-grid2">${barCard('f', '外資台指OI', d.foreign)}${barCard('r', `散戶${(d.retail && d.retail.label) || '微台'}OI`, d.retail)}</div>`);
     }
-    if (d.margin) {
-      const balC = `<div class="cp-card"><div class="cp-h1"><span class="cp-t">融資餘額</span><span class="cp-v" id="cpmV"></span></div>` +
-        `<div class="cp-h2"><span></span><span id="cpmD" style="text-align:right"></span></div>` + chipZone(chipBars2(d.margin.series), d.margin.series.length) + `</div>`;
-      const mmC = (d.margin.mm && d.margin.mm.length) ?
-        `<div class="cp-card"><div class="cp-h1"><span class="cp-t">融資維持率</span><span class="cp-v" id="cpmmV"></span></div>` +
-        `<div class="cp-h2"><span></span><span id="cpmmD" style="text-align:right"></span></div>` + chipZone(`<div>${chipMm2Svg(d.margin.mm)}</div>`, d.margin.mm.length, true) + `</div>`
-        : chipPh('融資維持率');
-      rows.push(`<div class="chip-grid2">${balC}${mmC}</div>`);
+    if (d.margin || d.vix) {
+      const balC = d.margin ? `<div class="cp-card"><div class="cp-h1"><span class="cp-t">融資餘額</span><span class="cp-v" id="cpmV"></span></div>` +
+        `<div class="cp-h2"><span></span><span id="cpmD" style="text-align:right"></span></div>` + chipZone(chipBars2(d.margin.series), d.margin.series.length) + `</div>`
+        : chipPh('融資餘額');
+      const vixC = (d.vix && d.vix.series && d.vix.series.length) ?
+        `<div class="cp-card"><div class="cp-h1"><span class="cp-t">台指 VIX</span><span class="cp-v" id="cpvixV"></span></div>` +
+        `<div class="cp-h2"><span class="cp-vixtag" id="cpvixT"></span><span id="cpvixD" style="text-align:right"></span></div>` +
+        chipZone(`<div>${chipVixSvg(d.vix.series)}</div>`, d.vix.series.length, true) + `</div>`
+        : chipPh('台指 VIX');
+      rows.push(`<div class="chip-grid2">${balC}${vixC}</div>`);
     }
     if (!rows.length) return;
-    box.innerHTML = rows.join('') + `<div class="chip-src">指數/籌碼：FinMind（證交所＋期交所彙整）· 每交易日 17:45／22:10 更新 · 按住圖表左右滑可看各日</div>`;
+    box.innerHTML = rows.join('') + `<div class="chip-src">指數/籌碼：FinMind（證交所＋期交所彙整）· 台指VIX：期交所TAIFEX · 每交易日 17:45／22:10 更新 · 按住圖表左右滑可看各日</div>`;
     box.style.display = '';
     chipSet(false, 0);
     chipBindScrub();
@@ -2906,7 +2887,7 @@ const pages = {
     <div class="iv2-tablewrap" id="iv2-tablewrap">
       <table class="iv2-table">
         <thead><tr>
-          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price">最新價</th><th class="c-chg">漲幅</th><th class="c-vol">成交量</th><th class="iv2-est-col c-est">預估量</th><th class="c-k15">15MK</th><th class="c-mo">月K</th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th><th class="c-k5">近五日K</th>
+          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price">最新價</th><th class="c-chg">漲幅</th><th class="c-vol">成交量</th><th class="iv2-est-col c-est">預估量</th><th class="c-k15">15MK</th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th><th class="c-k5">近五日K</th>
         </tr></thead>
         <tbody id="strategy-list"></tbody>
       </table>
@@ -3027,14 +3008,13 @@ const pages = {
         <th class="us-th-code us-sortable" onclick="sortTw('code')">代碼</th>
         <th class="us-th-price us-sortable" onclick="sortTw('price')">價格</th>
         <th class="us-th-chg us-sortable" onclick="sortTw('chg')">漲跌幅</th>
-        <th class="us-th-val us-sortable us-sort-active" onclick="sortTw('val')">成交金額</th>
-        <th class="us-th-nh">創新高</th>
         <th class="us-th-days us-sortable" onclick="sortTw('days')">在榜天數</th>
+        <th class="us-th-val us-sortable us-sort-active" onclick="sortTw('val')">成交金額</th>
         <th class="us-th-theme us-sortable" onclick="sortTw('theme')">題材/族群</th>
       </tr>
     </thead>
     <tbody id="tw-tbody">
-      <tr><td colspan="8" class="us-loading">載入中，請稍候…</td></tr>
+      <tr><td colspan="7" class="us-loading">載入中，請稍候…</td></tr>
     </tbody>
   </table>
 </div>
