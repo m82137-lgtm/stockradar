@@ -442,8 +442,8 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .cp-vixtag { font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:4px; letter-spacing:.5px; }
 .chip-windchip { position:absolute; top:3px; left:5px; font-size:11.5px; font-weight:800; padding:1px 8px; border-radius:6px; background:var(--bg2); border:1.5px solid currentColor; z-index:6; pointer-events:none; opacity:0; }
 .chip-ksvg2 { width:100%; height:116px; display:block; }
-.chip-chart2 { position:relative; height:66px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 17px; }
-.chip-mmsvg2 { width:100%; height:66px; display:block; }
+.chip-chart2 { position:relative; height:88px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 22px; }
+.chip-mmsvg2 { width:100%; height:88px; display:block; }
 /* VIX 參考線標籤：HTML 定位（不隨 SVG preserveAspectRatio=none 橫向拉伸變形）*/
 .chip-refl { position:absolute; right:3px; transform:translateY(-50%); font-size:10.5px; color:var(--text3); background:var(--bg2); padding:0 3px; border-radius:2px; pointer-events:none; z-index:4; white-space:nowrap; }
 .chip-refl.red { color:var(--red); }
@@ -2722,29 +2722,28 @@ function chipIdxSvg(series) {
 function chipPh(title) {
   return `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span></div><div class="cp-h2"><span>資料準備中</span></div></div>`;
 }
-// 台指 VIX 折線（含 20 平靜線／30 偏高警戒虛線）；文字標籤改 HTML 定位避免拉伸變形
+// 台指 VIX 折線（永豐四段定義：20 平穩界／25 警戒界／35 恐慌界／40 極度恐慌）；標籤用 HTML 定位避免拉伸變形
 function chipVixSvg(series) {
   const W = 180, H = 50;
   const vals = series.map(p => p.v);
-  const LO = Math.min(18, Math.min(...vals) - 2), HI = Math.max(32, Math.max(...vals) + 2);
-  const yf = v => (1 - (v - LO) / (HI - LO));   // 0=頂 1=底 的比例
+  const LO = Math.min(15, Math.min(...vals) - 2), HI = Math.max(42, Math.max(...vals) + 2);
+  const yf = v => (1 - (v - LO) / (HI - LO));
   const y = v => yf(v) * H;
   const pts = series.map((p, i) => `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
-  const svg = `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
-    `<line x1="0" y1="${y(20).toFixed(1)}" x2="${W}" y2="${y(20).toFixed(1)}" stroke="var(--border)"/>` +
-    `<line x1="0" y1="${y(30).toFixed(1)}" x2="${W}" y2="${y(30).toFixed(1)}" stroke="var(--red)" stroke-dasharray="4 3" opacity=".5"/>` +
-    `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>`;
-  // HTML 標籤定位在 20/30 對應高度、靠右（不隨 SVG 橫向拉伸）
-  return svg +
-    `<span class="chip-refl" style="top:${(yf(20) * 100).toFixed(1)}%">20</span>` +
-    `<span class="chip-refl red" style="top:${(yf(30) * 100).toFixed(1)}%">30 偏高</span>`;
+  const REF = [[20, 'var(--amber)', '20'], [25, '#e8743b', '25'], [35, 'var(--red)', '35'], [40, 'var(--red)', '40 極恐']];
+  let svg = `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
+  for (const [v, c] of REF) svg += `<line x1="0" y1="${y(v).toFixed(1)}" x2="${W}" y2="${y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="${v === 40 ? '4 3' : '3 3'}" opacity="${v === 40 ? '.6' : '.42'}"/>`;
+  svg += `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>`;
+  let labels = '';
+  for (const [v, c, txt] of REF) labels += `<span class="chip-refl" style="top:${(yf(v) * 100).toFixed(1)}%;color:${c}">${txt}</span>`;
+  return svg + labels;
 }
-// VIX 水位標籤（市場公認門檻：<20平靜、>30恐慌）→ [文字, 底色, 字色]
+// VIX 水位標籤（永豐四段）：<20 平穩（<15 留意非理性繁榮）／20-25 警戒／25-40 恐慌／≥40 極度恐慌 → [文字, 底色, 字色]
 function vixZone(v) {
-  if (v < 20) return ['偏低', 'rgba(51,209,122,.16)', 'var(--green)'];
-  if (v < 30) return ['正常', 'var(--bg3)', 'var(--text2)'];
-  if (v < 40) return ['偏高', 'rgba(255,179,0,.18)', 'var(--amber)'];
-  return ['高', 'rgba(255,91,91,.18)', 'var(--red)'];
+  if (v < 20) return ['平穩', 'rgba(51,209,122,.16)', 'var(--green)'];
+  if (v < 25) return ['警戒', 'rgba(255,179,0,.18)', 'var(--amber)'];
+  if (v < 40) return ['恐慌', 'rgba(232,116,59,.2)', '#e8743b'];
+  return ['極度恐慌', 'rgba(255,91,91,.2)', 'var(--red)'];
 }
 function chipSet(active, frac) {
   const D = CHIP; if (!D) return;
@@ -2830,6 +2829,13 @@ async function loadChipIndicators() {
     const d = await r.json();
     if (!d || !d.ok) return;
     CHIP = d;
+    // 顯示天數依裝置切片：手機近30天、桌機近60天（server 存60；六卡同切，游標日期軸一致）
+    const CHIP_N = window.matchMedia('(max-width: 639px)').matches ? 30 : 60;
+    const cut = a => Array.isArray(a) ? a.slice(-CHIP_N) : a;
+    if (d.idx) { for (const k of ['tse', 'otc']) if (d.idx[k] && d.idx[k].series) d.idx[k].series = cut(d.idx[k].series); }
+    for (const k of ['foreign', 'retail']) if (d[k] && d[k].series) d[k].series = cut(d[k].series);
+    if (d.margin) { d.margin.series = cut(d.margin.series); if (d.margin.balSeries) d.margin.balSeries = cut(d.margin.balSeries); }
+    if (d.vix && d.vix.series) d.vix.series = cut(d.vix.series);
     const idxCard = (key, title, pack) => !pack ? chipPh(title) :
       `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v" id="${key}C"></span></div>` +
       `<div class="cp-h2"><span id="${key}M"></span><span id="${key}D" style="text-align:right"></span></div>` +
