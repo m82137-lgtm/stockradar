@@ -445,7 +445,7 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .chip-chart2 { position:relative; height:88px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 22px; }
 .chip-mmsvg2 { width:100%; height:88px; display:block; }
 /* VIX 參考線標籤：HTML 定位（不隨 SVG preserveAspectRatio=none 橫向拉伸變形）*/
-.chip-refl { position:absolute; right:3px; transform:translateY(-50%); font-size:10.5px; color:var(--text3); background:var(--bg2); padding:0 3px; border-radius:2px; pointer-events:none; z-index:4; white-space:nowrap; }
+.chip-refl { position:absolute; left:3px; transform:translateY(-50%); font-size:10.5px; color:var(--text3); background:var(--bg2); padding:0 3px; border-radius:2px; pointer-events:none; z-index:4; white-space:nowrap; }
 .chip-refl.red { color:var(--red); }
 .wind-gauge-labels { display:flex; justify-content:space-between; font-size:11px; margin-top:-2px; }
 .wind-gauge-labels .l { color:var(--green); font-weight:600; }
@@ -2730,7 +2730,7 @@ function chipVixSvg(series) {
   const yf = v => (1 - (v - LO) / (HI - LO));
   const y = v => yf(v) * H;
   const pts = series.map((p, i) => `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
-  const REF = [[20, 'var(--amber)', '20'], [25, '#e8743b', '25'], [35, 'var(--red)', '35'], [40, 'var(--red)', '40 極恐']];
+  const REF = [[20, 'var(--amber)', '20 平穩'], [25, '#e8743b', '25 警戒'], [35, 'var(--red)', '35 恐慌'], [40, 'var(--red)', '40 極恐']];
   let svg = `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
   for (const [v, c] of REF) svg += `<line x1="0" y1="${y(v).toFixed(1)}" x2="${W}" y2="${y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="${v === 40 ? '4 3' : '3 3'}" opacity="${v === 40 ? '.6' : '.42'}"/>`;
   svg += `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>`;
