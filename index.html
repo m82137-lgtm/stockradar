@@ -2678,19 +2678,6 @@ function chipIdxSvg(series) {
   if (pts) g += `<polyline points="${pts}" fill="none" stroke="#d99e17" stroke-width="1.3" opacity=".95"/>`;
   return `<svg class="chip-ksvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg>`;
 }
-function chipMm2Svg(series) {
-  const W = 180, H = 50;
-  const vals = series.map(p => p.v);
-  const LO = Math.min(140, Math.min(...vals) - 2), HI = Math.max(174, Math.max(...vals) + 2);
-  const y = v => H - (v - LO) / (HI - LO) * H;
-  const pts = series.map((p, i) => `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
-  return `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
-    `<line x1="0" y1="${y(160).toFixed(1)}" x2="${W}" y2="${y(160).toFixed(1)}" stroke="var(--border)"/>` +
-    `<line x1="0" y1="${y(140).toFixed(1)}" x2="${W}" y2="${y(140).toFixed(1)}" stroke="var(--red)" stroke-dasharray="4 3" opacity=".55"/>` +
-    `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/>` +
-    `<text x="${W - 2}" y="${(y(160) - 2).toFixed(1)}" text-anchor="end" font-size="7.5" fill="var(--text3)">160%</text>` +
-    `<text x="${W - 2}" y="${(y(140) - 2).toFixed(1)}" text-anchor="end" font-size="7.5" fill="var(--red)" opacity=".85">140% 追繳</text></svg>`;
-}
 function chipPh(title) {
   return `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span></div><div class="cp-h2"><span>資料準備中</span></div></div>`;
 }
