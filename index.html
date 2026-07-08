@@ -434,16 +434,19 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .chip-kohlc { display:flex; gap:10px; font-size:10px; color:var(--text2); margin-top:3px; font-variant-numeric:tabular-nums; flex-wrap:wrap; }
 /* ── 風度頁 v3：六卡並排一屏版 ── */
 .chip-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
-.cp-card { background:var(--bg2); border:1px solid var(--border); border-radius:11px; padding:8px 9px 6px; position:relative; }
+.cp-card { background:var(--bg2); border:1px solid var(--border); border-radius:13px; padding:11px 13px 9px; position:relative; }
 .cp-h1 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; }
-.cp-t { font-size:11.5px; font-weight:700; white-space:nowrap; color:var(--text); }
-.cp-v { font-size:14px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); }
-.cp-h2 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; font-size:9.5px; color:var(--text3); margin:1px 0 3px; min-height:13px; font-variant-numeric:tabular-nums; }
-.cp-vixtag { font-size:9px; font-weight:800; padding:1px 6px; border-radius:4px; letter-spacing:.5px; }
-.chip-windchip { position:absolute; top:2px; left:4px; font-size:10px; font-weight:800; padding:1px 7px; border-radius:6px; background:var(--bg2); border:1.5px solid currentColor; z-index:6; pointer-events:none; opacity:0; }
-.chip-ksvg2 { width:100%; height:96px; display:block; }
-.chip-chart2 { position:relative; height:50px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 17px; }
-.chip-mmsvg2 { width:100%; height:50px; display:block; }
+.cp-t { font-size:13.5px; font-weight:700; white-space:nowrap; color:var(--text); }
+.cp-v { font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); }
+.cp-h2 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; font-size:11px; color:var(--text3); margin:2px 0 5px; min-height:16px; font-variant-numeric:tabular-nums; }
+.cp-vixtag { font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:4px; letter-spacing:.5px; }
+.chip-windchip { position:absolute; top:3px; left:5px; font-size:11.5px; font-weight:800; padding:1px 8px; border-radius:6px; background:var(--bg2); border:1.5px solid currentColor; z-index:6; pointer-events:none; opacity:0; }
+.chip-ksvg2 { width:100%; height:116px; display:block; }
+.chip-chart2 { position:relative; height:66px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 17px; }
+.chip-mmsvg2 { width:100%; height:66px; display:block; }
+/* VIX 參考線標籤：HTML 定位（不隨 SVG preserveAspectRatio=none 橫向拉伸變形）*/
+.chip-refl { position:absolute; right:3px; transform:translateY(-50%); font-size:10.5px; color:var(--text3); background:var(--bg2); padding:0 3px; border-radius:2px; pointer-events:none; z-index:4; white-space:nowrap; }
+.chip-refl.red { color:var(--red); }
 .wind-gauge-labels { display:flex; justify-content:space-between; font-size:11px; margin-top:-2px; }
 .wind-gauge-labels .l { color:var(--green); font-weight:600; }
 .wind-gauge-labels .r { color:var(--red); font-weight:600; }
@@ -2691,19 +2694,22 @@ function chipMm2Svg(series) {
 function chipPh(title) {
   return `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span></div><div class="cp-h2"><span>資料準備中</span></div></div>`;
 }
-// 台指 VIX 折線（含 20 平靜線／30 偏高警戒虛線；沿用 chip-mmsvg2 尺寸）
+// 台指 VIX 折線（含 20 平靜線／30 偏高警戒虛線）；文字標籤改 HTML 定位避免拉伸變形
 function chipVixSvg(series) {
   const W = 180, H = 50;
   const vals = series.map(p => p.v);
   const LO = Math.min(18, Math.min(...vals) - 2), HI = Math.max(32, Math.max(...vals) + 2);
-  const y = v => H - (v - LO) / (HI - LO) * H;
+  const yf = v => (1 - (v - LO) / (HI - LO));   // 0=頂 1=底 的比例
+  const y = v => yf(v) * H;
   const pts = series.map((p, i) => `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
-  return `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
+  const svg = `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
     `<line x1="0" y1="${y(20).toFixed(1)}" x2="${W}" y2="${y(20).toFixed(1)}" stroke="var(--border)"/>` +
     `<line x1="0" y1="${y(30).toFixed(1)}" x2="${W}" y2="${y(30).toFixed(1)}" stroke="var(--red)" stroke-dasharray="4 3" opacity=".5"/>` +
-    `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/>` +
-    `<text x="${W - 2}" y="${(y(20) - 2).toFixed(1)}" text-anchor="end" font-size="7.5" fill="var(--text3)">20</text>` +
-    `<text x="${W - 2}" y="${(y(30) - 2).toFixed(1)}" text-anchor="end" font-size="7.5" fill="var(--red)" opacity=".85">30 偏高</text></svg>`;
+    `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>`;
+  // HTML 標籤定位在 20/30 對應高度、靠右（不隨 SVG 橫向拉伸）
+  return svg +
+    `<span class="chip-refl" style="top:${(yf(20) * 100).toFixed(1)}%">20</span>` +
+    `<span class="chip-refl red" style="top:${(yf(30) * 100).toFixed(1)}%">30 偏高</span>`;
 }
 // VIX 水位標籤（市場公認門檻：<20平靜、>30恐慌）→ [文字, 底色, 字色]
 function vixZone(v) {
