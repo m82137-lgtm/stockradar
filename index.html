@@ -631,6 +631,9 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-k15.na{ color:var(--text3); background:var(--bg3); }
 /* 月K欄：創新高（突破近五年高點）／—（未突破）*/
 .iv2-table td.iv2-mocell{ text-align:center; }
+/* 視覺欄（15MK/月K/當日K/走勢/近五日K）表頭置中：原 th 全靠右、內容卻置中，造成長期表頭錯位 */
+.iv2-table thead th.c-k15, .iv2-table thead th.c-mo, .iv2-table thead th.c-kbar, .iv2-table thead th.c-spark, .iv2-table thead th.c-k5{ text-align:center; }
+.iv2-table td.iv2-c{ text-align:center; }
 .iv2-hi{ display:inline-flex; flex-direction:column; align-items:center; background:var(--red-bg); border-radius:7px; padding:2px 7px; line-height:1.15; }
 .iv2-hi b{ color:var(--red); font-size:11px; font-weight:800; white-space:nowrap; }
 .iv2-hi small{ color:var(--red); opacity:.72; font-size:9px; white-space:nowrap; }
@@ -988,7 +991,7 @@ main:has(.iv2){ padding:0 !important; }
 .us-tbl th.us-th-days  { width:13%; }
 .us-tbl th.us-th-val   { width:16%; }
 .us-tbl th.us-th-theme { text-align:left; width:16%; }
-.us-tbl th.us-th-nh    { width:13%; }
+.us-tbl th.us-th-nh    { width:13%; text-align:center; }
 .us-td-nh { text-align:center !important; }
 .us-hi { display:inline-flex; flex-direction:column; align-items:center; background:var(--red-bg); border-radius:6px; padding:2px 8px; line-height:1.15; }
 .us-hi b { color:var(--red); font-size:11.5px; font-weight:800; white-space:nowrap; }
@@ -1839,7 +1842,7 @@ function ivRow(s){
     <td>${chgCell}</td>
     <td class="iv2-num"><span class="iv2-vol-full">${ivFmtVol(s.vol)}張</span><span class="iv2-vol-m">${ivFmtVolM(s.vol)}張</span>${estInline}</td>
     <td class="iv2-num iv2-est-col">${estMain}</td>
-    <td>${iv15(s)}</td>
+    <td class="iv2-c">${iv15(s)}</td>
     <td class="iv2-mocell">${ivMonthly(s)}</td>
     <td class="iv2-kcell">${ivKbar(s)}</td>
     <td class="iv2-spcell">${ivSpark(s)}</td>
