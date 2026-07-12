@@ -580,12 +580,12 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-kcell svg, .iv2-spcell svg, .iv2-k5cell svg{ display:block; margin:0 auto; max-width:100%; height:auto; }
 @media (max-width:639px){
   /* 手機橫向滑動（使用者授權）：原六欄用 vw 精準佔滿一個螢幕寬（15MK 右緣＝畫面右緣，同改版前），
-     新欄位（月K/當日K/走勢/近五日K）在畫面外，左右滑看。月K=64px，故 +288px（224+64） */
+     新欄位（月K/RS動能/當日K/走勢/近五日K）在畫面外，左右滑看。月K=64px、RS=72px，故 +360px（224+64+72） */
   .iv2-tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:none; }
-  .iv2-table{ min-width:calc(100vw + 288px); }
+  .iv2-table{ min-width:calc(100vw + 360px); }
   .iv2-table .c-code{ width:13vw; } .iv2-table .c-name{ width:21vw; } .iv2-table .c-price{ width:13vw; }
   .iv2-table .c-chg{ width:17vw; } .iv2-table .c-vol{ width:24vw; } .iv2-table .c-k15{ width:12vw; }
-  .iv2-table .c-mo{ width:64px; }
+  .iv2-table .c-mo{ width:64px; } .iv2-table .c-rs{ width:72px; }
   .iv2-table .c-kbar{ width:44px; } .iv2-table .c-spark{ width:104px; } .iv2-table .c-k5{ width:76px; }
 }
 /* 桌機：固定像素欄寬＋整表 min-width，超出畫面時整區橫向滑動（根治欄位擠壓字疊字）*/
@@ -593,7 +593,7 @@ main:has(.iv2){ padding:0 !important; }
   .iv2-table{ min-width:1078px; }
   .iv2-table .c-code{ width:68px; } .iv2-table .c-name{ width:152px; } .iv2-table .c-price{ width:92px; }
   .iv2-table .c-chg{ width:98px; } .iv2-table .c-vol{ width:118px; } .iv2-table .c-est{ width:110px; }
-  .iv2-table .c-k15{ width:78px; } .iv2-table .c-mo{ width:84px; }
+  .iv2-table .c-k15{ width:78px; } .iv2-table .c-mo{ width:84px; } .iv2-table .c-rs{ width:76px; }
   .iv2-table .c-kbar{ width:58px; } .iv2-table .c-spark{ width:122px; } .iv2-table .c-k5{ width:98px; }
 }
 .iv2-table thead th{ font-size:11px; color:var(--text3); font-weight:700; text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); background:var(--bg2); position:sticky; top:0; z-index:2; white-space:nowrap; }
@@ -631,8 +631,17 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-k15.na{ color:var(--text3); background:var(--bg3); }
 /* 月K欄：創新高（突破近五年高點）／—（未突破）*/
 .iv2-table td.iv2-mocell{ text-align:center; }
+/* RS動能徽章：近20日 vs 加權超額%；≥15深紅/5~15紅/±5灰/<-5灰藍（弱不用綠避免與跌混色） */
+.iv2-rs{ display:inline-flex; flex-direction:column; align-items:center; justify-content:center; min-width:56px; padding:3px 6px 2px; border-radius:8px; line-height:1.15; }
+.iv2-rs b{ font-family:'JetBrains Mono',monospace; font-size:13.5px; font-weight:700; }
+.iv2-rs small{ font-family:'JetBrains Mono',monospace; font-size:9.5px; margin-top:1px; font-weight:600; opacity:.85; }
+.iv2-rs-t1{ background:linear-gradient(160deg,#b3273a,#d9364a); color:#fff; }
+.iv2-rs-t2{ background:var(--red-bg); color:var(--red); border:1px solid var(--red-bg2); }
+.iv2-rs-t3{ background:var(--bg3); color:var(--text2); border:1px solid var(--border); }
+.iv2-rs-t4{ background:rgba(107,151,248,.10); color:#5f7ab8; border:1px solid rgba(107,151,248,.25); }
+[data-theme="dark"] .iv2-rs-t4{ color:#8fa8d8; }
 /* 視覺欄（15MK/月K/當日K/走勢/近五日K）表頭置中：原 th 全靠右、內容卻置中，造成長期表頭錯位 */
-.iv2-table thead th.c-k15, .iv2-table thead th.c-mo, .iv2-table thead th.c-kbar, .iv2-table thead th.c-spark, .iv2-table thead th.c-k5{ text-align:center; }
+.iv2-table thead th.c-k15, .iv2-table thead th.c-mo, .iv2-table thead th.c-rs, .iv2-table thead th.c-kbar, .iv2-table thead th.c-spark, .iv2-table thead th.c-k5{ text-align:center; }
 .iv2-table td.iv2-c{ text-align:center; }
 .iv2-hi{ display:inline-flex; flex-direction:column; align-items:center; background:var(--red-bg); border-radius:7px; padding:2px 7px; line-height:1.15; }
 .iv2-hi b{ color:var(--red); font-size:11px; font-weight:800; white-space:nowrap; }
@@ -1726,6 +1735,16 @@ function ivMonthly(s){
   const sp = nhSpan(s.h5d);
   return '<span class="iv2-hi"><b>🔥新高</b>' + (sp ? '<small>' + sp + '</small>' : '') + '</span>';
 }
+// RS動能欄：近20交易日贏加權幾個百分點（Render 0:00 算 → finalize 併入 → alerts 透傳）
+// 色階：≥15 深紅爆強／5~15 紅／±5 灰＝同步／<-5 灰藍＝落後（弱不用綠：RS弱≠下跌）
+function ivRs(s){
+  const v = (s.rs == null ? null : +s.rs);
+  if (v == null || !isFinite(v)) return '<span style="color:var(--text3)">—</span>';
+  const t = v >= 15 ? 1 : v >= 5 ? 2 : v > -5 ? 3 : 4;
+  const dv = (s.rsD == null ? null : +s.rsD);
+  const dtxt = (dv == null || !isFinite(dv)) ? '' : '<small>' + (dv > 0 ? '+' : '') + dv.toFixed(1) + '</small>';
+  return '<span class="iv2-rs iv2-rs-t' + t + '"><b>' + (v > 0 ? '+' : '') + v.toFixed(1) + '</b>' + dtxt + '</span>';
+}
 // ── 當日K棒／即時走勢（走勢資料由 Worker 掃描自養，每檔約 3 分鐘一點）──
 let IVSERIES = null, ivSeriesAt = 0;
 async function loadIvSeries(force) {
@@ -1848,6 +1867,7 @@ function ivRow(s){
     <td class="iv2-num iv2-est-col">${estMain}</td>
     <td class="iv2-c">${iv15(s)}</td>
     <td class="iv2-mocell">${ivMonthly(s)}</td>
+    <td class="iv2-rscell">${ivRs(s)}</td>
     <td class="iv2-kcell">${ivKbar(s)}</td>
     <td class="iv2-spcell">${ivSpark(s)}</td>
     <td class="iv2-k5cell">${ivK5(s)}</td>
@@ -1864,7 +1884,7 @@ function renderAlertsList() {
   if (countEl) countEl.textContent = stocks.length;
   if (limitEl) limitEl.textContent = `漲停 ${stocks.filter(s=>(+(s.chg||0))>=9.5).length}`;
   if (!stocks.length) {
-    listEl.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px 16px;color:var(--text3);">目前無符合條件的強勢股，盤中每分鐘自動更新</td></tr>';
+    listEl.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:40px 16px;color:var(--text3);">目前無符合條件的強勢股，盤中每分鐘自動更新</td></tr>';
     return;
   }
   ivAlertIndex = {};
@@ -2949,7 +2969,7 @@ const pages = {
     <div class="iv2-tablewrap" id="iv2-tablewrap">
       <table class="iv2-table">
         <thead><tr>
-          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price">最新價</th><th class="c-chg">漲幅</th><th class="c-vol">成交量</th><th class="iv2-est-col c-est">預估量</th><th class="c-k15">15MK</th><th class="c-mo">月K</th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th><th class="c-k5">近五日K</th>
+          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price">最新價</th><th class="c-chg">漲幅</th><th class="c-vol">成交量</th><th class="iv2-est-col c-est">預估量</th><th class="c-k15">15MK</th><th class="c-mo">月K</th><th class="c-rs">RS動能</th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th><th class="c-k5">近五日K</th>
         </tr></thead>
         <tbody id="strategy-list"></tbody>
       </table>
