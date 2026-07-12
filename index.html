@@ -16,7 +16,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="pixel-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="pixel-180.png">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0c1228">
+<meta name="theme-color" content="#0c1220">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="龍珠雷達">
@@ -25,25 +25,25 @@
 <style>
 /* ══ 暗色主題（預設）══════════════════════════ */
 :root, [data-theme="dark"] {
-  --bg:       #0c1228;
-  --bg2:      #141b38;
-  --bg3:      #1d2750;
-  --bg4:      #283464;
-  --border:   #283264;
-  --border2:  #3a467e;
+  --bg:       #0c1220;
+  --bg2:      #121a2b;
+  --bg3:      #182236;
+  --bg4:      #1e2a44;
+  --border:   #232e45;
+  --border2:  #334263;
   --text:     #ffffff;
-  --text2:    #94a0d0;
-  --text3:    #5f6c9a;
-  --green:    #00e676;
-  --green-bg: rgba(0,230,118,0.14);
-  --green-bg2:rgba(0,230,118,0.24);
-  --red:      #ff3b3b;
-  --red-bg:   rgba(255,60,60,0.14);
-  --red-bg2:  rgba(255,60,60,0.28);
-  --amber:    #ffb300;
-  --red-soft: #ff8f8f;
-  --green-soft:#74d68e;
-  --amber-bg: rgba(255,179,0,0.12);
+  --text2:    #a8b0c2;
+  --text3:    #6b7385;
+  --green:    #3fd6a3;
+  --green-bg: rgba(63,214,163,0.14);
+  --green-bg2:rgba(63,214,163,0.24);
+  --red:      #ff6b7d;
+  --red-bg:   rgba(255,107,125,0.14);
+  --red-bg2:  rgba(255,107,125,0.26);
+  --amber:    #e8b93c;
+  --red-soft: #ffa3ae;
+  --green-soft:#7fe0c2;
+  --amber-bg: rgba(232,185,60,0.14);
   --blue:     #5b97f8;
   --blue-bg:  rgba(91,151,248,0.12);
   --accent:   #6b97f8;
@@ -619,9 +619,9 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-num{ font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; }
 .iv2-chg{ font-weight:800; }
 .iv2-chg.up{ color:var(--red); } .iv2-chg.down{ color:var(--green); }
-.iv2-table tr.limit td{ background:var(--red-bg2); }
+.iv2-table tr.limit td{ background:rgba(255,80,95,.10); }
 [data-theme="light"] .iv2-table tr.limit td{ background:rgba(217,54,62,.07); }
-.iv2-table tr.limit td{ border-color:rgba(255,112,112,.3); }
+.iv2-table tr.limit td{ border-color:rgba(255,107,125,.22); }
 .iv2-chgbox{ display:inline-block; background:var(--red); color:#fff; border-radius:7px; padding:3px 9px; font-weight:800; }
 @media (max-width:639px){ .iv2-chgbox,.iv2-chg{ font-size:12.5px; } }
 .iv2-k15{ font-size:11px; font-weight:700; border-radius:7px; padding:3px 8px; display:inline-block; }
@@ -1036,6 +1036,8 @@ a.us-td-name:hover{ color:var(--accent) !important; border-bottom-color:var(--ac
 .us-td-days { font-variant-numeric:tabular-nums; color:var(--accent); font-weight:600; }
 .us-days-unit { font-size:12px; font-weight:400; color:var(--text3); margin-left:1px; }
 .us-td-val { font-variant-numeric:tabular-nums; color:var(--text); }
+[data-theme="dark"] .us-td-val { color:#5eead4; }
+[data-theme="dark"] .us-td-price, [data-theme="dark"] .us-td-chg, [data-theme="dark"] .us-td-val { font-family:'JetBrains Mono',monospace; }
 .us-td-theme { text-align:left !important; color:var(--text3); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .us-loading { text-align:center !important; padding:28px 12px !important; color:var(--text3); }
 .us-new { display:inline-block; background:#d4a017; color:#1a1a1a; font-size:11px; font-weight:700; padding:1px 5px; border-radius:4px; margin-right:6px; vertical-align:middle; letter-spacing:0.5px; }
