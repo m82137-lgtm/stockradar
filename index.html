@@ -643,6 +643,11 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-k15.na{ color:var(--text3); background:var(--bg3); }
 /* 月K欄：創新高（突破近五年高點）／—（未突破）*/
 .iv2-table td.iv2-mocell{ text-align:center; }
+/* 可排序表頭：⇅ 淡箭頭，作用中亮 accent＋▼/▲ */
+.iv2-table thead th.sortable{ cursor:pointer; user-select:none; }
+.iv2-table thead th.sortable .ar{ font-size:9px; opacity:.4; margin-left:1px; }
+.iv2-table thead th.sortable.on{ color:var(--accent); font-weight:800; }
+.iv2-table thead th.sortable.on .ar{ opacity:1; }
 /* RS動能徽章：近20日 vs 加權超額%；≥15深紅/5~15紅/±5灰/<-5灰藍（弱不用綠避免與跌混色） */
 .iv2-rs{ display:inline-flex; flex-direction:column; align-items:center; justify-content:center; min-width:56px; padding:3px 6px 2px; border-radius:8px; line-height:1.15; }
 .iv2-rs b{ font-family:'JetBrains Mono',monospace; font-size:13.5px; font-weight:700; }
@@ -1408,6 +1413,7 @@ function renderRelatedStocks(stocks) {
 let alertsData    = { qj: [], lz: [] };
 let currentStrategy = 'qj';
 let currentSort = 'chg';
+let sortDir = -1;   // -1=降冪（預設）、1=升冪；上排鈕永遠降冪，表頭同鍵重點切換
 let stockNameMap  = {};   // 120檔 code → name（族群配股名用）
 let limitMap      = {};   // code → true（漲停股，族群亮燈用，來自警示榜）
 
@@ -1702,20 +1708,58 @@ async function fetchAlerts() {
   }
 }
 
-function setSort(type) {
+function setSort(type, fromHeader) {
+  if (fromHeader && currentSort === type) sortDir = -sortDir;   // 同鍵重點：▼↔▲
+  else sortDir = -1;                                             // 換鍵或上排鈕：預設降冪
   currentSort = type;
-  document.querySelectorAll('.iv2-sb').forEach(b => b.classList.remove('on'));
-  const btn = document.getElementById('sort-' + type);
-  if (btn) btn.classList.add('on');
+  syncSortUI();
   renderAlertsList();
+}
+// 上排鈕與表頭互斥同步：點誰誰亮；表頭箭頭 ⇅/▼/▲
+function syncSortUI() {
+  document.querySelectorAll('.iv2-sb').forEach(b => b.classList.remove('on'));
+  const btn = document.getElementById('sort-' + currentSort);
+  if (btn) btn.classList.add('on');
+  document.querySelectorAll('.iv2-table thead th.sortable').forEach(th => {
+    const on = th.dataset.sort === currentSort;
+    th.classList.toggle('on', on);
+    const ar = th.querySelector('.ar');
+    if (ar) ar.textContent = on ? (sortDir === -1 ? '▼' : '▲') : '⇅';
+  });
 }
 
 function sortStocks(stocks) {
   const arr = [...stocks];
-  if (currentSort === 'chg') return arr.sort((a,b) => (+(b.chg||0)) - (+(a.chg||0)));
-  if (currentSort === 'vol') return arr.sort((a,b) => (+(b.vol||0)) - (+(a.vol||0)));
-  // 入榜時間：最新在上
-  return arr.sort((a,b) => (b.ts||0) - (a.ts||0));
+  const dir = sortDir;                                   // -1=降冪(預設)、1=升冪
+  const tvOf = s => +(s.tradeValue || 0);
+  if (currentSort === 'k15') {                           // ✓符合先，同群比成交值
+    return arr.sort((a, b) => {
+      const va = a.k15 === true ? 1 : 0, vb = b.k15 === true ? 1 : 0;
+      if (va !== vb) return (vb - va) * (dir === -1 ? 1 : -1);
+      return tvOf(b) - tvOf(a);
+    });
+  }
+  if (currentSort === 'nh') {                            // 🔥新高先、被破前高越舊越前（月份大先），同群比成交值
+    const age = s => (s.newHigh && s.h5d) ? (Date.now() - new Date(s.h5d + 'T00:00:00+08:00').getTime()) : -1;
+    return arr.sort((a, b) => {
+      const va = age(a), vb = age(b);
+      if (va !== vb) return (vb - va) * (dir === -1 ? 1 : -1);
+      return tvOf(b) - tvOf(a);
+    });
+  }
+  if (currentSort === 'rs') {                            // 數值大→小；— 永遠沉底（升冪也沉底）
+    return arr.sort((a, b) => {
+      const na = a.rs == null, nb = b.rs == null;
+      if (na && nb) return tvOf(b) - tvOf(a);
+      if (na) return 1;
+      if (nb) return -1;
+      return ((+b.rs) - (+a.rs)) * (dir === -1 ? 1 : -1);
+    });
+  }
+  if (currentSort === 'time') return arr.sort((a, b) => dir === -1 ? (b.ts||0) - (a.ts||0) : (a.ts||0) - (b.ts||0));
+  const keyMap = { chg: 'chg', price: 'price', tv: 'tradeValue', vol: 'vol' };
+  const k = keyMap[currentSort] || 'chg';
+  return arr.sort((a, b) => ((+(b[k]||0)) - (+(a[k]||0))) * (dir === -1 ? 1 : -1));
 }
 
 // ── 市場別 TradingView 代碼（上市 TWSE / 上櫃 TPEX）──
@@ -2980,7 +3024,6 @@ const pages = {
     <div class="iv2-sorts">
       <span class="lbl">排序</span>
       <button class="iv2-sb on" id="sort-chg" onclick="setSort('chg')">漲幅</button>
-      <button class="iv2-sb" id="sort-vol" onclick="setSort('vol')">成交量</button>
       <button class="iv2-sb" id="sort-time" onclick="setSort('time')">入榜時間</button>
       <button class="iv2-refresh" onclick="fetchAlerts()">↻ 更新</button>
     </div>
@@ -2989,7 +3032,7 @@ const pages = {
     <div class="iv2-tablewrap" id="iv2-tablewrap">
       <table class="iv2-table">
         <thead><tr>
-          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price">價格</th><th class="c-chg">成交值</th><th class="c-vol">成交量</th><th class="iv2-est-col c-est">預估量</th><th class="c-k15">15MK</th><th class="c-mo">月K</th><th class="c-rs">RS動能</th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th><th class="c-k5">近五日K</th>
+          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price sortable" data-sort="price" onclick="setSort('price',true)">價格<span class="ar">⇅</span></th><th class="c-chg sortable" data-sort="tv" onclick="setSort('tv',true)">成交值<span class="ar">⇅</span></th><th class="c-vol sortable" data-sort="vol" onclick="setSort('vol',true)">成交量<span class="ar">⇅</span></th><th class="iv2-est-col c-est">預估量</th><th class="c-k15 sortable" data-sort="k15" onclick="setSort('k15',true)">15MK<span class="ar">⇅</span></th><th class="c-mo sortable" data-sort="nh" onclick="setSort('nh',true)">月K<span class="ar">⇅</span></th><th class="c-rs sortable" data-sort="rs" onclick="setSort('rs',true)">RS動能<span class="ar">⇅</span></th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th><th class="c-k5">近五日K</th>
         </tr></thead>
         <tbody id="strategy-list"></tbody>
       </table>
