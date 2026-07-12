@@ -583,8 +583,8 @@ main:has(.iv2){ padding:0 !important; }
      新欄位（月K/RS動能/當日K/走勢/近五日K）在畫面外，左右滑看。月K=64px、RS=72px，故 +360px（224+64+72） */
   .iv2-tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:none; }
   .iv2-table{ min-width:calc(100vw + 360px); }
-  .iv2-table .c-code{ width:13vw; } .iv2-table .c-name{ width:21vw; } .iv2-table .c-price{ width:13vw; }
-  .iv2-table .c-chg{ width:17vw; } .iv2-table .c-vol{ width:24vw; } .iv2-table .c-k15{ width:12vw; }
+  .iv2-table .c-code{ width:13vw; } .iv2-table .c-name{ width:21vw; } .iv2-table .c-price{ width:17vw; }
+  .iv2-table .c-chg{ width:14vw; } .iv2-table .c-vol{ width:23vw; } .iv2-table .c-k15{ width:12vw; }
   .iv2-table .c-mo{ width:64px; } .iv2-table .c-rs{ width:72px; }
   .iv2-table .c-kbar{ width:44px; } .iv2-table .c-spark{ width:104px; } .iv2-table .c-k5{ width:76px; }
 }
@@ -623,7 +623,19 @@ main:has(.iv2){ padding:0 !important; }
 [data-theme="light"] .iv2-table tr.limit td{ background:rgba(217,54,62,.07); }
 .iv2-table tr.limit td{ border-color:rgba(255,107,125,.22); }
 .iv2-chgbox{ display:inline-block; background:var(--red); color:#fff; border-radius:7px; padding:3px 9px; font-weight:800; }
-@media (max-width:639px){ .iv2-chgbox,.iv2-chg{ font-size:12.5px; } }
+/* 愛德恩式價格框：大字股價＋漲幅小字「置中」下置；漲停=實心紅框微光暈、漲=淡紅底、跌=淡綠底、平=灰底 */
+.iv2-px{ display:inline-flex; flex-direction:column; align-items:center; line-height:1.2; }
+.iv2-px .p{ font-weight:800; font-size:15px; padding:3px 8px; border-radius:7px; }
+.iv2-px .g{ font-size:12px; font-weight:700; margin-top:2px; }
+.iv2-px-limit .p{ background:linear-gradient(160deg,#c22940,#e04358); color:#fff; box-shadow:0 1px 6px rgba(255,80,95,.25); }
+.iv2-px-limit .g{ color:var(--red); }
+.iv2-px-up .p{ color:var(--red); background:var(--red-bg); }
+.iv2-px-up .g{ color:var(--red); }
+.iv2-px-down .p{ color:var(--green); background:var(--green-bg); }
+.iv2-px-down .g{ color:var(--green); }
+.iv2-px-flat .p{ color:var(--text2); background:var(--bg3); }
+.iv2-px-flat .g{ color:var(--text3); }
+@media (max-width:639px){ .iv2-chgbox,.iv2-chg{ font-size:12.5px; } .iv2-px .p{ font-size:13.5px; padding:2px 6px; } .iv2-px .g{ font-size:11px; } }
 .iv2-k15{ font-size:11px; font-weight:700; border-radius:7px; padding:3px 8px; display:inline-block; }
 @media (max-width:639px){ .iv2-k15,.iv2-hi{ font-size:10px; padding:2px 6px; } }
 .iv2-k15.ok{ color:var(--green); background:var(--green-bg); }
@@ -1735,6 +1747,13 @@ function ivMonthly(s){
   const sp = nhSpan(s.h5d);
   return '<span class="iv2-hi"><b>🔥新高</b>' + (sp ? '<small>' + sp + '</small>' : '') + '</span>';
 }
+// 成交值格式器：元 → 億（≥100億整數、≥10億一位、其餘兩位）；沿用成交量欄同款樣式（iv2-num 素色）
+function ivFmtTv(v){
+  v = +v || 0;
+  if (!v) return '<span style="color:var(--text3)">—</span>';
+  const yi = v / 1e8;
+  return (yi >= 100 ? yi.toFixed(0) : yi >= 10 ? yi.toFixed(1) : yi.toFixed(2)) + '億';
+}
 // RS動能欄：近20交易日贏加權幾個百分點（Render 0:00 算 → finalize 併入 → alerts 透傳）
 // 色階：≥15 深紅爆強／5~15 紅／±5 灰＝同步／<-5 灰藍＝落後（弱不用綠：RS弱≠下跌）
 function ivRs(s){
@@ -1849,9 +1868,10 @@ function ivRow(s){
   const isFaded = currentStrategy === 'qj' && chg < 7;
   const dir = chg >= 0 ? 'up' : 'down';
   const sign = chg >= 0 ? '+' : '';
-  const chgCell = lim
-    ? `<span class="iv2-chgbox iv2-num">${sign}${chg.toFixed(2)}%</span>`
-    : `<span class="iv2-chg iv2-num ${dir}">${sign}${chg.toFixed(2)}%</span>`;
+  // 愛德恩式價格框：大字股價（漲停=實心紅框）＋漲幅小字置中下置；原漲幅欄改放成交值
+  const pxCls  = lim ? 'limit' : chg > 0 ? 'up' : chg < 0 ? 'down' : 'flat';
+  const pxCell = `<span class="iv2-px iv2-px-${pxCls}"><span class="p iv2-num">${(+(s.price||0)).toFixed(1)}</span><span class="g iv2-num">${sign}${chg.toFixed(2)}%</span></span>`;
+  const tvCell = ivFmtTv(s.tradeValue);
   const hasEst = s.estVol && s.prevVol;
   const inc = hasEst && s.estVol > s.prevVol;
   const tag  = hasEst ? `<span class="iv2-esttag ${inc?'inc':'dec'}">${inc?'▲量增':'▼量縮'}</span>` : '';
@@ -1861,8 +1881,8 @@ function ivRow(s){
   return `<tr class="${lim?'limit':''} ${isFaded?'faded':''} ${s.code===ivSelCode?'sel':''}" data-code="${s.code}" onclick="openNews('${s.code}')">
     <td class="l"><span class="iv2-code">${s.code}</span></td>
     <td class="l"><a class="iv2-nm" href="${ivTvUrl(s)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a><span class="iv2-tv">TV</span>${s.market?`<span class="iv2-mkt">${s.market}</span>`:''}</td>
-    <td class="iv2-num">${(+(s.price||0)).toFixed(1)}</td>
-    <td>${chgCell}</td>
+    <td class="iv2-pxcell">${pxCell}</td>
+    <td class="iv2-num">${tvCell}</td>
     <td class="iv2-num"><span class="iv2-vol-full">${ivFmtVol(s.vol)}張</span><span class="iv2-vol-m">${ivFmtVolM(s.vol)}張</span>${estInline}</td>
     <td class="iv2-num iv2-est-col">${estMain}</td>
     <td class="iv2-c">${iv15(s)}</td>
@@ -2969,7 +2989,7 @@ const pages = {
     <div class="iv2-tablewrap" id="iv2-tablewrap">
       <table class="iv2-table">
         <thead><tr>
-          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price">最新價</th><th class="c-chg">漲幅</th><th class="c-vol">成交量</th><th class="iv2-est-col c-est">預估量</th><th class="c-k15">15MK</th><th class="c-mo">月K</th><th class="c-rs">RS動能</th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th><th class="c-k5">近五日K</th>
+          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price">價格</th><th class="c-chg">成交值</th><th class="c-vol">成交量</th><th class="iv2-est-col c-est">預估量</th><th class="c-k15">15MK</th><th class="c-mo">月K</th><th class="c-rs">RS動能</th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th><th class="c-k5">近五日K</th>
         </tr></thead>
         <tbody id="strategy-list"></tbody>
       </table>
