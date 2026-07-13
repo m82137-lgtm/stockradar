@@ -325,6 +325,8 @@ body {
 .wind-gauge.amber { color:var(--amber); }
 .wind-gauge.redsoft   { color:var(--red-soft); }
 .wind-gauge.greensoft { color:var(--green-soft); }
+.wind-gauge .wg-live{ font-size:10px; font-weight:700; margin-left:5px; animation:wgpulse 1.4s infinite; }
+@keyframes wgpulse{ 0%,100%{opacity:.9} 50%{opacity:.25} }
 
 .nav-logo::before {
   content:'';
@@ -1471,6 +1473,83 @@ async function loadWindGauge() {
     console.log('loadWindGauge fail:', e.message);
   }
 }
+// ═══ 盤中即時風度（B方案）：每60秒拉 /api/idx-live → 本地算暫定章＋今日即時K；純顯示不落地 ═══
+// 真值表鏡像 Worker/Render：站上MA×(柱升?強風:亂流)；未站上×(柱升?陣風:無風)
+const IDXLIVE_KEYS = { tse: 'kt', otc: 'ko' };
+let idxLiveBak = null;   // 注入今日K前的乾淨序列備份
+let idxLiveOn  = false;
+function twNowParts() {
+  const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Taipei', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', weekday: 'short' }).formatToParts(new Date());
+  const g = t => (p.find(x => x.type === t) || {}).value || '';
+  return { date: `${g('year')}-${g('month')}-${g('day')}`, md: `${g('month')}/${g('day')}`, mins: (+g('hour')) * 60 + (+g('minute')), wd: g('weekday') };
+}
+function idxLiveInWindow() { const t = twNowParts(); return !['Sat', 'Sun'].includes(t.wd) && t.mins >= 540 && t.mins <= 811; }  // 台北 9:00–13:31
+function liveWindCalc(pack, live) {
+  if (!pack || pack.ema12 == null || pack.ema26 == null || pack.sig9 == null) return null;   // chip 舊版無存檔點 → 不啟用
+  const closes = (pack.series || []).filter(b => !b.live).map(b => +b.c).filter(v => isFinite(v) && v > 0);
+  if (closes.length < 19 || !isFinite(live) || live <= 0) return null;
+  const ma20 = (closes.slice(-19).reduce((a, b) => a + b, 0) + live) / 20;
+  const difY = pack.ema12 - pack.ema26, histY = difY - pack.sig9;
+  const e12 = live * 2 / 13 + pack.ema12 * 11 / 13;
+  const e26 = live * 2 / 27 + pack.ema26 * 25 / 27;
+  const difT = e12 - e26, sigT = pack.sig9 + (difT - pack.sig9) * 2 / 10, histT = difT - sigT;
+  const above = live >= ma20, up = histT > histY;
+  return { label: above ? (up ? '強風' : '亂流') : (up ? '陣風' : '無風'), ma20 };
+}
+function idxLiveRepaint(k) {
+  const chart = document.getElementById(IDXLIVE_KEYS[k] + 'Chart');
+  if (!chart || !CHIP || !CHIP.idx || !CHIP.idx[k]) return;
+  chart.innerHTML = chipIdxSvg(CHIP.idx[k].series);
+  const zone = chart.closest('[data-chipzone]');
+  if (zone) zone.dataset.n = CHIP.idx[k].series.length;   // 游標吸附涵蓋今日根
+}
+async function idxLiveTick() {
+  if (!idxLiveInWindow()) { if (idxLiveOn) idxLiveRestore(); return; }
+  if (typeof CHIP === 'undefined' || !CHIP || !CHIP.idx) return;
+  let d; try { d = await (await fetch(`${WORKER}/api/idx-live`)).json(); } catch { return; }
+  const t = twNowParts();
+  let tseLbl = null, otcLbl = null;
+  for (const k of ['tse', 'otc']) {
+    const pack = CHIP.idx[k], q = d && d[k];
+    if (!pack || !pack.series || !q || q.date !== t.date || !(q.price > 0)) continue;   // 認日期不認時鐘（休市自動不啟用）
+    const lw = liveWindCalc(pack, q.price);
+    if (!lw) continue;
+    if (!idxLiveBak) idxLiveBak = {};
+    if (!idxLiveBak[k]) idxLiveBak[k] = pack.series.filter(b => !b.live);
+    const base = idxLiveBak[k], prevM = base.length ? base[base.length - 1].m : null;
+    const bar = {
+      d: t.md, live: 1,
+      o: +(q.o > 0 ? q.o : q.price).toFixed(2),
+      h: +Math.max(q.h > 0 ? q.h : q.price, q.price).toFixed(2),
+      l: +Math.min(q.l > 0 ? q.l : q.price, q.price).toFixed(2),
+      c: +q.price.toFixed(2),
+      chg: +(+q.chg || 0).toFixed(2), pct: +(+q.pct || 0).toFixed(2),
+      m: +lw.ma20.toFixed(2), s: (prevM != null && lw.ma20 >= prevM) ? 1 : -1,
+      w: lw.label,
+    };
+    pack.series = [...base, bar];
+    idxLiveRepaint(k);
+    if (k === 'tse') tseLbl = lw.label; else otcLbl = lw.label;
+    idxLiveOn = true;
+  }
+  if (idxLiveOn && typeof chipSet === 'function') chipSet(false, 0);   // 表頭吃最後一根＝即時值
+  const lbl = otcLbl || tseLbl;                                        // 頂欄以櫃買為主（同定案邏輯）
+  const g = document.getElementById('wind-gauge');
+  if (lbl && g) { g.className = 'wind-gauge ' + windClass(lbl); g.innerHTML = `行情：${lbl} <span class="wg-live">●盤中</span>`; g.style.display = 'flex'; }
+}
+function idxLiveRestore() {
+  if (idxLiveBak && typeof CHIP !== 'undefined' && CHIP && CHIP.idx) {
+    for (const k of ['tse', 'otc']) {
+      if (idxLiveBak[k] && CHIP.idx[k]) { CHIP.idx[k].series = idxLiveBak[k]; idxLiveRepaint(k); }
+    }
+    if (typeof chipSet === 'function') chipSet(false, 0);
+  }
+  idxLiveBak = null; idxLiveOn = false;
+  loadWindGauge();   // 頂欄還原 17:00 定案章
+}
+setInterval(idxLiveTick, 60 * 1000);
+setTimeout(idxLiveTick, 2500);   // 進站首拉（等 chip 先載完）
+
 function showWindGaugeInfo() {
   if (!windGaugeData) return;
   const w = windGaugeData;
@@ -2953,7 +3032,7 @@ async function loadChipIndicators() {
     const idxCard = (key, title, pack) => !pack ? chipPh(title) :
       `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v" id="${key}C"></span></div>` +
       `<div class="cp-h2"><span id="${key}M"></span><span id="${key}D" style="text-align:right"></span></div>` +
-      chipZone(`<div>${chipIdxSvg(pack.series)}</div><div class="chip-windchip" id="${key}W"></div>`, pack.series.length) + `</div>`;
+      chipZone(`<div id="${key}Chart">${chipIdxSvg(pack.series)}</div><div class="chip-windchip" id="${key}W"></div>`, pack.series.length) + `</div>`;
     const barCard = (key, title, pack) => !pack ? chipPh(title) :
       `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v" id="cp${key}V"></span></div>` +
       `<div class="cp-h2"><span></span><span id="cp${key}D" style="text-align:right"></span></div>` +
