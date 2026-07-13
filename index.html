@@ -605,7 +605,6 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-table tbody tr td{ background:var(--bg2); }
 .iv2-table tbody tr:hover td{ background:var(--bg3); }
 .iv2-table tbody tr.sel td{ background:var(--accent-bg); }
-.iv2-table tbody tr.sel td:first-child{ box-shadow:inset 3px 0 0 var(--accent); }
 .iv2-table tbody tr.faded{ opacity:.7; }
 .iv2-code{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#fff; background:#8b5a2b; padding:3px 8px; border-radius:6px; font-weight:700; }
 @media (max-width:639px){ .iv2-code{ font-size:11px; padding:2px 6px; } }
@@ -642,7 +641,7 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-k15.no{ color:var(--red); background:rgba(255,68,68,.12); }
 .iv2-k15.na{ color:var(--text3); background:var(--bg3); }
 /* 月K欄：創新高（突破近五年高點）／—（未突破）*/
-.iv2-table td.iv2-mocell{ text-align:center; }
+.iv2-table td.iv2-mocell, .iv2-table td.iv2-rscell{ text-align:center; }
 /* 可排序表頭：⇅ 淡箭頭，作用中亮 accent＋▼/▲ */
 .iv2-table thead th.sortable{ cursor:pointer; user-select:none; }
 .iv2-table thead th.sortable .ar{ font-size:9px; opacity:.4; margin-left:1px; }
@@ -679,19 +678,22 @@ main:has(.iv2){ padding:0 !important; }
 }
 
 /* 新聞區：Web 右欄 / 手機下方 */
-.iv2-news{ flex:0 0 440px; width:440px; border-left:1px solid var(--border); background:var(--bg2); display:flex; flex-direction:column; min-height:0; }
+/* 桌機新聞抽屜（07-13 改版）：常駐右欄→滑出式；平常表格吃滿全寬，點列才滑入 */
+.iv2-news{ position:fixed; top:0; right:0; bottom:0; width:400px; max-width:92vw; border-left:1px solid var(--border); background:var(--bg2); display:flex; flex-direction:column; min-height:0; z-index:60; box-shadow:-12px 0 32px rgba(0,0,0,.28); transform:translateX(105%); transition:transform .28s cubic-bezier(.2,.8,.25,1); }
+body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 .iv2-nd-head{ padding:13px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .iv2-nd-head .t{ font-size:15px; font-weight:800; color:var(--text); }
 .iv2-nd-head .t small{ font-size:11.5px; color:var(--text2); font-weight:500; margin-left:6px; font-family:'JetBrains Mono',monospace; }
 .iv2-nd-meta{ display:flex; align-items:center; gap:10px; flex:0 0 auto; }
 .iv2-nd-time{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text2); background:var(--bg3); border-radius:7px; padding:4px 9px; font-weight:700; white-space:nowrap; }
 .iv2-nd-time:empty{ display:none; }
-.iv2-nd-x{ border:none; background:var(--bg3); color:var(--text2); width:28px; height:28px; border-radius:8px; cursor:pointer; font-size:15px; display:none; }
+.iv2-nd-x{ border:1px solid var(--border); background:var(--bg3); color:var(--text2); width:30px; height:30px; border-radius:8px; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.iv2-nd-x:hover{ background:var(--red-bg); color:var(--red); border-color:var(--red); }
 .iv2-nd-list{ flex:1; min-height:0; overflow:auto; padding:8px 0; }
 .iv2-nd-empty{ flex:1; display:flex; align-items:center; justify-content:center; color:var(--text3); font-size:13px; text-align:center; padding:20px; }
 @media (max-width:639px){
   .iv2-ws{ flex-direction:column; }
-  .iv2-news{ flex:0 0 auto; width:auto; height:0; border-left:none; border-top:1px solid var(--border); overflow:hidden; }
+  .iv2-news{ position:static; transform:none; transition:none; box-shadow:none; z-index:auto; max-width:none; flex:0 0 auto; width:auto; height:0; border-left:none; border-top:1px solid var(--border); overflow:hidden; }
   body.iv2-has-sel .iv2-news{ height:30vh; }
   .iv2-nd-x{ display:block; }
   /* 工具列壓成一排：即時偵測 + 排序同列、字縮小、不換行 */
@@ -1922,7 +1924,7 @@ function ivRow(s){
   const tagS = hasEst ? `<span class="iv2-esttag ${inc?'inc':'dec'}">${inc?'▲增':'▼縮'}</span>` : '';
   const estMain = s.estVol ? `${tag} ${ivFmtVol(s.estVol)}張` : '<span style="color:var(--text3)">—</span>';
   const estInline = s.estVol ? `<span class="iv2-est-inline">${tagS} 估${ivFmtVolM(s.estVol)}張</span>` : '';
-  return `<tr class="${lim?'limit':''} ${isFaded?'faded':''} ${s.code===ivSelCode?'sel':''}" data-code="${s.code}" onclick="openNews('${s.code}')">
+  return `<tr class="${lim?'limit':''} ${isFaded?'faded':''} ${s.code===ivSelCode?'sel':''}" data-code="${s.code}" onclick="ivRowClick('${s.code}')">
     <td class="l"><span class="iv2-code">${s.code}</span></td>
     <td class="l"><a class="iv2-nm" href="${ivTvUrl(s)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a><span class="iv2-tv">TV</span>${s.market?`<span class="iv2-mkt">${s.market}</span>`:''}</td>
     <td class="iv2-pxcell">${pxCell}</td>
@@ -1962,6 +1964,8 @@ function renderAlertsList() {
 // ── 個股新聞副卡 ───────────────────────────────
 let ivSelCode = null;
 let ivAlertIndex = {};
+// 列點擊：再點同一列＝收合抽屜；點別檔＝直接換股（愛德恩手勢）
+function ivRowClick(code){ if (ivSelCode === code) clearSel(); else openNews(code); }
 function openNews(code, keepScroll){
   const s = ivAlertIndex[code]; if (!s) return;
   ivSelCode = code;
@@ -1995,6 +1999,7 @@ function clearSel(){
   if (titleEl) titleEl.textContent = '相關新聞';
   if (timeEl)  timeEl.textContent = '';
 }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && ivSelCode) clearSel(); });
 async function fetchDockNews(code, name){
   const el = document.getElementById('iv2-nd-list'); if (!el) return;
   const keyword = String(name || code || '').trim();
