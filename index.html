@@ -571,7 +571,8 @@ main:has(.iv2){ padding:0 !important; }
 .iv2-refresh{ border:1px solid var(--accent); color:var(--accent); background:transparent; border-radius:8px; padding:6px 11px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:inherit; }
 
 .iv2-ws{ flex:1; min-height:0; display:flex; }
-.iv2-tablewrap{ flex:1; min-height:0; overflow:auto; background:var(--bg2); }
+.iv2-tablewrap{ flex:1; min-height:0; overflow:auto; background:var(--bg2); transition:margin-right .28s cubic-bezier(.2,.8,.25,1); }
+body.iv2-has-sel .iv2-tablewrap{ margin-right:400px; }   /* 抽屜開啟：表格讓位→出現橫向捲軸可滑到 RS/當日K/走勢/五日K */
 .iv2-table{ width:100%; border-collapse:collapse; table-layout:fixed; }
 .iv2-table .c-code{ width:6%; } .iv2-table .c-name{ width:14%; } .iv2-table .c-price{ width:9%; }
 .iv2-table .c-chg{ width:10%; } .iv2-table .c-vol{ width:12%; } .iv2-table .c-est{ width:12%; } .iv2-table .c-k15{ width:7%; }
@@ -582,6 +583,7 @@ main:has(.iv2){ padding:0 !important; }
   /* 手機橫向滑動（使用者授權）：原六欄用 vw 精準佔滿一個螢幕寬（15MK 右緣＝畫面右緣，同改版前），
      新欄位（月K/RS動能/當日K/走勢/近五日K）在畫面外，左右滑看。月K=64px、RS=72px，故 +360px（224+64+72） */
   .iv2-tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:none; }
+  body.iv2-has-sel .iv2-tablewrap{ margin-right:0; }   /* 手機維持底部30vh面板，不讓位 */
   .iv2-table{ min-width:calc(100vw + 360px); }
   .iv2-table .c-code{ width:13vw; } .iv2-table .c-name{ width:21vw; } .iv2-table .c-price{ width:17vw; }
   .iv2-table .c-chg{ width:14vw; } .iv2-table .c-vol{ width:23vw; } .iv2-table .c-k15{ width:12vw; }
