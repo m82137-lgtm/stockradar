@@ -456,6 +456,8 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .chip-macd{ position:relative; border-top:1px dashed var(--border); margin-top:4px; padding-top:2px; }
 .chip-macd .macd-lbl{ position:absolute; left:2px; top:4px; font-size:9px; color:var(--text3); font-weight:700; z-index:2; pointer-events:none; }
 .chip-macd .macd-val{ position:absolute; right:2px; top:4px; font-size:9.5px; font-family:'JetBrains Mono',monospace; color:var(--text2); z-index:2; pointer-events:none; }
+.chip-bcol{ position:relative; }
+.chip-bcol .chip-ghost{ position:absolute; left:20%; right:20%; top:16%; bottom:16%; border:1px dashed var(--border); border-radius:3px; opacity:.8; }
 .chip-trend{ position:relative; border-bottom:1px dashed var(--border); margin:2px 0 5px; padding:2px 0; }
 .chip-trend .trend-lbl{ position:absolute; left:2px; top:4px; font-size:9px; color:var(--text3); font-weight:700; z-index:2; pointer-events:none; }
 .chip-trend .trend-time{ position:absolute; right:2px; top:4px; font-size:9px; color:var(--text3); font-family:'JetBrains Mono',monospace; z-index:2; pointer-events:none; }
@@ -3008,10 +3010,11 @@ function chipDelta(v, unit) {
 }
 function chipZone(inner, n, line) { return `<div class="chip-zone" data-chipzone data-n="${n || 0}"${line ? ' data-line="1"' : ''}>${inner}<div class="chip-cursor"></div></div>`; }
 function chipBars2(series) {
-  const vals = series.map(p => p.v);
+  const vals = series.map(p => p.v).filter(v => v != null);
   const mx = Math.max(0, ...vals), mn = Math.min(0, ...vals);
   const rng = (mx - mn) || 1, zero = mx / rng * 100;
   const bars = series.map(p => {
+    if (p.v == null) return `<div class="chip-bcol"><div class="chip-ghost"></div></div>`;   // 未公布：虛線占位
     const h = (Math.abs(p.v) / rng * 100).toFixed(2);
     return p.v >= 0
       ? `<div class="chip-bcol"><div class="chip-bar u" style="bottom:${(100 - zero).toFixed(2)}%;height:${h}%"></div></div>`
@@ -3043,11 +3046,12 @@ function chipPh(title) {
 // 台指 VIX 折線（永豐四段定義：20 平穩界／25 警戒界／35 恐慌界／40 極度恐慌）；標籤用 HTML 定位避免拉伸變形
 function chipVixSvg(series) {
   const W = 180, H = 50;
-  const vals = series.map(p => p.v);
+  const vals = series.map(p => p.v).filter(v => v != null);
+  if (!vals.length) return '';
   const LO = Math.min(15, Math.min(...vals) - 2), HI = Math.max(42, Math.max(...vals) + 2);
   const yf = v => (1 - (v - LO) / (HI - LO));
   const y = v => yf(v) * H;
-  const pts = series.map((p, i) => `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+  const pts = series.map((p, i) => p.v == null ? null : `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).filter(Boolean).join(' ');
   const REF = [[20, 'var(--amber)', '20 平穩'], [25, '#e8743b', '25 警戒'], [35, 'var(--red)', '35 恐慌'], [40, 'var(--red)', '40 極恐']];
   let svg = `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
   for (const [v, c] of REF) svg += `<line x1="0" y1="${y(v).toFixed(1)}" x2="${W}" y2="${y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="${v === 40 ? '4 3' : '3 3'}" opacity="${v === 40 ? '.6' : '.42'}"/>`;
@@ -3096,7 +3100,15 @@ function chipSet(active, frac) {
     const k = active ? Math.round(frac * (s.length - 1)) : s.length - 1;
     return { k, p: s[k], prev: k > 0 ? s[k - 1] : null };
   };
-  const dd = o => (o && o.prev) ? o.p.v - o.prev.v : 0;
+  const dd = o => (o && o.prev && o.p && o.p.v != null && o.prev.v != null) ? o.p.v - o.prev.v : null;
+  // 非刮動時取「最後一筆已公布」值（落後指標尾端 null 時自動退到最新公布日）
+  const pickNZ = s => {
+    if (!s || !s.length) return null;
+    if (active) return pick(s);
+    let k = s.length - 1;
+    while (k > 0 && s[k].v == null) k--;
+    return { k, p: s[k], prev: k > 0 ? s[k - 1] : null };
+  };
   const cls = v => v >= 0 ? 'chip-up' : 'chip-dn';
   const stamp = o => (active && o) ? `📅${o.p.d} ` : '';
   // 指數雙卡
@@ -3125,25 +3137,43 @@ function chipSet(active, frac) {
   // 外資 / 散戶
   [['f', D.foreign], ['r', D.retail]].forEach(([key, pack]) => {
     if (!pack || !el('cp' + key + 'V')) return;
-    const o = pick(pack.series);
-    el('cp' + key + 'V').textContent = (o.p.v >= 0 ? '+' : '') + chipFmt(o.p.v, '口');
-    el('cp' + key + 'V').className = 'cp-v ' + cls(o.p.v);
-    el('cp' + key + 'D').innerHTML = stamp(o) + `變動 ${chipDelta(dd(o), '口')}`;
+    const o = pickNZ(pack.series);
+    if (!o) return;
+    if (o.p.v == null) {   // 刮到未公布日
+      el('cp' + key + 'V').textContent = '未公布';
+      el('cp' + key + 'V').className = 'cp-v';
+      el('cp' + key + 'D').innerHTML = stamp(o) + `<span style="color:var(--text3)">尚未公布</span>`;
+    } else {
+      el('cp' + key + 'V').textContent = (o.p.v >= 0 ? '+' : '') + chipFmt(o.p.v, '口');
+      el('cp' + key + 'V').className = 'cp-v ' + cls(o.p.v);
+      const dv = dd(o);
+      el('cp' + key + 'D').innerHTML = stamp(o) + `變動 ${dv == null ? '<span style="color:var(--text3)">—</span>' : chipDelta(dv, '口')}`;
+    }
   });
   // 融資餘額
   if (D.margin && el('cpmV')) {
-    const ob = pick(D.margin.balSeries || null), oc = pick(D.margin.series);
-    el('cpmV').textContent = chipFmt(ob ? ob.p.v : D.margin.bal, '億');
-    el('cpmD').innerHTML = stamp(oc) + `變動 ${chipDelta(oc ? oc.p.v : D.margin.chg, '億')}`;
+    const ob = pickNZ(D.margin.balSeries || null), oc = pickNZ(D.margin.series);
+    const bv = ob ? ob.p.v : (D.margin.bal != null ? D.margin.bal : null);
+    el('cpmV').textContent = bv == null ? '未公布' : chipFmt(bv, '億');
+    const cv = oc ? oc.p.v : null;
+    el('cpmD').innerHTML = stamp(oc || ob) + (cv == null ? `<span style="color:var(--text3)">尚未公布（約 21:30 後）</span>` : `變動 ${chipDelta(cv, '億')}`);
   }
   // 台指 VIX（大字現值＋水位標籤＋升紅降綠變動）
   if (D.vix && D.vix.series && el('cpvixV')) {
-    const ov = pick(D.vix.series), v = ov.p.v;
-    el('cpvixV').textContent = v.toFixed(2);
-    const t = el('cpvixT');
-    if (t) { const z = vixZone(v); t.textContent = z[0]; t.style.background = z[1]; t.style.color = z[2]; }
-    const vc = ov.prev ? (v - ov.prev.v) : (D.vix.chg || 0);
-    el('cpvixD').innerHTML = stamp(ov) + `變動 <span class="${cls(vc)}">${(vc >= 0 ? '+' : '') + vc.toFixed(2)}</span>`;
+    const ov = pickNZ(D.vix.series), v = ov ? ov.p.v : null;
+    if (v == null) {   // 刮到未公布日
+      el('cpvixV').textContent = '未公布';
+      const t = el('cpvixT');
+      if (t) { t.textContent = '—'; t.style.background = 'var(--bg3)'; t.style.color = 'var(--text3)'; }
+      el('cpvixD').innerHTML = stamp(ov) + `<span style="color:var(--text3)">尚未公布</span>`;
+    } else {
+      el('cpvixV').textContent = v.toFixed(2);
+      const t = el('cpvixT');
+      if (t) { const z = vixZone(v); t.textContent = z[0]; t.style.background = z[1]; t.style.color = z[2]; }
+      const pv = (ov.prev && ov.prev.v != null) ? ov.prev.v : null;
+      const vc = pv != null ? (v - pv) : (D.vix.chg || 0);
+      el('cpvixD').innerHTML = stamp(ov) + `變動 <span class="${cls(vc)}">${(vc >= 0 ? '+' : '') + vc.toFixed(2)}</span>`;
+    }
   }
   document.querySelectorAll('.chip-cursor').forEach(c => {
     c.style.opacity = active ? 1 : 0;
@@ -3185,9 +3215,17 @@ async function loadChipIndicators() {
     const CHIP_N = window.matchMedia('(max-width: 639px)').matches ? 30 : 60;
     const cut = a => Array.isArray(a) ? a.slice(-CHIP_N) : a;
     if (d.idx) { for (const k of ['tse', 'otc']) if (d.idx[k] && d.idx[k].series) d.idx[k].series = cut(d.idx[k].series); }
-    for (const k of ['foreign', 'retail']) if (d[k] && d[k].series) d[k].series = cut(d[k].series);
-    if (d.margin) { d.margin.series = cut(d.margin.series); if (d.margin.balSeries) d.margin.balSeries = cut(d.margin.balSeries); }
-    if (d.vix && d.vix.series) d.vix.series = cut(d.vix.series);
+    // ══ 六卡日期軸對齊（07-15）：主軸=加權（缺則櫃買）已切片日期序列；落後指標按日期入座、未公布=null（渲染成虛線空格、游標顯示未公布）══
+    const mastSer = d.idx && ((d.idx.tse && d.idx.tse.series) || (d.idx.otc && d.idx.otc.series));
+    const axis = Array.isArray(mastSer) ? mastSer.map(b => b.d) : null;
+    const alignByDate = ser => {
+      if (!axis || !Array.isArray(ser)) return cut(ser);
+      const mp = new Map(ser.map(pt => [pt.d, pt]));
+      return axis.map(dd2 => mp.get(dd2) || { d: dd2, v: null });
+    };
+    for (const k of ['foreign', 'retail']) if (d[k] && d[k].series) d[k].series = alignByDate(d[k].series);
+    if (d.margin) { d.margin.series = alignByDate(d.margin.series); if (d.margin.balSeries) d.margin.balSeries = alignByDate(d.margin.balSeries); }
+    if (d.vix && d.vix.series) d.vix.series = alignByDate(d.vix.series);
     const idxCard = (key, title, pack) => !pack ? chipPh(title) :
       `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v cp-vbig" id="${key}C"></span></div>` +
       `<div class="cp-h2"><span id="${key}M"></span><span id="${key}D" style="text-align:right"></span></div>` +
