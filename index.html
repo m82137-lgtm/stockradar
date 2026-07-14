@@ -326,6 +326,11 @@ body {
 .wind-gauge.redsoft   { color:var(--red-soft); }
 .wind-gauge.greensoft { color:var(--green-soft); }
 .wind-gauge .wg-live{ font-size:10px; font-weight:700; margin-left:5px; animation:wgpulse 1.4s infinite; }
+.wind-gauge .wg-hold{ font-size:10px; font-weight:700; margin-left:5px; opacity:.7; }
+.wind-gauge-side{ margin:10px 12px 0; justify-content:center; font-size:12.5px; }
+.chip-windchip .wg-hold{ font-size:8.5px; font-weight:700; margin-left:4px; opacity:.7; }
+.chip-live-ts{ font-size:10px; color:var(--accent); font-family:'JetBrains Mono',monospace; font-weight:600; }
+.chip-windchip .wg-live{ font-size:8.5px; font-weight:700; margin-left:4px; animation:wgpulse 1.4s infinite; }
 @keyframes wgpulse{ 0%,100%{opacity:.9} 50%{opacity:.25} }
 
 .nav-logo::before {
@@ -443,6 +448,18 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .cp-h2 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; font-size:11px; color:var(--text3); margin:2px 0 5px; min-height:16px; font-variant-numeric:tabular-nums; }
 .cp-vixtag { font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:4px; letter-spacing:.5px; }
 .chip-windchip { position:absolute; top:3px; left:5px; font-size:11.5px; font-weight:800; padding:1px 8px; border-radius:6px; background:var(--bg2); border:1.5px solid currentColor; z-index:6; pointer-events:none; opacity:0; }
+/* 合體卡（07-14 補齊核可示意）：章移進報價列、加大點數字、今日標籤與開高低卡底 */
+.cp-vbig{ font-size:21px; }
+.cp-h3{ display:flex; justify-content:space-between; align-items:center; margin:6px 0 8px; min-height:22px; }
+.chip-windchip.inrow{ position:static; pointer-events:auto; }
+.chip-today-lbl{ position:absolute; right:6px; top:2px; font-size:9.5px; color:var(--accent); font-weight:700; z-index:6; pointer-events:none; }
+.chip-macd{ position:relative; border-top:1px dashed var(--border); margin-top:4px; padding-top:2px; }
+.chip-macd .macd-lbl{ position:absolute; left:2px; top:4px; font-size:9px; color:var(--text3); font-weight:700; z-index:2; pointer-events:none; }
+.chip-macd .macd-val{ position:absolute; right:2px; top:4px; font-size:9.5px; font-family:'JetBrains Mono',monospace; color:var(--text2); z-index:2; pointer-events:none; }
+.chip-trend{ position:relative; border-bottom:1px dashed var(--border); margin:2px 0 5px; padding:2px 0; }
+.chip-trend .trend-lbl{ position:absolute; left:2px; top:4px; font-size:9px; color:var(--text3); font-weight:700; z-index:2; pointer-events:none; }
+.chip-trend .trend-time{ position:absolute; right:2px; top:4px; font-size:9px; color:var(--text3); font-family:'JetBrains Mono',monospace; z-index:2; pointer-events:none; }
+.cp-ohlc{ margin-top:5px; font-size:10.5px; color:var(--text3); font-family:'JetBrains Mono',monospace; min-height:13px; font-variant-numeric:tabular-nums; }
 .chip-ksvg2 { width:100%; height:116px; display:block; }
 .chip-chart2 { position:relative; height:88px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 22px; }
 .chip-mmsvg2 { width:100%; height:88px; display:block; }
@@ -1225,6 +1242,7 @@ a.us-td-name:hover{ color:var(--accent) !important; border-bottom-color:var(--ac
       <span id="theme-icon">☀️</span>
       <span id="theme-label">切換亮色</span>
     </button>
+    <div class="wind-gauge wind-gauge-side" id="wind-gauge-d" onclick="showWindGaugeInfo()" style="display:none;"></div>
   </div>
 
   <div class="sidebar-section-label">台灣市場</div>
@@ -1459,16 +1477,19 @@ function windClass(label) {
   return '';
 }
 async function loadWindGauge() {
+  if (typeof idxLiveOn !== 'undefined' && idxLiveOn) return;   // 盤中即時模式：頂欄由 idxLiveTick 主導，定案更新器讓位（13:31 還原時 idxLiveOn 已先歸 false）
   try {
     const res = await fetch(`${WORKER}/api/wind-gauge`);
     const wg  = await res.json();
-    const el  = document.getElementById('wind-gauge');
-    if (!el) return;
-    if (!wg || !wg.label) { el.style.display = 'none'; return; }
+    const els = [document.getElementById('wind-gauge'), document.getElementById('wind-gauge-d')].filter(Boolean);
+    if (!els.length) return;
+    if (!wg || !wg.label) { els.forEach(el => el.style.display = 'none'); return; }
     windGaugeData = wg;
-    el.className = `wind-gauge ${windClass(wg.label)}`;
-    el.textContent = `行情：${wg.label}`;
-    el.style.display = 'flex';
+    for (const el of els) {
+      el.className = `wind-gauge ${windClass(wg.label)}` + (el.id === 'wind-gauge-d' ? ' wind-gauge-side' : '');
+      el.textContent = `行情：${wg.label}`;
+      el.style.display = 'flex';
+    }
   } catch (e) {
     console.log('loadWindGauge fail:', e.message);
   }
@@ -1483,7 +1504,64 @@ function twNowParts() {
   const g = t => (p.find(x => x.type === t) || {}).value || '';
   return { date: `${g('year')}-${g('month')}-${g('day')}`, md: `${g('month')}/${g('day')}`, mins: (+g('hour')) * 60 + (+g('minute')), wd: g('weekday') };
 }
-function idxLiveInWindow() { const t = twNowParts(); return !['Sat', 'Sun'].includes(t.wd) && t.mins >= 540 && t.mins <= 811; }  // 台北 9:00–13:31
+function idxLivePhase() {
+  const t = twNowParts();
+  if (['Sat', 'Sun'].includes(t.wd)) return 'off';
+  if (t.mins >= 540 && t.mins <= 811) return 'live';     // 台北 9:00–13:31 盤中即時
+  if (t.mins > 811 && t.mins < 1065) return 'frozen';    // 13:31–17:45 收盤暫定（定格顯示，等定案接手）
+  return 'off';
+}
+// ═══ 指數當日走勢（第五層）：巡邏兵5分鐘骨架＋前端盤中每分鐘細點；資料自毀於次交易日8:30（有料就畫、沒料整層隱形）═══
+let IDXTREND = null;
+let idxTrendFine = { tse: [], otc: [] };
+let idxTrendFineDate = null;
+function idxTrendSvg(k) {
+  const rec = IDXTREND;
+  const pack = (typeof CHIP !== 'undefined' && CHIP && CHIP.idx) ? CHIP.idx[k] : null;
+  if (!rec || !rec.date || !pack || !pack.series) return null;
+  const realBars = pack.series.filter(b => !b.live);
+  if (!realBars.length) return null;
+  const md = rec.date.slice(5).replace('-', '/');
+  const lastBar = realBars[realBars.length - 1];
+  const base = (lastBar.d === md && realBars.length > 1) ? realBars[realBars.length - 2].c : lastBar.c;  // 定案K已含當日→基準取前一根
+  const merged = new Map();
+  (rec[k] || []).forEach(pt => merged.set(pt[0], pt[1]));
+  if (idxTrendFineDate === rec.date) (idxTrendFine[k] || []).forEach(pt => merged.set(pt[0], pt[1]));
+  const pts = [...merged.entries()].sort((a, b) => a[0] - b[0]);
+  if (!pts.length) return null;
+  const W = 480, H = 70, pT = 8, pB = 6;
+  const vals = pts.map(p => p[1]);
+  const lo = Math.min(...vals, base), hi = Math.max(...vals, base);
+  const pad = (hi - lo) * 0.1 || base * 0.001;
+  const y = v => pT + ((hi + pad) - v) / (((hi + pad) - (lo - pad)) || 1) * (H - pT - pB);
+  const x = m => Math.min(270, Math.max(0, m)) / 270 * W;
+  let sv = `<line x1="0" y1="${y(base).toFixed(1)}" x2="${W}" y2="${y(base).toFixed(1)}" stroke="var(--text3)" stroke-width="1" stroke-dasharray="4 4" opacity=".55"/>`;
+  for (let i = 1; i < pts.length; i++) {
+    const m0 = pts[i - 1][0], v0 = pts[i - 1][1], m1 = pts[i][0], v1 = pts[i][1];
+    sv += `<line x1="${x(m0).toFixed(1)}" y1="${y(v0).toFixed(1)}" x2="${x(m1).toFixed(1)}" y2="${y(v1).toFixed(1)}" stroke="${(v0 + v1) / 2 >= base ? 'var(--red)' : 'var(--green)'}" stroke-width="1.5"/>`;
+  }
+  const lm = pts[pts.length - 1][0], lv = pts[pts.length - 1][1];
+  sv += `<circle cx="${x(lm).toFixed(1)}" cy="${y(lv).toFixed(1)}" r="2.6" fill="var(--accent)"/>`;
+  return { svg: `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="display:block;width:100%;height:70px;">${sv}</svg>`, lastM: lm, base, md };
+}
+function renderIdxTrend(k) {
+  const wrap = document.getElementById(IDXLIVE_KEYS[k] + 'Trend');
+  if (!wrap) return;
+  const r = idxTrendSvg(k);
+  if (!r) { wrap.style.display = 'none'; return; }
+  const hh = String(9 + Math.floor(r.lastM / 60)).padStart(2, '0'), mm = String(r.lastM % 60).padStart(2, '0');
+  document.getElementById(IDXLIVE_KEYS[k] + 'TrL').textContent = `今日走勢 ${r.md}`;
+  document.getElementById(IDXLIVE_KEYS[k] + 'TrT').textContent = `最新 ${hh}:${mm}・昨收 ${chipNum2(r.base)}`;
+  document.getElementById(IDXLIVE_KEYS[k] + 'TrSvg').innerHTML = r.svg;
+  wrap.style.display = 'block';
+}
+async function loadIdxTrend() {
+  try {
+    const r = await fetch(`${WORKER}/api/idx-intraday`);
+    IDXTREND = await r.json();
+  } catch { return; }
+  renderIdxTrend('tse'); renderIdxTrend('otc');
+}
 function liveWindCalc(pack, live) {
   if (!pack || pack.ema12 == null || pack.ema26 == null || pack.sig9 == null) return null;   // chip 舊版無存檔點 → 不啟用
   const closes = (pack.series || []).filter(b => !b.live).map(b => +b.c).filter(v => isFinite(v) && v > 0);
@@ -1494,20 +1572,31 @@ function liveWindCalc(pack, live) {
   const e26 = live * 2 / 27 + pack.ema26 * 25 / 27;
   const difT = e12 - e26, sigT = pack.sig9 + (difT - pack.sig9) * 2 / 10, histT = difT - sigT;
   const above = live >= ma20, up = histT > histY;
-  return { label: above ? (up ? '強風' : '亂流') : (up ? '陣風' : '無風'), ma20 };
+  return { label: above ? (up ? '強風' : '亂流') : (up ? '陣風' : '無風'), ma20, dif: difT, hist: histT };
 }
 function idxLiveRepaint(k) {
   const chart = document.getElementById(IDXLIVE_KEYS[k] + 'Chart');
   if (!chart || !CHIP || !CHIP.idx || !CHIP.idx[k]) return;
   chart.innerHTML = chipIdxSvg(CHIP.idx[k].series);
+  const mc = document.getElementById(IDXLIVE_KEYS[k] + 'Macd');
+  if (mc) mc.innerHTML = chipMacdSvg(CHIP.idx[k].series);
   const zone = chart.closest('[data-chipzone]');
   if (zone) zone.dataset.n = CHIP.idx[k].series.length;   // 游標吸附涵蓋今日根
 }
 async function idxLiveTick() {
-  if (!idxLiveInWindow()) { if (idxLiveOn) idxLiveRestore(); return; }
+  const phase = idxLivePhase();
+  if (phase === 'off') {
+    if (idxLiveOn) { idxLiveRestore(); if (typeof loadChipIndicators === 'function') loadChipIndicators(); }  // 17:45 出場：還原並抓新包裹（定案K接手）
+    loadIdxTrend();   // 走勢照掛（KV 到次交易日 8:30 自毀，有料就畫）
+    return;
+  }
   if (typeof CHIP === 'undefined' || !CHIP || !CHIP.idx) return;
-  let d; try { d = await (await fetch(`${WORKER}/api/idx-live`)).json(); } catch { return; }
   const t = twNowParts();
+  // 定案接手偵測：chip 尾根（非live）日期＝今天 → 17:45 新包裹已到，暫定退場
+  const tseSer = CHIP.idx.tse && CHIP.idx.tse.series;
+  const lastReal = tseSer && tseSer.length ? tseSer.filter(b => !b.live).slice(-1)[0] : null;
+  if (lastReal && lastReal.d === t.md) { if (idxLiveOn) idxLiveRestore(); return; }
+  let d; try { d = await (await fetch(`${WORKER}/api/idx-live`)).json(); } catch { return; }
   let tseLbl = null, otcLbl = null;
   for (const k of ['tse', 'otc']) {
     const pack = CHIP.idx[k], q = d && d[k];
@@ -1526,16 +1615,46 @@ async function idxLiveTick() {
       chg: +(+q.chg || 0).toFixed(2), pct: +(+q.pct || 0).toFixed(2),
       m: +lw.ma20.toFixed(2), s: (prevM != null && lw.ma20 >= prevM) ? 1 : -1,
       w: lw.label,
+      dif: +lw.dif.toFixed(2), hist: +lw.hist.toFixed(2),
     };
     pack.series = [...base, bar];
     idxLiveRepaint(k);
     if (k === 'tse') tseLbl = lw.label; else otcLbl = lw.label;
     idxLiveOn = true;
+    const tlEl = document.getElementById(IDXLIVE_KEYS[k] + 'Tl');
+    if (tlEl) tlEl.textContent = '← 今日即時';
+    const ohEl = document.getElementById(IDXLIVE_KEYS[k] + 'Ohlc');
+    if (ohEl) ohEl.textContent = `今日　開 ${chipNum2(bar.o)}　高 ${chipNum2(bar.h)}　低 ${chipNum2(bar.l)}`;
+    if (phase === 'live') {   // 細點只在盤中累積（frozen 期骨架已定格）
+      if (idxTrendFineDate !== t.date) { idxTrendFine = { tse: [], otc: [] }; idxTrendFineDate = t.date; }
+      const fm = t.mins - 540, fa = idxTrendFine[k];
+      if (fa.length && fa[fa.length - 1][0] === fm) fa[fa.length - 1][1] = q.price; else fa.push([fm, q.price]);
+    }
+    renderIdxTrend(k);
   }
   if (idxLiveOn && typeof chipSet === 'function') chipSet(false, 0);   // 表頭吃最後一根＝即時值
+  // 即時視覺標記：章上●盤中呼吸燈＋卡上「↻已更新」心跳（合體卡示意的兩個元素）
+  for (const k of ['tse', 'otc']) {
+    if (!idxLiveBak || !idxLiveBak[k]) continue;
+    const wEl = document.getElementById(IDXLIVE_KEYS[k] + 'W');
+    if (wEl && wEl.textContent && !wEl.querySelector('.wg-live') && !wEl.querySelector('.wg-hold')) {
+      wEl.insertAdjacentHTML('beforeend', phase === 'live' ? '<span class="wg-live">●盤中</span>' : '<span class="wg-hold">暫定</span>');
+    }
+    const tsEl = document.getElementById(IDXLIVE_KEYS[k] + 'Ts');
+    if (tsEl) { const n = twNowParts(); tsEl.textContent = phase === 'live' ? `↻ ${String(Math.floor(n.mins / 60)).padStart(2, '0')}:${String(n.mins % 60).padStart(2, '0')} 已更新` : '收盤暫定・17:45 定案接手'; }
+  }
   const lbl = otcLbl || tseLbl;                                        // 頂欄以櫃買為主（同定案邏輯）
   const g = document.getElementById('wind-gauge');
-  if (lbl && g) { g.className = 'wind-gauge ' + windClass(lbl); g.innerHTML = `行情：${lbl} <span class="wg-live">●盤中</span>`; g.style.display = 'flex'; }
+  const tag = phase === 'live' ? '<span class="wg-live">●盤中</span>' : '<span class="wg-hold">收盤暫定</span>';
+  if (lbl) {
+    for (const ge of [g, document.getElementById('wind-gauge-d')]) {
+      if (!ge) continue;
+      ge.className = 'wind-gauge ' + windClass(lbl) + (ge.id === 'wind-gauge-d' ? ' wind-gauge-side' : '');
+      ge.innerHTML = `行情：${lbl} ${tag}`;
+      ge.style.display = 'flex';
+    }
+  }
+  loadIdxTrend();   // 骨架每輪同步（非阻塞；live 60秒／frozen 5分鐘一次）
 }
 function idxLiveRestore() {
   if (idxLiveBak && typeof CHIP !== 'undefined' && CHIP && CHIP.idx) {
@@ -1544,11 +1663,17 @@ function idxLiveRestore() {
     }
     if (typeof chipSet === 'function') chipSet(false, 0);
   }
+  for (const k of ['tse', 'otc']) { for (const suf of ['Ts', 'Tl', 'Ohlc']) { const e = document.getElementById(IDXLIVE_KEYS[k] + suf); if (e) e.textContent = ''; } }
   idxLiveBak = null; idxLiveOn = false;
   loadWindGauge();   // 頂欄還原 17:00 定案章
 }
-setInterval(idxLiveTick, 60 * 1000);
-setTimeout(idxLiveTick, 2500);   // 進站首拉（等 chip 先載完）
+function idxLiveLoop() {
+  Promise.resolve(idxLiveTick()).finally(() => {
+    const p = idxLivePhase();
+    setTimeout(idxLiveLoop, p === 'frozen' ? 5 * 60 * 1000 : 60 * 1000);   // 暫定期降頻保活
+  });
+}
+setTimeout(idxLiveLoop, 2500);   // 進站首拉（等 chip 先載完）
 
 function showWindGaugeInfo() {
   if (!windGaugeData) return;
@@ -2938,6 +3063,31 @@ function vixZone(v) {
   if (v < 40) return ['恐慌', 'rgba(232,116,59,.2)', '#e8743b'];
   return ['極度恐慌', 'rgba(255,91,91,.2)', 'var(--red)'];
 }
+// MACD 副圖（12,26,9）：柱=hist 紅正綠負、DIF=accent 藍線、訊號線=dif−hist（amber）、灰零軸；live 根帶藍點
+function chipMacdSvg(series) {
+  if (!Array.isArray(series) || !series.length) return '';
+  const W = 480, H = 64, pT = 9, pB = 5;
+  const n = series.length, step = W / n, bw = Math.max(2.5, step * 0.5);
+  const vals = [];
+  series.forEach(b => { if (b.dif != null && b.hist != null) vals.push(b.dif, b.hist, b.dif - b.hist); });
+  if (!vals.length) return '';
+  const lo = Math.min(...vals, 0), hi = Math.max(...vals, 0);
+  const y = v => pT + (hi - v) / ((hi - lo) || 1) * (H - pT - pB);
+  let sv = `<line x1="0" y1="${y(0).toFixed(1)}" x2="${W}" y2="${y(0).toFixed(1)}" stroke="var(--border)" stroke-width="1"/>`;
+  let dl = '', sl = '';
+  series.forEach((b, i) => {
+    if (b.dif == null || b.hist == null) return;
+    const x = i * step + step / 2, h0 = y(0), h1 = y(b.hist);
+    sv += `<rect x="${(x - bw / 2).toFixed(1)}" y="${Math.min(h0, h1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, Math.abs(h1 - h0)).toFixed(1)}" fill="${b.hist >= 0 ? 'var(--red)' : 'var(--green)'}" opacity=".78" rx="0.8"/>`;
+    dl += (dl ? 'L' : 'M') + x.toFixed(1) + ' ' + y(b.dif).toFixed(1) + ' ';
+    sl += (sl ? 'L' : 'M') + x.toFixed(1) + ' ' + y(b.dif - b.hist).toFixed(1) + ' ';
+  });
+  sv += `<path d="${sl}" fill="none" stroke="var(--amber)" stroke-width="1.3" opacity=".9"/>`;
+  sv += `<path d="${dl}" fill="none" stroke="var(--accent)" stroke-width="1.3"/>`;
+  const last = series[n - 1];
+  if (last && last.live && last.hist != null) sv += `<circle cx="${((n - 1) * step + step / 2).toFixed(1)}" cy="${y(last.hist).toFixed(1)}" r="2.6" fill="var(--accent)"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="display:block;width:100%;height:64px;">${sv}</svg>`;
+}
 function chipSet(active, frac) {
   const D = CHIP; if (!D) return;
   const el = id => document.getElementById(id);
@@ -2961,6 +3111,15 @@ function chipSet(active, frac) {
     if (w) {
       if (p.w) { w.textContent = p.w; w.style.color = CHIP_WCOL[p.w]; w.style.opacity = 1; }
       else w.style.opacity = 0;
+    }
+    const mv = el(key + 'Mv');
+    if (mv) {
+      if (p.dif == null || p.hist == null) mv.textContent = '';
+      else {
+        const fM = v => (v >= 0 ? '+' : '') + (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(2));
+        const up = (o.prev && o.prev.hist != null) ? (p.hist > o.prev.hist) : null;
+        mv.innerHTML = `${stamp(o)}DIF <b style="color:var(--accent)">${fM(p.dif)}</b>　柱 <b style="color:${p.hist >= 0 ? 'var(--red)' : 'var(--green)'}">${fM(p.hist)}</b>${up == null ? '' : (up ? ' ↑' : ' ↓')}`;
+      }
     }
   });
   // 外資 / 散戶
@@ -3030,9 +3189,14 @@ async function loadChipIndicators() {
     if (d.margin) { d.margin.series = cut(d.margin.series); if (d.margin.balSeries) d.margin.balSeries = cut(d.margin.balSeries); }
     if (d.vix && d.vix.series) d.vix.series = cut(d.vix.series);
     const idxCard = (key, title, pack) => !pack ? chipPh(title) :
-      `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v" id="${key}C"></span></div>` +
+      `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v cp-vbig" id="${key}C"></span></div>` +
       `<div class="cp-h2"><span id="${key}M"></span><span id="${key}D" style="text-align:right"></span></div>` +
-      chipZone(`<div id="${key}Chart">${chipIdxSvg(pack.series)}</div><div class="chip-windchip" id="${key}W"></div>`, pack.series.length) + `</div>`;
+      `<div class="cp-h3"><span class="chip-windchip inrow" id="${key}W"></span><span class="chip-live-ts" id="${key}Ts"></span></div>` +
+      `<div class="chip-trend" id="${key}Trend" style="display:none;"><span class="trend-lbl" id="${key}TrL"></span><span class="trend-time" id="${key}TrT"></span><div id="${key}TrSvg"></div></div>` +
+      chipZone(`<div id="${key}Chart">${chipIdxSvg(pack.series)}</div><span class="chip-today-lbl" id="${key}Tl"></span>` +
+        ((pack.series[pack.series.length - 1] || {}).dif != null ? `<div class="chip-macd"><span class="macd-lbl">MACD (12,26,9)</span><span class="macd-val" id="${key}Mv"></span><div id="${key}Macd">${chipMacdSvg(pack.series)}</div></div>` : ''),
+        pack.series.length) +
+      `<div class="cp-ohlc" id="${key}Ohlc"></div></div>`;
     const barCard = (key, title, pack) => !pack ? chipPh(title) :
       `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v" id="cp${key}V"></span></div>` +
       `<div class="cp-h2"><span></span><span id="cp${key}D" style="text-align:right"></span></div>` +
@@ -3067,6 +3231,7 @@ const pages = {
   wind() {
     setTimeout(loadWindPage, 0);
     setTimeout(loadChipIndicators, 0);
+    setTimeout(loadIdxTrend, 60);
     return `<div class="wind-page">
   <div class="wind-head">
     <span class="wind-h1">風度</span>
@@ -3869,6 +4034,7 @@ function switchStrategy(s) {
 
 startClock();
 loadWindGauge();                          // 頁面一載入就顯示風度圖
+loadChipIndicators();                     // 開站即載 chip → 任何頁籤停留，頂欄 60 秒內都有「●盤中」即時風度（非風度頁只載資料不畫圖）
 setInterval(loadWindGauge, 5 * 60 * 1000); // 每5分鐘刷新顯示(Worker 端30分算一次)
 // ── ?search=股號：TG 推播連結跳轉（點了直接到盤中警示並選中該檔）──
 const _searchCode = (() => {
