@@ -440,9 +440,13 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .chip-klegend b { font-variant-numeric:tabular-nums; font-weight:700; }
 .chip-kohlc { display:flex; gap:10px; font-size:10px; color:var(--text2); margin-top:3px; font-variant-numeric:tabular-nums; flex-wrap:wrap; }
 /* ── 風度頁 v3：六卡並排一屏版 ── */
+/* ⚠️ min-width:0 是必要的：grid 項目預設 min-width:auto，內容塞不下時格子會自己撐大，
+   整個 grid 就比螢幕寬 → 第二欄（櫃買）被擠出畫面。07-16 把風度章塞進 cp-h1 後中招過。 */
 .chip-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+.chip-grid2 > * { min-width:0; }
 .cp-card { background:var(--bg2); border:1px solid var(--border); border-radius:13px; padding:11px 13px 9px; position:relative; }
-.cp-h1 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; }
+.cp-h1 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; min-width:0; }
+.cp-h1 .cp-v { min-width:0; overflow:hidden; text-overflow:clip; }
 .cp-t { font-size:13.5px; font-weight:700; white-space:nowrap; color:var(--text); }
 .cp-v { font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); }
 .cp-h2 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; font-size:11px; color:var(--text3); margin:2px 0 5px; min-height:16px; font-variant-numeric:tabular-nums; }
@@ -714,6 +718,10 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:400px; }   /* 抽屜開啟：表�
   .iv2-est-col{ display:none; }
   .iv2-est-inline{ display:block; font-size:10.5px; color:var(--text3); margin-top:2px; }
   .iv2-est-inline .iv2-esttag{ font-size:10px; }
+  /* ↓ 風度六卡：手機卡片內寬只有 ~155px，cp-h1 要塞「標題＋風度章＋大字」三樣。
+     風度章縮小 13px、大字 21→19px，才擠得下（桌機夠寬、維持原樣）。 */
+  .chip-windchip.inrow{ font-size:9.5px; padding:1px 4px; border-width:1px; }
+  .cp-vbig{ font-size:19px; }
 }
 
 /* 新聞區：Web 右欄 / 手機下方 */
