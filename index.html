@@ -453,7 +453,10 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .chip-windchip { position:absolute; top:3px; left:5px; font-size:11.5px; font-weight:800; padding:1px 8px; border-radius:6px; background:var(--bg2); border:1.5px solid currentColor; z-index:6; pointer-events:none; opacity:0; }
 /* 合體卡（07-14 補齊核可示意）：章移進報價列、加大點數字、今日標籤與開高低卡底 */
 .cp-vbig{ font-size:21px; }
-.cp-h3{ display:flex; justify-content:space-between; align-items:center; margin:6px 0 8px; min-height:22px; }
+/* 2026-07-16：風度章移進 cp-h1（標題旁）→ cp-h3 只剩 ↻心跳。
+   min-height 22→0：off 相位沒心跳時整列高度自然塌成 0（裡面的 span 空著沒內容＝零高，
+   所以不能用 :empty，它要求無子節點）。有心跳時撐回 ~13px。 */
+.cp-h3{ display:flex; justify-content:flex-end; align-items:center; margin:0 0 3px; min-height:0; }
 .chip-windchip.inrow{ position:static; pointer-events:auto; }
 .chip-today-lbl{ position:absolute; right:6px; top:2px; font-size:9.5px; color:var(--accent); font-weight:700; z-index:6; pointer-events:none; }
 .chip-macd{ position:relative; border-top:1px dashed var(--border); margin-top:4px; padding-top:2px; }
@@ -462,14 +465,22 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .chip-bcol{ position:relative; }
 .chip-bcol .chip-ghost{ position:absolute; left:20%; right:20%; top:16%; bottom:16%; border:1px dashed var(--border); border-radius:3px; opacity:.8; }
 .chip-trend{ position:relative; border-bottom:1px dashed var(--border); margin:2px 0 5px; padding:2px 0; }
-.chip-trend .trend-lbl{ position:absolute; left:2px; top:4px; font-size:9px; color:var(--text3); font-weight:700; z-index:2; pointer-events:none; }
-.chip-trend .trend-time{ position:absolute; right:2px; top:4px; font-size:9px; color:var(--text3); font-family:'JetBrains Mono',monospace; z-index:2; pointer-events:none; }
+/* 2026-07-16：原本兩個標籤各自 absolute 靠左/靠右，手機窄了會互壓（「今日走勢 0最新15」）→ 改 flex 一列排 */
+.chip-trend .trend-row{ display:flex; justify-content:space-between; align-items:baseline; gap:6px; padding:0 2px 1px; }
+.chip-trend .trend-lbl{ font-size:9px; color:var(--text3); font-weight:700; white-space:nowrap; flex-shrink:0; }
+.chip-trend .trend-time{ font-size:9px; color:var(--text3); font-family:'JetBrains Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .cp-ohlc{ margin-top:5px; font-size:10.5px; color:var(--text3); font-family:'JetBrains Mono',monospace; min-height:13px; font-variant-numeric:tabular-nums; }
 .chip-ksvg2 { width:100%; height:116px; display:block; }
-.chip-chart2 { position:relative; height:88px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 22px; }
-.chip-mmsvg2 { width:100%; height:88px; display:block; }
+/* 2026-07-16：88→70 與 .chip-mmsvg2 對齊（六卡每張圖矮 18px）；背景格線 22→18 同比縮 */
+.chip-chart2 { position:relative; height:70px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 18px; }
+/* 2026-07-16：88→70（外資OI/VIX）。融資熱度另開 78px：它有三條參考線（1.80/1.67/1.40），
+   70px 塞不下——1.40 會被切底、1.80↔1.67 只差 11.5px。其餘卡片矮 18px 已補回這 8px。 */
+.chip-mmsvg2 { width:100%; height:70px; display:block; }
+.chip-mmsvg2.ratio { height:78px; }
 /* VIX 參考線標籤：HTML 定位（不隨 SVG preserveAspectRatio=none 橫向拉伸變形）*/
-.chip-refl { position:absolute; left:3px; transform:translateY(-50%); font-size:10.5px; color:var(--text3); background:var(--bg2); padding:0 3px; border-radius:2px; pointer-events:none; z-index:4; white-space:nowrap; }
+/* line-height:1 是關鍵：不設的話 9px 字的行高會撐到 ~12px，
+   而融資熱度的 1.80↔1.67 在 70px 高的圖上只差 11.5px → 標籤還是會擦到。 */
+.chip-refl { position:absolute; left:3px; transform:translateY(-50%); font-size:9px; line-height:1; color:var(--text3); background:var(--bg2); padding:1px 3px; border-radius:2px; pointer-events:none; z-index:4; white-space:nowrap; }
 .chip-refl.red { color:var(--red); }
 .wind-gauge-labels { display:flex; justify-content:space-between; font-size:11px; margin-top:-2px; }
 .wind-gauge-labels .l { color:var(--green); font-weight:600; }
@@ -3029,8 +3040,8 @@ function chipVixSvg(series) {
   const pts = series.map((p, i) => p.v == null ? null : `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).filter(Boolean).join(' ');
   const REF = [[20, 'var(--amber)', '20 平穩'], [25, '#e8743b', '25 警戒'], [35, 'var(--red)', '35 恐慌'], [40, 'var(--red)', '40 極恐']];
   let svg = `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
-  for (const [v, c] of REF) svg += `<line x1="0" y1="${y(v).toFixed(1)}" x2="${W}" y2="${y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="${v === 40 ? '4 3' : '3 3'}" opacity="${v === 40 ? '.6' : '.42'}"/>`;
-  svg += `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>`;
+  for (const [v, c] of REF) svg += `<line x1="0" y1="${y(v).toFixed(1)}" x2="${W}" y2="${y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="${v === 40 ? '4 3' : '3 3'}" opacity="${v === 40 ? '.6' : '.42'}" vector-effect="non-scaling-stroke"/>`;
+  svg += `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.4" vector-effect="non-scaling-stroke"/></svg>`;
   let labels = '';
   for (const [v, c, txt] of REF) labels += `<span class="chip-refl" style="top:${(yf(v) * 100).toFixed(1)}%;color:${c}">${txt}</span>`;
   return svg + labels;
@@ -3040,27 +3051,29 @@ function chipVixSvg(series) {
 //   ⚠️ 這是「反向情緒指標」，方向跟個人帳戶維持率相反：
 //      高＝融資擁擠、追價熱 → 相對危險；低＝被斷頭洗出場 → 常對應恐慌底部。
 //   驗證：FinLab 公布 2026-06-09 = 1.98，本站同日算出 198.2（我們只有上市、仍吻合）。
-//   四條線照 FinLab：1.80 過熱／1.67 中位（≈上市初始 1/0.6）／1.40 斷頭壓力／1.30 歷史地板
-//     （2009 以來最低恰為 1.300，從未跌破 → 是經驗地板不是警戒線）。
+//   三條線照 FinLab：1.80 過熱／1.67 中位（≈上市初始 1/0.6）／1.40 斷頭壓力
+//     （FinLab 的 1.30 追繳線不畫：與 1.40 只差 4 點、標籤在 70px 高的圖上必疊，
+//      且 2009 以來 4,277 天從沒跌破 1.300 → 是經驗地板不是警戒線，畫了也是裝飾）
 //   橘線＝10 日均線：單日會跳，方向才有意義；FinLab 擇時規則即以 10MA 跌破 1.42 進、突破 1.84 出。
 //   相容六卡日期軸對齊：v==null 跳點不畫。
 function chipRatioSvg(series) {
   const W = 180, H = 50;
   const vals = series.map(p => p.v).filter(v => v != null);
   if (!vals.length) return '';
-  const LO = Math.min(126, Math.min(...vals) - 4), HI = Math.max(215, Math.max(...vals) + 4);
+  // 刻度下緣 132（不畫 1.30）：1.30 與 1.40 只差 4 點、標籤必疊，且 FinLab 說 2009 以來
+  // 4,277 天從沒跌破 1.300 → 畫它是裝飾。留 132 當底是為了讓 1.40 的標籤不被切邊。
+  const LO = Math.min(132, Math.min(...vals) - 4), HI = Math.max(215, Math.max(...vals) + 4);
   const yf = v => (1 - (v - LO) / (HI - LO));
   const y = v => yf(v) * H;
   const px = i => (i * (W / (series.length - 1 || 1))).toFixed(1);
   const pts = series.map((p, i) => p.v == null ? null : `${px(i)},${y(p.v).toFixed(1)}`).filter(Boolean).join(' ');
   const ma = chipRatioMA(series);
   const mpts = ma.map((v, i) => v == null ? null : `${px(i)},${y(v).toFixed(1)}`).filter(Boolean).join(' ');
-  const REF = [[180, 'var(--red)', '1.80 過熱', '4 3'], [167, 'var(--text3)', '1.67 中位', '4 3'],
-               [140, '#e8743b', '1.40 斷頭壓力', '4 3'], [130, 'var(--red)', '1.30 地板', '2 2']];
-  let svg = `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
-  for (const [v, c, , dash] of REF) svg += `<line x1="0" y1="${y(v).toFixed(1)}" x2="${W}" y2="${y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="${dash}" opacity="${v === 130 ? '.45' : '.55'}"/>`;
-  if (mpts) svg += `<polyline points="${mpts}" fill="none" stroke="var(--amber)" stroke-width="1.4" opacity=".95"/>`;
-  svg += `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>`;
+  const REF = [[180, 'var(--red)', '1.80 過熱'], [167, 'var(--text3)', '1.67 中位'], [140, '#e8743b', '1.40 斷頭壓力']];
+  let svg = `<svg class="chip-mmsvg2 ratio" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
+  for (const [v, c] of REF) svg += `<line x1="0" y1="${y(v).toFixed(1)}" x2="${W}" y2="${y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="4 3" opacity=".5" vector-effect="non-scaling-stroke"/>`;
+  if (mpts) svg += `<polyline points="${mpts}" fill="none" stroke="var(--amber)" stroke-width="1.2" opacity=".95" vector-effect="non-scaling-stroke"/>`;
+  svg += `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.4" vector-effect="non-scaling-stroke"/></svg>`;
   let labels = '';
   for (const [v, c, txt] of REF) labels += `<span class="chip-refl" style="top:${(yf(v) * 100).toFixed(1)}%;color:${c}">${txt}</span>`;
   return svg + labels;
@@ -3158,20 +3171,23 @@ function chipSet(active, frac) {
       }
     }
   });
-  // 外資 / 散戶（小台＝主圖，'r'）／散戶微台（副圖，'r2'）
+  // 外資 / 散戶小台（主圖，有大字 cpXV）／散戶微台（副圖，只有讀數 cpr2D、沒有大字）
+  // ⚠️ 2026-07-16 修：原本守門寫 `!el('cp'+key+'V')` → 微台沒有 cpr2V 元素，直接 return，
+  //    導致副圖有柱子卻永遠沒數值。改成「認 D 不認 V」，V 存在才填。
   [['f', D.foreign], ['r', D.retail], ['r2', D.retail2]].forEach(([key, pack]) => {
-    if (!pack || !el('cp' + key + 'V')) return;
+    const ev = el('cp' + key + 'V'), ed = el('cp' + key + 'D');
+    if (!pack || !ed) return;
     const o = pickNZ(pack.series);
     if (!o) return;
+    const sub = !ev;   // 沒有大字＝副圖模式：讀數要自己帶值（不然只看得到變動）
     if (o.p.v == null) {   // 刮到未公布日
-      el('cp' + key + 'V').textContent = '未公布';
-      el('cp' + key + 'V').className = 'cp-v';
-      el('cp' + key + 'D').innerHTML = stamp(o) + `<span style="color:var(--text3)">尚未公布</span>`;
+      if (ev) { ev.textContent = '未公布'; ev.className = 'cp-v'; }
+      ed.innerHTML = stamp(o) + `<span style="color:var(--text3)">尚未公布</span>`;
     } else {
-      el('cp' + key + 'V').textContent = (o.p.v >= 0 ? '+' : '') + chipFmt(o.p.v, '口');
-      el('cp' + key + 'V').className = 'cp-v ' + cls(o.p.v);
+      if (ev) { ev.textContent = (o.p.v >= 0 ? '+' : '') + chipFmt(o.p.v, '口'); ev.className = 'cp-v ' + cls(o.p.v); }
       const dv = dd(o);
-      el('cp' + key + 'D').innerHTML = stamp(o) + `變動 ${dv == null ? '<span style="color:var(--text3)">—</span>' : chipDelta(dv, '口')}`;
+      const val = sub ? `<b class="${cls(o.p.v)}" style="font-size:11.5px">${(o.p.v >= 0 ? '+' : '') + chipFmt(o.p.v, '')}</b> ` : '';
+      ed.innerHTML = stamp(o) + val + `變動 ${dv == null ? '<span style="color:var(--text3)">—</span>' : chipDelta(dv, '口')}`;
     }
   });
   // 散戶卡合約章（小台 MTX＝主圖、微台 TMF＝副圖；label 由 server 給，哪個沒資料哪個不出現）
@@ -3279,10 +3295,10 @@ async function loadChipIndicators() {
     }
     if (d.vix && d.vix.series) d.vix.series = alignByDate(d.vix.series);
     const idxCard = (key, title, pack) => !pack ? chipPh(title) :
-      `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v cp-vbig" id="${key}C"></span></div>` +
+      `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="chip-windchip inrow" id="${key}W"></span><span class="cp-v cp-vbig" id="${key}C" style="margin-left:auto"></span></div>` +
       `<div class="cp-h2"><span id="${key}M"></span><span id="${key}D" style="text-align:right"></span></div>` +
-      `<div class="cp-h3"><span class="chip-windchip inrow" id="${key}W"></span><span class="chip-live-ts" id="${key}Ts"></span></div>` +
-      `<div class="chip-trend" id="${key}Trend" style="display:none;"><span class="trend-lbl" id="${key}TrL"></span><span class="trend-time" id="${key}TrT"></span><div id="${key}TrSvg"></div></div>` +
+      `<div class="cp-h3"><span class="chip-live-ts" id="${key}Ts"></span></div>` +
+      `<div class="chip-trend" id="${key}Trend" style="display:none;"><div class="trend-row"><span class="trend-lbl" id="${key}TrL"></span><span class="trend-time" id="${key}TrT"></span></div><div id="${key}TrSvg"></div></div>` +
       chipZone(`<div id="${key}Chart">${chipIdxSvg(pack.series)}</div><span class="chip-today-lbl" id="${key}Tl"></span>` +
         ((pack.series[pack.series.length - 1] || {}).dif != null ? `<div class="chip-macd"><span class="macd-lbl">MACD (12,26,9)</span><span class="macd-val" id="${key}Mv"></span><div id="${key}Macd">${chipMacdSvg(pack.series)}</div></div>` : ''),
         pack.series.length) +
