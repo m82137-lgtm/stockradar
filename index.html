@@ -447,9 +447,11 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .cp-v { font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); }
 .cp-h2 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; font-size:11px; color:var(--text3); margin:2px 0 5px; min-height:16px; font-variant-numeric:tabular-nums; }
 .cp-vixtag { font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:4px; letter-spacing:.5px; }
-/* 副圖標籤列（維持率／微台OI 共用；與指數卡的 MACD 標籤列同語言）*/
+/* 副圖標籤列（融資熱度／微台OI 共用；與指數卡的 MACD 標籤列同語言）
+   ⚠️ nowrap 是必要的：手機卡片內寬只有 ~156px，不鎖的話內容會斷成兩行（07-16 中招過）。 */
 .cp-sub { display:flex; justify-content:space-between; align-items:center; gap:4px; font-size:10px; color:var(--text3);
   border-top:1px solid var(--border); margin:6px 0 1px; padding-top:5px; min-height:16px; font-variant-numeric:tabular-nums; }
+.cp-sub > span{ white-space:nowrap; }
 .chip-windchip { position:absolute; top:3px; left:5px; font-size:11.5px; font-weight:800; padding:1px 8px; border-radius:6px; background:var(--bg2); border:1.5px solid currentColor; z-index:6; pointer-events:none; opacity:0; }
 /* 合體卡（07-14 補齊核可示意）：章移進報價列、加大點數字、今日標籤與開高低卡底 */
 .cp-vbig{ font-size:21px; }
@@ -3213,11 +3215,10 @@ function chipSet(active, frac) {
       if (rv == null) mrd.innerHTML = `<span style="color:var(--text3)">未公布</span>`;
       else {
         const z = ratioZone(rv), rc = dd(orr);
-        const ma = chipRatioMA(D.margin.ratioSeries), mv = ma[orr.k];
+        // 不放 10MA 數字：橘線畫在圖上就夠了，硬塞會讓手機那行爆掉（07-16 中招過）
         mrd.innerHTML = `<span class="cp-vixtag" style="background:${z[1]};color:${z[2]};margin-right:5px">${z[0]}</span>` +
           `<b style="color:var(--text);font-size:11.5px">${rv.toFixed(1)}%</b>` +
-          (rc == null ? '' : ` ${chipDelta(rc, '')}`) +
-          (mv == null ? '' : ` <span style="color:var(--amber)">10MA ${mv}</span>`);
+          (rc == null ? '' : ` ${chipDelta(rc, '')}`);
       }
     }
   }
@@ -3328,7 +3329,7 @@ async function loadChipIndicators() {
         `<div class="cp-h2"><span></span><span id="cpmD" style="text-align:right"></span></div>` +
         chipZone(chipBars2(d.margin.series), d.margin.series.length) +
         ((d.margin.ratioSeries && d.margin.ratioSeries.length)
-          ? `<div class="cp-sub"><span>融資熱度 · 10MA</span><span id="cpmrD"></span></div>` +
+          ? `<div class="cp-sub"><span>融資熱度</span><span id="cpmrD"></span></div>` +
             chipZone(`<div>${chipRatioSvg(d.margin.ratioSeries)}</div>`, d.margin.ratioSeries.length, true)
           : '') + `</div>`
         : chipPh('融資餘額');
