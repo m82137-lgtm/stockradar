@@ -447,6 +447,9 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .cp-v { font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); }
 .cp-h2 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; font-size:11px; color:var(--text3); margin:2px 0 5px; min-height:16px; font-variant-numeric:tabular-nums; }
 .cp-vixtag { font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:4px; letter-spacing:.5px; }
+/* 副圖標籤列（維持率／微台OI 共用；與指數卡的 MACD 標籤列同語言）*/
+.cp-sub { display:flex; justify-content:space-between; align-items:center; gap:4px; font-size:10px; color:var(--text3);
+  border-top:1px solid var(--border); margin:6px 0 1px; padding-top:5px; min-height:16px; font-variant-numeric:tabular-nums; }
 .chip-windchip { position:absolute; top:3px; left:5px; font-size:11.5px; font-weight:800; padding:1px 8px; border-radius:6px; background:var(--bg2); border:1.5px solid currentColor; z-index:6; pointer-events:none; opacity:0; }
 /* 合體卡（07-14 補齊核可示意）：章移進報價列、加大點數字、今日標籤與開高低卡底 */
 .cp-vbig{ font-size:21px; }
@@ -3032,6 +3035,33 @@ function chipVixSvg(series) {
   for (const [v, c, txt] of REF) labels += `<span class="chip-refl" style="top:${(yf(v) * 100).toFixed(1)}%;color:${c}">${txt}</span>`;
   return svg + labels;
 }
+// 融資維持率副圖（2026-07-15）：完全比照 chipVixSvg 的參考線寫法。
+// 刻度固定 128~172 → 166（融資買進當下）與 130（券商追繳線）永遠在同一高度，一眼看出離斷頭多遠。
+// 相容六卡日期軸對齊：v==null 跳點不畫。
+function chipRatioSvg(series) {
+  const W = 180, H = 50;
+  const vals = series.map(p => p.v).filter(v => v != null);
+  if (!vals.length) return '';
+  const LO = Math.min(128, Math.min(...vals) - 3), HI = Math.max(172, Math.max(...vals) + 3);
+  const yf = v => (1 - (v - LO) / (HI - LO));
+  const y = v => yf(v) * H;
+  const pts = series.map((p, i) => p.v == null ? null : `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).filter(Boolean).join(' ');
+  const REF = [[130, 'var(--red)', '130 斷頭'], [166, 'var(--text3)', '166 起點']];
+  let svg = `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
+  for (const [v, c] of REF) svg += `<line x1="0" y1="${y(v).toFixed(1)}" x2="${W}" y2="${y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="4 3" opacity="${v === 130 ? '.65' : '.5'}"/>`;
+  svg += `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>`;
+  let labels = '';
+  for (const [v, c, txt] of REF) labels += `<span class="chip-refl" style="top:${(yf(v) * 100).toFixed(1)}%;color:${c}">${txt}</span>`;
+  return svg + labels;
+}
+// 維持率水位（比照 VIX 四段）：≥165 健康／150-165 正常／140-150 警戒／<140 危險 → [文字, 底色, 字色]
+// 依據：融資買進當下 166%、跌破 130% 券商發追繳令；逼近 130 代表市場融資散戶接近全面斷頭。
+function ratioZone(v) {
+  if (v >= 165) return ['健康', 'rgba(51,209,122,.16)', 'var(--green)'];
+  if (v >= 150) return ['正常', 'rgba(255,179,0,.18)', 'var(--amber)'];
+  if (v >= 140) return ['警戒', 'rgba(232,116,59,.2)', '#e8743b'];
+  return ['危險', 'rgba(255,77,79,.2)', 'var(--red)'];
+}
 // VIX 水位標籤（永豐四段）：<20 平穩（<15 留意非理性繁榮）／20-25 警戒／25-40 恐慌／≥40 極度恐慌 → [文字, 底色, 字色]
 function vixZone(v) {
   if (v < 20) return ['平穩', 'rgba(51,209,122,.16)', 'var(--green)'];
@@ -3105,8 +3135,8 @@ function chipSet(active, frac) {
       }
     }
   });
-  // 外資 / 散戶
-  [['f', D.foreign], ['r', D.retail]].forEach(([key, pack]) => {
+  // 外資 / 散戶（小台＝主圖，'r'）／散戶微台（副圖，'r2'）
+  [['f', D.foreign], ['r', D.retail], ['r2', D.retail2]].forEach(([key, pack]) => {
     if (!pack || !el('cp' + key + 'V')) return;
     const o = pickNZ(pack.series);
     if (!o) return;
@@ -3121,6 +3151,15 @@ function chipSet(active, frac) {
       el('cp' + key + 'D').innerHTML = stamp(o) + `變動 ${dv == null ? '<span style="color:var(--text3)">—</span>' : chipDelta(dv, '口')}`;
     }
   });
+  // 散戶卡合約章（小台 MTX＝主圖、微台 TMF＝副圖；label 由 server 給，哪個沒資料哪個不出現）
+  [['cprT', D.retail], ['cpr2T', D.retail2]].forEach(([id, pack]) => {
+    const t = el(id);
+    if (!t) return;
+    if (!pack) { t.textContent = ''; return; }
+    t.textContent = pack.label || '';
+    t.style.background = 'var(--bg4)';
+    t.style.color = 'var(--text2)';
+  });
   // 融資餘額
   if (D.margin && el('cpmV')) {
     const ob = pickNZ(D.margin.balSeries || null), oc = pickNZ(D.margin.series);
@@ -3128,6 +3167,18 @@ function chipSet(active, frac) {
     el('cpmV').textContent = bv == null ? '未公布' : chipFmt(bv, '億');
     const cv = oc ? oc.p.v : null;
     el('cpmD').innerHTML = stamp(oc || ob) + (cv == null ? `<span style="color:var(--text3)">尚未公布（約 22:10 後）</span>` : `變動 ${chipDelta(cv, '億')}`);
+    // 維持率副圖讀數：水位章＋現值＋較昨變動（刮動時跟游標跳）
+    const mrd = el('cpmrD');
+    if (mrd && D.margin.ratioSeries && D.margin.ratioSeries.length) {
+      const orr = pickNZ(D.margin.ratioSeries), rv = orr ? orr.p.v : null;
+      if (rv == null) mrd.innerHTML = `<span style="color:var(--text3)">未公布</span>`;
+      else {
+        const z = ratioZone(rv), rc = dd(orr);
+        mrd.innerHTML = `<span class="cp-vixtag" style="background:${z[1]};color:${z[2]};margin-right:5px">${z[0]}</span>` +
+          `<b style="color:var(--text);font-size:11.5px">${rv.toFixed(1)}%</b>` +
+          (rc == null ? '' : ` ${chipDelta(rc, '')}`);
+      }
+    }
   }
   // 台指 VIX（大字現值＋水位標籤＋升紅降綠變動）
   if (D.vix && D.vix.series && el('cpvixV')) {
@@ -3194,8 +3245,13 @@ async function loadChipIndicators() {
       const mp = new Map(ser.map(pt => [pt.d, pt]));
       return axis.map(dd2 => mp.get(dd2) || { d: dd2, v: null });
     };
-    for (const k of ['foreign', 'retail']) if (d[k] && d[k].series) d[k].series = alignByDate(d[k].series);
-    if (d.margin) { d.margin.series = alignByDate(d.margin.series); if (d.margin.balSeries) d.margin.balSeries = alignByDate(d.margin.balSeries); }
+    for (const k of ['foreign', 'retail', 'retail2']) if (d[k] && d[k].series) d[k].series = alignByDate(d[k].series);
+    if (d.margin) {
+      d.margin.series = alignByDate(d.margin.series);
+      if (d.margin.balSeries) d.margin.balSeries = alignByDate(d.margin.balSeries);
+      // 維持率也要按日期入座，否則副圖會跟主軸錯開（TWSE 與 FinMind 的交易日可能差一天）
+      if (d.margin.ratioSeries) d.margin.ratioSeries = alignByDate(d.margin.ratioSeries);
+    }
     if (d.vix && d.vix.series) d.vix.series = alignByDate(d.vix.series);
     const idxCard = (key, title, pack) => !pack ? chipPh(title) :
       `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v cp-vbig" id="${key}C"></span></div>` +
@@ -3214,22 +3270,40 @@ async function loadChipIndicators() {
     if (d.idx && (d.idx.tse || d.idx.otc)) {
       rows.push(`<div class="chip-grid2">${idxCard('kt', '加權', d.idx.tse)}${idxCard('ko', '櫃買', d.idx.otc)}</div>`);
     }
-    if (d.foreign || d.retail) {
-      rows.push(`<div class="chip-grid2">${barCard('f', '外資台指OI', d.foreign)}${barCard('r', `散戶${(d.retail && d.retail.label) || '微台'}OI`, d.retail)}</div>`);
+    // 2026-07-15 六卡重排：VIX 上到排2、散戶卡下到排3
+    //   排2＝外資OI(2層) | VIX(2層)          → 等高
+    //   排3＝融資+維持率(3層) | 散戶OI 小台+微台(3層) → 等高
+    const vixC = (d.vix && d.vix.series && d.vix.series.length) ?
+      `<div class="cp-card"><div class="cp-h1"><span class="cp-t">台指 VIX</span><span class="cp-v" id="cpvixV"></span></div>` +
+      `<div class="cp-h2"><span class="cp-vixtag" id="cpvixT"></span><span id="cpvixD" style="text-align:right"></span></div>` +
+      chipZone(`<div>${chipVixSvg(d.vix.series)}</div>`, d.vix.series.length, true) + `</div>`
+      : chipPh('台指 VIX');
+    if (d.foreign || d.vix) {
+      rows.push(`<div class="chip-grid2">${barCard('f', '外資台指OI', d.foreign)}${vixC}</div>`);
     }
-    if (d.margin || d.vix) {
+    if (d.margin || d.retail) {
+      // 融資卡：報價列＋變動柱＋維持率副圖（166 起點／130 斷頭，刻度固定 128~170）
       const balC = d.margin ? `<div class="cp-card"><div class="cp-h1"><span class="cp-t">融資餘額</span><span class="cp-v" id="cpmV"></span></div>` +
-        `<div class="cp-h2"><span></span><span id="cpmD" style="text-align:right"></span></div>` + chipZone(chipBars2(d.margin.series), d.margin.series.length) + `</div>`
+        `<div class="cp-h2"><span></span><span id="cpmD" style="text-align:right"></span></div>` +
+        chipZone(chipBars2(d.margin.series), d.margin.series.length) +
+        ((d.margin.ratioSeries && d.margin.ratioSeries.length)
+          ? `<div class="cp-sub"><span>維持率 (166→130)</span><span id="cpmrD"></span></div>` +
+            chipZone(`<div>${chipRatioSvg(d.margin.ratioSeries)}</div>`, d.margin.ratioSeries.length, true)
+          : '') + `</div>`
         : chipPh('融資餘額');
-      const vixC = (d.vix && d.vix.series && d.vix.series.length) ?
-        `<div class="cp-card"><div class="cp-h1"><span class="cp-t">台指 VIX</span><span class="cp-v" id="cpvixV"></span></div>` +
-        `<div class="cp-h2"><span class="cp-vixtag" id="cpvixT"></span><span id="cpvixD" style="text-align:right"></span></div>` +
-        chipZone(`<div>${chipVixSvg(d.vix.series)}</div>`, d.vix.series.length, true) + `</div>`
-        : chipPh('台指 VIX');
-      rows.push(`<div class="chip-grid2">${balC}${vixC}</div>`);
+      // 散戶卡：報價列＋小台柱＋微台副圖（不互相頂替，哪個沒資料哪個空）
+      const retC = d.retail ? `<div class="cp-card"><div class="cp-h1"><span class="cp-t">散戶OI</span><span class="cp-v" id="cprV"></span></div>` +
+        `<div class="cp-h2"><span class="cp-vixtag" id="cprT"></span><span id="cprD" style="text-align:right"></span></div>` +
+        chipZone(chipBars2(d.retail.series), d.retail.series.length) +
+        ((d.retail2 && d.retail2.series && d.retail2.series.length)
+          ? `<div class="cp-sub"><span><span class="cp-vixtag" id="cpr2T"></span></span><span id="cpr2D"></span></div>` +
+            chipZone(chipBars2(d.retail2.series), d.retail2.series.length)
+          : '') + `</div>`
+        : chipPh('散戶OI');
+      rows.push(`<div class="chip-grid2">${balC}${retC}</div>`);
     }
     if (!rows.length) return;
-    box.innerHTML = rows.join('') + `<div class="chip-src">指數/籌碼：FinMind（證交所＋期交所彙整）· 台指VIX：期交所TAIFEX · 每交易日 17:45／22:10 更新 · 按住圖表左右滑可看各日</div>`;
+    box.innerHTML = rows.join('') + `<div class="chip-src">指數/籌碼：FinMind（證交所＋期交所彙整）· 台指VIX：期交所TAIFEX · 融資維持率：證交所自算（僅上市）· 每交易日 17:45／21:45／22:10 更新 · 按住圖表左右滑可看各日</div>`;
     box.style.display = '';
     chipSet(false, 0);
     chipBindScrub();
