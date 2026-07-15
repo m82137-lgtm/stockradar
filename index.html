@@ -1113,13 +1113,13 @@ a.us-td-name:hover{ color:var(--accent) !important; border-bottom-color:var(--ac
 .us-theme-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px; }
 .us-theme-card { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
 .us-theme-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
-.us-theme-name { font-size:13.5px; font-weight:700; color:var(--text); }
-.us-theme-chg { font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums; }
+.us-theme-name { font-size:15px; font-weight:700; color:var(--text); }
+.us-theme-chg { font-size:14px; font-weight:700; font-variant-numeric:tabular-nums; }
 .us-theme-chg.us-up { color:var(--red); }
 .us-theme-chg.us-down { color:var(--green); }
-.us-theme-desc { font-size:12px; color:var(--text2); line-height:1.5; margin-bottom:10px; }
+.us-theme-desc { font-size:13.5px; color:var(--text2); line-height:1.5; margin-bottom:10px; }
 .us-theme-codes { display:flex; flex-wrap:wrap; gap:5px; }
-.us-theme-code { display:inline-block; white-space:nowrap; background:var(--bg4); color:var(--text2); font-size:11px; font-weight:600; padding:2px 7px; border-radius:5px; cursor:pointer; transition:background 0.12s; }
+.us-theme-code { display:inline-block; white-space:nowrap; background:var(--bg4); color:var(--text2); font-size:12px; font-weight:600; padding:2px 7px; border-radius:5px; cursor:pointer; transition:background 0.12s; }
 .us-theme-code:hover { background:var(--accent); color:#fff; }
 
 /* 新進榜雷達卡片 */
@@ -1127,30 +1127,26 @@ a.us-td-name:hover{ color:var(--accent) !important; border-bottom-color:var(--ac
 .us-nc-card { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:10px 12px; cursor:pointer; transition:border-color 0.12s; }
 .us-nc-card:hover { border-color:var(--accent); }
 .us-nc-top { display:flex; align-items:center; justify-content:space-between; }
-.us-nc-code { font-size:13.5px; font-weight:700; color:var(--text); }
-.us-nc-chg { font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums; }
+.us-nc-code { font-size:15px; font-weight:700; color:var(--text); }
+.us-nc-chg { font-size:14px; font-weight:700; font-variant-numeric:tabular-nums; }
 .us-nc-chg.us-up { color:var(--red); }
 .us-nc-chg.us-down { color:var(--green); }
-.us-nc-name { font-size:11.5px; color:var(--text3); margin-top:2px; }
-.us-nc-tag { display:inline-block; font-size:10.5px; color:var(--accent); background:var(--bg4); padding:1px 6px; border-radius:5px; margin-top:6px; }
-.us-nc-event { font-size:12px; color:var(--text2); line-height:1.5; margin-top:6px; }
+.us-nc-name { font-size:12.5px; color:var(--text3); margin-top:2px; }
+.us-nc-tag { display:inline-block; font-size:11.5px; color:var(--accent); background:var(--bg4); padding:1px 6px; border-radius:5px; margin-top:6px; }
+.us-nc-event { font-size:13.5px; color:var(--text2); line-height:1.5; margin-top:6px; }
 
 /* 市場焦點雙欄（第四批）*/
-.us-focus-summary { font-size:12.5px; color:var(--text2); line-height:1.6; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+.us-focus-summary { font-size:14px; color:var(--text2); line-height:1.6; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
 .us-focus-cols { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-.us-focus-col-head { font-size:12.5px; font-weight:700; color:var(--text); margin-bottom:10px; }
-.us-focus-head-happened { color:var(--red); }
-.us-focus-head-upcoming { color:var(--accent); }
-.us-focus-head-note { font-size:11.5px; font-weight:400; color:var(--text3); margin-left:4px; }
-.us-focus-item { background:var(--bg3); border:1px solid var(--border); border-radius:9px; padding:10px 12px; margin-bottom:8px; }
-.us-focus-item-up { border-left:3px solid var(--accent); }
-.us-focus-item-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:4px; }
-.us-focus-item-title { font-size:12.5px; font-weight:700; color:var(--text); line-height:1.35; }
-.us-focus-item-date { font-size:11.5px; font-weight:600; color:var(--red); background:var(--bg4); padding:1px 7px; border-radius:5px; white-space:nowrap; flex-shrink:0; }
-.us-focus-date-up { color:var(--accent); }
-.us-focus-item-desc { font-size:12px; color:var(--text2); line-height:1.5; }
-.us-focus-ai-note { font-size:11.5px; color:var(--text3); font-style:italic; }
-.us-focus-empty { font-size:13px; color:var(--text3); padding:8px 0; }
+/* 2026-07-15：拆卡中卡 → 純文字行（外框 .us-ai-card 本來就在，卡中卡一拆它就現形）*/
+.us-focus-col-head { font-size:13.5px; font-weight:600; color:var(--text3); margin-bottom:9px; }
+.us-focus-item { margin-bottom:9px; line-height:1.6; }
+.us-focus-item-title { font-size:14px; font-weight:700; color:var(--text); }
+.us-focus-item-dash { color:var(--text3); font-size:13.5px; }
+.us-focus-item-desc { font-size:13.5px; color:var(--text2); }
+/* 日期章：內嵌於標題前（只有「即將到來」用），文字自然繞排 */
+.us-focus-item-date { display:inline-block; font-size:12.5px; font-weight:600; color:var(--accent); background:var(--bg4); padding:1px 7px; border-radius:5px; white-space:nowrap; margin-right:6px; }
+.us-focus-empty { font-size:14.5px; color:var(--text3); padding:8px 0; }
 @media (max-width:639px){ .us-focus-cols { grid-template-columns:1fr; gap:12px; } }
 
 .after-card {
@@ -2356,32 +2352,20 @@ function renderTwMarketFocus(mf) {
   if (!slot) return;
   if (!mf || (!mf.summary && !(mf.happened||[]).length && !(mf.upcoming||[]).length)) { slot.innerHTML = ''; return; }
   const happenedHtml = (mf.happened||[]).map(e=>`
-    <div class="us-focus-item">
-      <div class="us-focus-item-top">
-        <span class="us-focus-item-title">${e.title||''}</span>
-        ${e.date ? `<span class="us-focus-item-date">${e.date}</span>` : ''}
-      </div>
-      <div class="us-focus-item-desc">${e.desc||''}</div>
-    </div>`).join('');
+    <div class="us-focus-item"><span class="us-focus-item-title">${e.title||''}</span><span class="us-focus-item-dash"> — </span><span class="us-focus-item-desc">${e.desc||''}</span></div>`).join('');
   const upcomingHtml = (mf.upcoming||[]).map(e=>`
-    <div class="us-focus-item us-focus-item-up">
-      <div class="us-focus-item-top">
-        <span class="us-focus-item-title">${e.title||''}</span>
-        ${e.date ? `<span class="us-focus-item-date us-focus-date-up">${e.date}</span>` : ''}
-      </div>
-      <div class="us-focus-item-desc">${e.desc||''}<span class="us-focus-ai-note"> · AI 推測僅供參考</span></div>
-    </div>`).join('');
+    <div class="us-focus-item">${e.date ? `<span class="us-focus-item-date">${e.date}</span>` : ''}<span class="us-focus-item-title">${e.title||''}</span><span class="us-focus-item-dash"> — </span><span class="us-focus-item-desc">${e.desc||''}</span></div>`).join('');
   slot.innerHTML = `<div class="us-ai-card us-collapsed" id="tw-card-focus">
     <div class="us-ai-head us-ai-head-click" onclick="toggleUsCard('tw-card-focus')"><span class="us-ai-emoji">📰</span>今日市場焦點<span class="us-ai-sub">AI + Google 搜尋分析</span><span class="us-collapse-arrow">展開 ▼</span></div>
     <div class="us-ai-body">
     ${mf.summary ? `<div class="us-focus-summary">${mf.summary}</div>` : ''}
     <div class="us-focus-cols">
       <div class="us-focus-col">
-        <div class="us-focus-col-head us-focus-head-happened">📌 重大事件（已發生）</div>
+        <div class="us-focus-col-head">重大事件（已發生）</div>
         ${happenedHtml || '<div class="us-focus-empty">今日無重大事件資料。</div>'}
       </div>
       <div class="us-focus-col">
-        <div class="us-focus-col-head us-focus-head-upcoming">🔮 即將到來<span class="us-focus-head-note">（AI 推測僅供參考）</span></div>
+        <div class="us-focus-col-head">即將到來（AI 推測僅供參考）</div>
         ${upcomingHtml || '<div class="us-focus-empty">暫無即將到來的事件。</div>'}
       </div>
     </div>
@@ -2775,32 +2759,20 @@ function renderMarketFocus(mf) {
   if (!slot) return;
   if (!mf || (!mf.summary && !(mf.happened||[]).length && !(mf.upcoming||[]).length)) { slot.innerHTML = ''; return; }
   const happenedHtml = (mf.happened||[]).map(e=>`
-    <div class="us-focus-item">
-      <div class="us-focus-item-top">
-        <span class="us-focus-item-title">${e.title||''}</span>
-        ${e.date ? `<span class="us-focus-item-date">${e.date}</span>` : ''}
-      </div>
-      <div class="us-focus-item-desc">${e.desc||''}</div>
-    </div>`).join('');
+    <div class="us-focus-item"><span class="us-focus-item-title">${e.title||''}</span><span class="us-focus-item-dash"> — </span><span class="us-focus-item-desc">${e.desc||''}</span></div>`).join('');
   const upcomingHtml = (mf.upcoming||[]).map(e=>`
-    <div class="us-focus-item us-focus-item-up">
-      <div class="us-focus-item-top">
-        <span class="us-focus-item-title">${e.title||''}</span>
-        ${e.date ? `<span class="us-focus-item-date us-focus-date-up">${e.date}</span>` : ''}
-      </div>
-      <div class="us-focus-item-desc">${e.desc||''}<span class="us-focus-ai-note"> · AI 推測僅供參考</span></div>
-    </div>`).join('');
+    <div class="us-focus-item">${e.date ? `<span class="us-focus-item-date">${e.date}</span>` : ''}<span class="us-focus-item-title">${e.title||''}</span><span class="us-focus-item-dash"> — </span><span class="us-focus-item-desc">${e.desc||''}</span></div>`).join('');
   slot.innerHTML = `<div class="us-ai-card us-collapsed" id="us-card-focus">
     <div class="us-ai-head us-ai-head-click" onclick="toggleUsCard('us-card-focus')"><span class="us-ai-emoji">📰</span>今日市場焦點<span class="us-ai-sub">AI + Google 搜尋分析</span><span class="us-collapse-arrow">展開 ▼</span></div>
     <div class="us-ai-body">
     ${mf.summary ? `<div class="us-focus-summary">${mf.summary}</div>` : ''}
     <div class="us-focus-cols">
       <div class="us-focus-col">
-        <div class="us-focus-col-head us-focus-head-happened">📌 重大事件（已發生）</div>
+        <div class="us-focus-col-head">重大事件（已發生）</div>
         ${happenedHtml || '<div class="us-focus-empty">今日無重大事件資料。</div>'}
       </div>
       <div class="us-focus-col">
-        <div class="us-focus-col-head us-focus-head-upcoming">🔮 即將到來<span class="us-focus-head-note">（AI 推測僅供參考）</span></div>
+        <div class="us-focus-col-head">即將到來（AI 推測僅供參考）</div>
         ${upcomingHtml || '<div class="us-focus-empty">暫無即將到來的事件。</div>'}
       </div>
     </div>
@@ -3088,8 +3060,7 @@ function chipMacdSvg(series) {
   });
   sv += `<path d="${sl}" fill="none" stroke="var(--amber)" stroke-width="1.3" opacity=".9"/>`;
   sv += `<path d="${dl}" fill="none" stroke="var(--accent)" stroke-width="1.3"/>`;
-  const last = series[n - 1];
-  if (last && last.live && last.hist != null) sv += `<circle cx="${((n - 1) * step + step / 2).toFixed(1)}" cy="${y(last.hist).toFixed(1)}" r="2.6" fill="var(--accent)"/>`;
+  // 2026-07-15：移除 live 藍點（柱小時整顆蓋掉柱身；K圖「←今日即時」＋頂欄●盤中已在講同一件事）
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="display:block;width:100%;height:64px;">${sv}</svg>`;
 }
 function chipSet(active, frac) {
@@ -3156,7 +3127,7 @@ function chipSet(active, frac) {
     const bv = ob ? ob.p.v : (D.margin.bal != null ? D.margin.bal : null);
     el('cpmV').textContent = bv == null ? '未公布' : chipFmt(bv, '億');
     const cv = oc ? oc.p.v : null;
-    el('cpmD').innerHTML = stamp(oc || ob) + (cv == null ? `<span style="color:var(--text3)">尚未公布（約 21:30 後）</span>` : `變動 ${chipDelta(cv, '億')}`);
+    el('cpmD').innerHTML = stamp(oc || ob) + (cv == null ? `<span style="color:var(--text3)">尚未公布（約 22:10 後）</span>` : `變動 ${chipDelta(cv, '億')}`);
   }
   // 台指 VIX（大字現值＋水位標籤＋升紅降綠變動）
   if (D.vix && D.vix.series && el('cpvixV')) {
@@ -3262,6 +3233,10 @@ async function loadChipIndicators() {
     box.style.display = '';
     chipSet(false, 0);
     chipBindScrub();
+    // 2026-07-15：CHIP 被整包換掉會連今日即時K 一起洗掉（即時K 只活在 CHIP.idx[k].series 記憶體裡，
+    // 新包裹沒有這根；走勢細點另存 idxTrendFine 所以不受影響 → 才會出現「走勢有、K棒沒有」）。
+    // 每次點風度頁籤都會重跑本函式 → 不補這行就要等下一輪 idxLiveTick（最多 60 秒）才長回來。
+    if (typeof idxLiveTick === 'function') idxLiveTick();
   } catch (e) { console.log('loadChipIndicators fail:', e.message); }
 }
 
