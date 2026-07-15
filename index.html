@@ -449,7 +449,10 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .cp-h1 .cp-v { min-width:0; overflow:hidden; text-overflow:clip; }
 .cp-t { font-size:13.5px; font-weight:700; white-space:nowrap; color:var(--text); }
 .cp-v { font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); }
+/* ⚠️ nowrap 必要：加權的「MA 46,020.44 ↗」+「+893.64 (+2.00%)」在手機要 151px，
+   一旦換行 cp-h2 從 16px 變 32px，後面整批下推 → 兩張卡的 K 線就對不齊。 */
 .cp-h2 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; font-size:11px; color:var(--text3); margin:2px 0 5px; min-height:16px; font-variant-numeric:tabular-nums; }
+.cp-h2 > span { white-space:nowrap; }
 .cp-vixtag { font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:4px; letter-spacing:.5px; }
 /* 副圖標籤列（融資熱度／微台OI 共用；與指數卡的 MACD 標籤列同語言）
    ⚠️ nowrap 是必要的：手機卡片內寬只有 ~156px，不鎖的話內容會斷成兩行（07-16 中招過）。 */
@@ -479,14 +482,16 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .chip-ksvg2 { width:100%; height:116px; display:block; }
 /* 2026-07-16：88→70 與 .chip-mmsvg2 對齊（六卡每張圖矮 18px）；背景格線 22→18 同比縮 */
 .chip-chart2 { position:relative; height:70px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 18px; }
-/* 2026-07-16：88→70（外資OI/VIX）。融資熱度另開 78px：它有三條參考線（1.80/1.67/1.40），
-   70px 塞不下——1.40 會被切底、1.80↔1.67 只差 11.5px。其餘卡片矮 18px 已補回這 8px。 */
+/* 2026-07-16：88→70（外資OI/VIX）。融資熱度另開 90px：它有四條參考線（1.80/1.67/1.40/1.30），
+   而 1.40↔1.30 只差 10 點 → 標籤間距 = 10/90 × 圖高，要 ≥ 標籤實高(8.5px) 就得 90px。
+   （78px 只給得起 8.8px 間距 → 必疊；這也是 1.30 一度被拿掉的原因）*/
 .chip-mmsvg2 { width:100%; height:70px; display:block; }
-.chip-mmsvg2.ratio { height:78px; }
+.chip-mmsvg2.ratio { height:90px; }
 /* VIX 參考線標籤：HTML 定位（不隨 SVG preserveAspectRatio=none 橫向拉伸變形）*/
-/* line-height:1 是關鍵：不設的話 9px 字的行高會撐到 ~12px，
-   而融資熱度的 1.80↔1.67 在 70px 高的圖上只差 11.5px → 標籤還是會擦到。 */
-.chip-refl { position:absolute; left:3px; transform:translateY(-50%); font-size:9px; line-height:1; color:var(--text3); background:var(--bg2); padding:1px 3px; border-radius:2px; pointer-events:none; z-index:4; white-space:nowrap; }
+/* line-height:1 + 上下 padding 0 都是關鍵：標籤實高每多 1px，融資熱度的圖高就要多 9px
+   （因為 1.40↔1.30 的間距 = 10/90 × 圖高）。原本 9px字+1px padding = 12.5px 實高 → 要 113px 圖高；
+   拿掉上下 padding、字級 8.5px → 實高 10px → 90px 就夠。 */
+.chip-refl { position:absolute; left:3px; transform:translateY(-50%); font-size:8.5px; line-height:1; color:var(--text3); background:var(--bg2); padding:0 3px; border-radius:2px; pointer-events:none; z-index:4; white-space:nowrap; }
 .chip-refl.red { color:var(--red); }
 .wind-gauge-labels { display:flex; justify-content:space-between; font-size:11px; margin-top:-2px; }
 .wind-gauge-labels .l { color:var(--green); font-weight:600; }
@@ -722,6 +727,11 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:400px; }   /* 抽屜開啟：表�
      風度章縮小 13px、大字 21→19px，才擠得下（桌機夠寬、維持原樣）。 */
   .chip-windchip.inrow{ font-size:9.5px; padding:1px 4px; border-width:1px; }
   .cp-vbig{ font-size:19px; }
+  /* cp-h2：加權那行 11px 要 177px 會爆 → 縮 10px（配合半形括號）降到 151px */
+  .cp-h2{ font-size:10px; }
+  /* 走勢層改直排：「最新 13:30・昨收 44,737.95」單獨一行 115px 就放得下，不再被 ellipsis 切掉 */
+  .chip-trend .trend-row{ flex-direction:column; align-items:flex-start; gap:0; }
+  .chip-trend .trend-time{ overflow:visible; }
 }
 
 /* 新聞區：Web 右欄 / 手機下方 */
@@ -3061,25 +3071,27 @@ function chipVixSvg(series) {
 //   ⚠️ 這是「反向情緒指標」，方向跟個人帳戶維持率相反：
 //      高＝融資擁擠、追價熱 → 相對危險；低＝被斷頭洗出場 → 常對應恐慌底部。
 //   驗證：FinLab 公布 2026-06-09 = 1.98，本站同日算出 198.2（我們只有上市、仍吻合）。
-//   三條線照 FinLab：1.80 過熱／1.67 中位（≈上市初始 1/0.6）／1.40 斷頭壓力
-//     （FinLab 的 1.30 追繳線不畫：與 1.40 只差 4 點、標籤在 70px 高的圖上必疊，
-//      且 2009 以來 4,277 天從沒跌破 1.300 → 是經驗地板不是警戒線，畫了也是裝飾）
+//   四條線照 FinLab：1.80 過熱／1.67 中位（≈上市初始 1/0.6）／1.40 斷頭壓力／1.30 地板
+//     （1.30＝2009 以來 4,277 天的最低點，從沒跌破 → 是經驗地板不是警戒線，但使用者要求保留當底限參考）
 //   橘線＝10 日均線：單日會跳，方向才有意義；FinLab 擇時規則即以 10MA 跌破 1.42 進、突破 1.84 出。
 //   相容六卡日期軸對齊：v==null 跳點不畫。
 function chipRatioSvg(series) {
   const W = 180, H = 50;
   const vals = series.map(p => p.v).filter(v => v != null);
   if (!vals.length) return '';
-  // 刻度下緣 132（不畫 1.30）：1.30 與 1.40 只差 4 點、標籤必疊，且 FinLab 說 2009 以來
-  // 4,277 天從沒跌破 1.300 → 畫它是裝飾。留 132 當底是為了讓 1.40 的標籤不被切邊。
-  const LO = Math.min(132, Math.min(...vals) - 4), HI = Math.max(215, Math.max(...vals) + 4);
+  // 刻度下緣 125（不是 130）：1.30 的標籤要有空間不被切底。
+  // ⚠️ 這個 125 是解出來的最佳值，別亂改：
+  //    1.40↔1.30 只差 10 點 → 標籤間距 = 10/(215−LO) × 圖高。LO 太高(如132) → 1.30 掉出框外；
+  //    LO 太低(如118) → 刻度跨度變大、間距反而被壓縮。125 讓 90px 的圖剛好塞得下四條左靠標籤。
+  const LO = Math.min(125, Math.min(...vals) - 4), HI = Math.max(215, Math.max(...vals) + 4);
   const yf = v => (1 - (v - LO) / (HI - LO));
   const y = v => yf(v) * H;
   const px = i => (i * (W / (series.length - 1 || 1))).toFixed(1);
   const pts = series.map((p, i) => p.v == null ? null : `${px(i)},${y(p.v).toFixed(1)}`).filter(Boolean).join(' ');
   const ma = chipRatioMA(series);
   const mpts = ma.map((v, i) => v == null ? null : `${px(i)},${y(v).toFixed(1)}`).filter(Boolean).join(' ');
-  const REF = [[180, 'var(--red)', '1.80 過熱'], [167, 'var(--text3)', '1.67 中位'], [140, '#e8743b', '1.40 斷頭壓力']];
+  const REF = [[180, 'var(--red)', '1.80 過熱'], [167, 'var(--text3)', '1.67 中位'],
+               [140, '#e8743b', '1.40 斷頭壓力'], [130, 'var(--red)', '1.30 地板']];
   let svg = `<svg class="chip-mmsvg2 ratio" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
   for (const [v, c] of REF) svg += `<line x1="0" y1="${y(v).toFixed(1)}" x2="${W}" y2="${y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="4 3" opacity=".5" vector-effect="non-scaling-stroke"/>`;
   if (mpts) svg += `<polyline points="${mpts}" fill="none" stroke="var(--amber)" stroke-width="1.2" opacity=".95" vector-effect="non-scaling-stroke"/>`;
@@ -3164,7 +3176,8 @@ function chipSet(active, frac) {
     const o = pick(pack.series), p = o.p, c2 = cls(p.chg);
     el(key + 'C').textContent = chipNum2(p.c);
     el(key + 'C').className = 'cp-v ' + c2;
-    el(key + 'D').innerHTML = stamp(o) + `<span class="${c2}">${(p.chg >= 0 ? '+' : '') + chipNum2(p.chg)}（${(p.pct >= 0 ? '+' : '') + p.pct.toFixed(2)}%）</span>`;
+    // 半形括號：全形（）在 11px 下各佔 11px，換半形省 11px——加權那行本來 177px 會爆行
+    el(key + 'D').innerHTML = stamp(o) + `<span class="${c2}">${(p.chg >= 0 ? '+' : '') + chipNum2(p.chg)} (${(p.pct >= 0 ? '+' : '') + p.pct.toFixed(2)}%)</span>`;
     el(key + 'M').innerHTML = p.m == null ? '' : `<span style="color:#b8860b">MA ${chipNum2(p.m)}</span> <span class="${p.s > 0 ? 'chip-up' : 'chip-dn'}" style="font-weight:800">${p.s > 0 ? '↗' : '↘'}</span>`;
     const w = el(key + 'W');
     if (w) {
@@ -3184,19 +3197,20 @@ function chipSet(active, frac) {
   // 外資 / 散戶小台（主圖，有大字 cpXV）／散戶微台（副圖，只有讀數 cpr2D、沒有大字）
   // ⚠️ 2026-07-16 修：原本守門寫 `!el('cp'+key+'V')` → 微台沒有 cpr2V 元素，直接 return，
   //    導致副圖有柱子卻永遠沒數值。改成「認 D 不認 V」，V 存在才填。
-  [['f', D.foreign], ['r', D.retail], ['r2', D.retail2]].forEach(([key, pack]) => {
+  // 第三個參數 showVal：散戶卡有兩個合約，兩行都要「[章] 值 變動 N 口」同句型（A案）；
+  //   外資卡只有一個序列，大字就是值，行內再寫一次是純贅字 → false。
+  [['f', D.foreign, false], ['r', D.retail, true], ['r2', D.retail2, true]].forEach(([key, pack, showVal]) => {
     const ev = el('cp' + key + 'V'), ed = el('cp' + key + 'D');
     if (!pack || !ed) return;
     const o = pickNZ(pack.series);
     if (!o) return;
-    const sub = !ev;   // 沒有大字＝副圖模式：讀數要自己帶值（不然只看得到變動）
     if (o.p.v == null) {   // 刮到未公布日
       if (ev) { ev.textContent = '未公布'; ev.className = 'cp-v'; }
       ed.innerHTML = stamp(o) + `<span style="color:var(--text3)">尚未公布</span>`;
     } else {
       if (ev) { ev.textContent = (o.p.v >= 0 ? '+' : '') + chipFmt(o.p.v, '口'); ev.className = 'cp-v ' + cls(o.p.v); }
       const dv = dd(o);
-      const val = sub ? `<b class="${cls(o.p.v)}" style="font-size:11.5px">${(o.p.v >= 0 ? '+' : '') + chipFmt(o.p.v, '')}</b> ` : '';
+      const val = showVal ? `<b class="${cls(o.p.v)}" style="font-size:11.5px">${(o.p.v >= 0 ? '+' : '') + chipFmt(o.p.v, '')}</b> ` : '';
       ed.innerHTML = stamp(o) + val + `變動 ${dv == null ? '<span style="color:var(--text3)">—</span>' : chipDelta(dv, '口')}`;
     }
   });
