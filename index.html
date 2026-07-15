@@ -3035,32 +3035,55 @@ function chipVixSvg(series) {
   for (const [v, c, txt] of REF) labels += `<span class="chip-refl" style="top:${(yf(v) * 100).toFixed(1)}%;color:${c}">${txt}</span>`;
   return svg + labels;
 }
-// 融資維持率副圖（2026-07-15）：完全比照 chipVixSvg 的參考線寫法。
-// 刻度固定 128~172 → 166（融資買進當下）與 130（券商追繳線）永遠在同一高度，一眼看出離斷頭多遠。
-// 相容六卡日期軸對齊：v==null 跳點不畫。
+// 大盤融資維持率副圖（2026-07-15，依 FinLab 4,277 交易日實跑口徑重訂）
+//   公式與 FinLab 一致：Σ(融資餘額張數×收盤價×1000) ÷ 融資金額餘額。
+//   ⚠️ 這是「反向情緒指標」，方向跟個人帳戶維持率相反：
+//      高＝融資擁擠、追價熱 → 相對危險；低＝被斷頭洗出場 → 常對應恐慌底部。
+//   驗證：FinLab 公布 2026-06-09 = 1.98，本站同日算出 198.2（我們只有上市、仍吻合）。
+//   四條線照 FinLab：1.80 過熱／1.67 中位（≈上市初始 1/0.6）／1.40 斷頭壓力／1.30 歷史地板
+//     （2009 以來最低恰為 1.300，從未跌破 → 是經驗地板不是警戒線）。
+//   橘線＝10 日均線：單日會跳，方向才有意義；FinLab 擇時規則即以 10MA 跌破 1.42 進、突破 1.84 出。
+//   相容六卡日期軸對齊：v==null 跳點不畫。
 function chipRatioSvg(series) {
   const W = 180, H = 50;
   const vals = series.map(p => p.v).filter(v => v != null);
   if (!vals.length) return '';
-  const LO = Math.min(128, Math.min(...vals) - 3), HI = Math.max(172, Math.max(...vals) + 3);
+  const LO = Math.min(126, Math.min(...vals) - 4), HI = Math.max(215, Math.max(...vals) + 4);
   const yf = v => (1 - (v - LO) / (HI - LO));
   const y = v => yf(v) * H;
-  const pts = series.map((p, i) => p.v == null ? null : `${(i * (W / (series.length - 1 || 1))).toFixed(1)},${y(p.v).toFixed(1)}`).filter(Boolean).join(' ');
-  const REF = [[130, 'var(--red)', '130 斷頭'], [166, 'var(--text3)', '166 起點']];
+  const px = i => (i * (W / (series.length - 1 || 1))).toFixed(1);
+  const pts = series.map((p, i) => p.v == null ? null : `${px(i)},${y(p.v).toFixed(1)}`).filter(Boolean).join(' ');
+  const ma = chipRatioMA(series);
+  const mpts = ma.map((v, i) => v == null ? null : `${px(i)},${y(v).toFixed(1)}`).filter(Boolean).join(' ');
+  const REF = [[180, 'var(--red)', '1.80 過熱', '4 3'], [167, 'var(--text3)', '1.67 中位', '4 3'],
+               [140, '#e8743b', '1.40 斷頭壓力', '4 3'], [130, 'var(--red)', '1.30 地板', '2 2']];
   let svg = `<svg class="chip-mmsvg2" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
-  for (const [v, c] of REF) svg += `<line x1="0" y1="${y(v).toFixed(1)}" x2="${W}" y2="${y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="4 3" opacity="${v === 130 ? '.65' : '.5'}"/>`;
+  for (const [v, c, , dash] of REF) svg += `<line x1="0" y1="${y(v).toFixed(1)}" x2="${W}" y2="${y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="${dash}" opacity="${v === 130 ? '.45' : '.55'}"/>`;
+  if (mpts) svg += `<polyline points="${mpts}" fill="none" stroke="var(--amber)" stroke-width="1.4" opacity=".95"/>`;
   svg += `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>`;
   let labels = '';
   for (const [v, c, txt] of REF) labels += `<span class="chip-refl" style="top:${(yf(v) * 100).toFixed(1)}%;color:${c}">${txt}</span>`;
   return svg + labels;
 }
-// 維持率水位（比照 VIX 四段）：≥165 健康／150-165 正常／140-150 警戒／<140 危險 → [文字, 底色, 字色]
-// 依據：融資買進當下 166%、跌破 130% 券商發追繳令；逼近 130 代表市場融資散戶接近全面斷頭。
+// 維持率 10 日均線（跳過 null；不滿 10 筆有效值不畫）
+function chipRatioMA(series, n = 10) {
+  const out = [];
+  for (let i = 0; i < series.length; i++) {
+    const w = series.slice(Math.max(0, i - n + 1), i + 1).map(p => p.v).filter(v => v != null);
+    out.push(w.length === n ? +(w.reduce((a, b) => a + b, 0) / n).toFixed(1) : null);
+  }
+  return out;
+}
+// 融資熱度水位（FinLab 4,277 交易日實跑分級）→ [文字, 底色, 字色]
+//   ≥1.80 過熱(歷史 6.1%)／1.70-1.80 偏多(34.6%)／1.60-1.70 中性(43.0%)／1.40-1.60 偏安全(21.3%)／≤1.40 斷頭壓力(1.0%)
+//   ⚠️ 顏色與 VIX 卡同語言：綠＝冷＝恐慌底部（機會）、紅＝熱＝融資擁擠（危險）。
+//   千萬別讀成「高＝安全」——那是個人帳戶的直覺，套到大盤剛好相反。
 function ratioZone(v) {
-  if (v >= 165) return ['健康', 'rgba(51,209,122,.16)', 'var(--green)'];
-  if (v >= 150) return ['正常', 'rgba(255,179,0,.18)', 'var(--amber)'];
-  if (v >= 140) return ['警戒', 'rgba(232,116,59,.2)', '#e8743b'];
-  return ['危險', 'rgba(255,77,79,.2)', 'var(--red)'];
+  if (v >= 180) return ['過熱', 'rgba(255,77,79,.2)', 'var(--red)'];
+  if (v >= 170) return ['偏多', 'rgba(232,116,59,.2)', '#e8743b'];
+  if (v >= 160) return ['中性', 'var(--bg4)', 'var(--text2)'];
+  if (v >= 140) return ['偏安全', 'rgba(51,209,122,.16)', 'var(--green)'];
+  return ['斷頭壓力', 'rgba(51,209,122,.28)', 'var(--green)'];
 }
 // VIX 水位標籤（永豐四段）：<20 平穩（<15 留意非理性繁榮）／20-25 警戒／25-40 恐慌／≥40 極度恐慌 → [文字, 底色, 字色]
 function vixZone(v) {
@@ -3174,9 +3197,11 @@ function chipSet(active, frac) {
       if (rv == null) mrd.innerHTML = `<span style="color:var(--text3)">未公布</span>`;
       else {
         const z = ratioZone(rv), rc = dd(orr);
+        const ma = chipRatioMA(D.margin.ratioSeries), mv = ma[orr.k];
         mrd.innerHTML = `<span class="cp-vixtag" style="background:${z[1]};color:${z[2]};margin-right:5px">${z[0]}</span>` +
           `<b style="color:var(--text);font-size:11.5px">${rv.toFixed(1)}%</b>` +
-          (rc == null ? '' : ` ${chipDelta(rc, '')}`);
+          (rc == null ? '' : ` ${chipDelta(rc, '')}`) +
+          (mv == null ? '' : ` <span style="color:var(--amber)">10MA ${mv}</span>`);
       }
     }
   }
@@ -3282,12 +3307,12 @@ async function loadChipIndicators() {
       rows.push(`<div class="chip-grid2">${barCard('f', '外資台指OI', d.foreign)}${vixC}</div>`);
     }
     if (d.margin || d.retail) {
-      // 融資卡：報價列＋變動柱＋維持率副圖（166 起點／130 斷頭，刻度固定 128~170）
+      // 融資卡：報價列＋變動柱＋融資熱度副圖（反向情緒指標：1.80過熱／1.67中位／1.40斷頭壓力／1.30地板＋10MA）
       const balC = d.margin ? `<div class="cp-card"><div class="cp-h1"><span class="cp-t">融資餘額</span><span class="cp-v" id="cpmV"></span></div>` +
         `<div class="cp-h2"><span></span><span id="cpmD" style="text-align:right"></span></div>` +
         chipZone(chipBars2(d.margin.series), d.margin.series.length) +
         ((d.margin.ratioSeries && d.margin.ratioSeries.length)
-          ? `<div class="cp-sub"><span>維持率 (166→130)</span><span id="cpmrD"></span></div>` +
+          ? `<div class="cp-sub"><span>融資熱度 · 10MA</span><span id="cpmrD"></span></div>` +
             chipZone(`<div>${chipRatioSvg(d.margin.ratioSeries)}</div>`, d.margin.ratioSeries.length, true)
           : '') + `</div>`
         : chipPh('融資餘額');
@@ -3303,7 +3328,7 @@ async function loadChipIndicators() {
       rows.push(`<div class="chip-grid2">${balC}${retC}</div>`);
     }
     if (!rows.length) return;
-    box.innerHTML = rows.join('') + `<div class="chip-src">指數/籌碼：FinMind（證交所＋期交所彙整）· 台指VIX：期交所TAIFEX · 融資維持率：證交所自算（僅上市）· 每交易日 17:45／21:45／22:10 更新 · 按住圖表左右滑可看各日</div>`;
+    box.innerHTML = rows.join('') + `<div class="chip-src">指數/籌碼：FinMind（證交所＋期交所彙整）· 台指VIX：期交所TAIFEX · 融資熱度：證交所自算（上市／反向指標，高=融資擁擠）· 每交易日 17:45／21:45／22:10 更新 · 按住圖表左右滑可看各日</div>`;
     box.style.display = '';
     chipSet(false, 0);
     chipBindScrub();
