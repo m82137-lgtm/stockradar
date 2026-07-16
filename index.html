@@ -469,8 +469,15 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .chip-windchip.inrow{ position:static; pointer-events:auto; }
 .chip-today-lbl{ position:absolute; right:6px; top:2px; font-size:9.5px; color:var(--accent); font-weight:700; z-index:6; pointer-events:none; }
 .chip-macd{ position:relative; border-top:1px dashed var(--border); margin-top:4px; padding-top:2px; }
-.chip-macd .macd-lbl{ position:absolute; left:2px; top:4px; font-size:9px; color:var(--text3); font-weight:700; z-index:2; pointer-events:none; }
-.chip-macd .macd-val{ position:absolute; right:2px; top:4px; font-size:9.5px; font-family:'JetBrains Mono',monospace; color:var(--text2); z-index:2; pointer-events:none; }
+/* 標籤列 flex 一列排（同 .trend-row 那招），仍 absolute 蓋在圖上 → 卡片高度一格不變。
+   病根：兩個 span 各自 absolute 靠左/靠右，窄了就互壓（櫃買 DIF 帶小數時必撞）。
+   background：chipMacdSvg 的 pT=9，DIF 峰值正好畫在 y=9，會從沒底色的字底下穿過去（比照 .chip-refl）。 */
+.chip-macd .macd-row{ position:absolute; left:2px; right:2px; top:4px; z-index:2; pointer-events:none;
+  display:flex; justify-content:space-between; align-items:baseline; gap:4px; }
+.chip-macd .macd-lbl{ flex-shrink:0; white-space:nowrap; font-size:9px; color:var(--text3); font-weight:700;
+  background:var(--bg2); border-radius:2px; padding:0 2px; }
+.chip-macd .macd-val{ flex-shrink:0; white-space:nowrap; font-size:9.5px; font-family:'JetBrains Mono',monospace;
+  color:var(--text2); background:var(--bg2); border-radius:2px; padding:0 2px; }
 .chip-bcol{ position:relative; }
 .chip-bcol .chip-ghost{ position:absolute; left:20%; right:20%; top:16%; bottom:16%; border:1px dashed var(--border); border-radius:3px; opacity:.8; }
 .chip-trend{ position:relative; border-bottom:1px dashed var(--border); margin:2px 0 5px; padding:2px 0; }
@@ -1066,6 +1073,19 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 .us-date-select { background:var(--bg3); color:var(--text); font-weight:600; font-size:14px; border:1px solid var(--border); border-radius:6px; padding:2px 24px 2px 8px; cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8a94' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 7px center; transition:border-color 0.12s; }
 .us-date-select:hover { border-color:var(--accent); }
 .us-date-select:focus { outline:none; border-color:var(--accent); }
+/* Top50 三段篩選控制（位置①：表格卡外獨立一行，橫捲時不會跟著跑掉）。
+   漲停用 chg>=9.5，跟 server.js 的 afterhours prevLimit 同一條線，不另立標準。
+   ~232px，桌機手機共用同一份，不需要進手機 media。 */
+.tw-filter-row { margin:0 0 8px; }
+.tw-segs { display:inline-flex; border:1px solid var(--border); border-radius:7px; overflow:hidden; background:var(--bg2); }
+.tw-segs button { font-family:inherit; font-size:12.5px; font-weight:700; padding:6px 12px; border:0; background:transparent;
+  color:var(--text2); cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+.tw-segs button + button { border-left:1px solid var(--border); }
+.tw-segs button .n { font-family:'JetBrains Mono',monospace; font-size:11px; opacity:.7; min-width:14px; text-align:center; }
+.tw-segs button.on { background:var(--red-bg); color:var(--red); }
+.tw-segs button.on .n { opacity:1; font-weight:700; }
+.tw-segs button:disabled { opacity:.4; cursor:not-allowed; }
+
 .us-tbl-wrap { background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px; overflow-x:auto; }
 .us-tbl { width:100%; min-width:480px; border-collapse:collapse; font-size:13.5px; table-layout:fixed; }
 .us-tbl thead th { background:var(--bg3); color:var(--text2); font-weight:600; font-size:12.5px; padding:9px 5px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--border); }
@@ -1217,6 +1237,11 @@ a.us-td-name:hover{ color:var(--accent) !important; border-bottom-color:var(--ac
 }
 
 .after-vol-num { font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:600; color:var(--text); }
+
+/* 盤後卡的個股新聞：改成點了才查（原本是開頁批次打 Google RSS） */
+.news-btn { font-size:11px; color:var(--text3); text-align:center; padding:5px; cursor:pointer;
+  border:1px dashed var(--border); border-radius:6px; user-select:none; }
+.news-btn:hover { color:var(--accent); border-color:var(--accent); }
 
 .k15-chip {
   display:inline-flex; align-items:center; gap:4px;
@@ -1906,7 +1931,7 @@ function cardAfter(s, idx) {
     <span class="after-vol-num">${tvDisplay}</span>
   </div>
   <div id="news-after-${s.code}" style="border-top:1px solid var(--border);padding-top:7px;margin-top:6px;">
-    <div style="font-size:11px;color:var(--text3);">📰 載入個股新聞中...</div>
+    <div class="news-btn" onclick="fetchStockNews('${s.code}','${String(s.name).replace(/'/g, "\\'")}','after')">📰 看新聞</div>
   </div>
 </div>`;
 }
@@ -2281,7 +2306,8 @@ async function fetchAfterHours() {
     }
     data.sort((a,b)=>(b.tradeValue||0)-(a.tradeValue||0));
     listEl.innerHTML = data.map((s,i)=>cardAfter(s,i)).join('');
-    loadAllStockNews(data, 'after');
+    // 不批次載新聞：舊碼 loadAllStockNews(data,'after') 一開頁就打 N檔×2發 Google RSS
+    // （間隔 400ms → 20 檔＝40 發/8 秒）。改成跟 Top50／盤中／美股三頁一樣：點了才查。
   } catch(err) {
     if (listEl) listEl.innerHTML = `<div class="loading-card">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchAfterHours()">重試</button></div>`;
   }
@@ -2484,10 +2510,36 @@ function twSortRows(rows) {
   return rows;
 }
 
+// ── Top50 三段篩選：全部 / 漲停 / 漲5% ──
+// 門檻 9.5 跟 server.js afterhours 的 prevLimit 同一條線；純前端篩 _twData，不動 Render/KV/定榜帳本
+const TW_LIMIT = 9.5, TW_HOT = 5;
+let _twFilter = 'all';   // all | lim | hot
+
+function twFilterRows(rows) {
+  if (_twFilter === 'lim') return rows.filter(s => (+s.chg) >= TW_LIMIT);
+  if (_twFilter === 'hot') return rows.filter(s => (+s.chg) >= TW_HOT);
+  return rows;
+}
+function setTwFilter(m) { _twFilter = m; renderTwTable(); }
+
+function paintTwSegs() {
+  const box = document.getElementById('tw-segs');
+  if (!box) return;
+  const nAll = _twData.length;
+  const nLim = _twData.filter(s => (+s.chg) >= TW_LIMIT).length;
+  const nHot = _twData.filter(s => (+s.chg) >= TW_HOT).length;
+  // 選中的那格被篩到 0（換日/重整）→ 退回全部，不要留一張空表
+  if ((_twFilter === 'lim' && !nLim) || (_twFilter === 'hot' && !nHot)) _twFilter = 'all';
+  const b = (m, label, n) =>
+    `<button class="${_twFilter === m ? 'on' : ''}"${n ? '' : ' disabled'} onclick="setTwFilter('${m}')">${label} <span class="n">${n}</span></button>`;
+  box.innerHTML = b('all', '全部', nAll) + b('lim', '🚀 漲停', nLim) + b('hot', '🔥 漲5%', nHot);
+}
+
 function renderTwTable() {
   const tbody = document.getElementById('tw-tbody');
   if (!tbody || !_twData.length) return;
-  const rows = twSortRows([..._twData]);
+  paintTwSegs();                                    // 先畫鈕（可能把失效的篩選退回 all）
+  const rows = twSortRows(twFilterRows([..._twData]));
   // 更新表頭箭頭與 active 樣式（用 tbody 往上找同一張表的 thead）
   const table = tbody.closest('table');
   const headMap = { rank:'us-th-rank', code:'us-th-code', price:'us-th-price', chg:'us-th-chg', days:'us-th-days', val:'us-th-val', theme:'us-th-theme' };
@@ -3190,7 +3242,9 @@ function chipSet(active, frac) {
       else {
         const fM = v => (v >= 0 ? '+' : '') + (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(2));
         const up = (o.prev && o.prev.hist != null) ? (p.hist > o.prev.hist) : null;
-        mv.innerHTML = `${stamp(o)}DIF <b style="color:var(--accent)">${fM(p.dif)}</b>　柱 <b style="color:${p.hist >= 0 ? 'var(--red)' : 'var(--green)'}">${fM(p.hist)}</b>${up == null ? '' : (up ? ' ↑' : ' ↓')}`;
+        // 不放 stamp：同一張卡的 cp-h2 已經有 📅日期章、吃同一個 o，印兩次是贅字
+        // （比照外資卡 showVal=false）。而且刮動時 stamp 會多長 ~44px 把標籤擠爛。
+        mv.innerHTML = `DIF <b style="color:var(--accent)">${fM(p.dif)}</b>　柱 <b style="color:${p.hist >= 0 ? 'var(--red)' : 'var(--green)'}">${fM(p.hist)}</b>${up == null ? '' : (up ? ' ↑' : ' ↓')}`;
       }
     }
   });
@@ -3323,7 +3377,7 @@ async function loadChipIndicators() {
       `<div class="cp-h3"><span class="chip-live-ts" id="${key}Ts"></span></div>` +
       `<div class="chip-trend" id="${key}Trend" style="display:none;"><div class="trend-row"><span class="trend-lbl" id="${key}TrL"></span><span class="trend-time" id="${key}TrT"></span></div><div id="${key}TrSvg"></div></div>` +
       chipZone(`<div id="${key}Chart">${chipIdxSvg(pack.series)}</div><span class="chip-today-lbl" id="${key}Tl"></span>` +
-        ((pack.series[pack.series.length - 1] || {}).dif != null ? `<div class="chip-macd"><span class="macd-lbl">MACD (12,26,9)</span><span class="macd-val" id="${key}Mv"></span><div id="${key}Macd">${chipMacdSvg(pack.series)}</div></div>` : ''),
+        ((pack.series[pack.series.length - 1] || {}).dif != null ? `<div class="chip-macd"><div class="macd-row"><span class="macd-lbl">MACD</span><span class="macd-val" id="${key}Mv"></span></div><div id="${key}Macd">${chipMacdSvg(pack.series)}</div></div>` : ''),
         pack.series.length) +
       `<div class="cp-ohlc" id="${key}Ohlc"></div></div>`;
     const barCard = (key, title, pack) => !pack ? chipPh(title) :
@@ -3391,7 +3445,7 @@ const pages = {
     <span class="wind-guide-btn" onclick="goto('guide')" role="button" aria-label="網站說明" title="網站說明"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
   </div>
   <div id="chip-cards" class="chip-wrap" style="display:none;"></div>
-  <div class="wind-tbl-title">近 10 個交易日記錄</div>
+  <div class="wind-tbl-title">近日記錄</div>
   <div class="wind-tbl-wrap">
     <table class="wind-tbl">
       <thead>
@@ -3545,6 +3599,9 @@ const pages = {
 <div id="tw-focus-slot"></div>
 <div id="tw-newcomer-slot"></div>
 <div id="tw-theme-slot"></div>
+
+<!-- 三段篩選：全部 / 漲停 / 漲5%（renderTwTable 填內容） -->
+<div class="tw-filter-row"><div class="tw-segs" id="tw-segs"></div></div>
 
 <!-- 排行表 -->
 <div class="us-tbl-wrap">
@@ -3809,6 +3866,9 @@ async function fetchStockNews(code, name, prefix='qj') {
     return;
   }
 
+  // 槽的預設值已改成「📰 看新聞」鈕，所以載入中要自己寫
+  el.innerHTML = '<div style="font-size:11px;color:var(--text3);">📰 載入個股新聞中...</div>';
+
   try {
     const res = await fetch(`${NEWS_API}/api/stock-news?name=${encodeURIComponent(keyword)}&code=${encodeURIComponent(code)}`);
     const rows = await res.json();
@@ -3841,9 +3901,8 @@ function renderStockNews(el, items) {
     this.textContent = expanded ? '▲ 收起，只顯示 2 則' : ('還有 ' + (items.length - PREVIEW) + ' 則新聞 ▼ 點擊展開');
   });
 }
-function loadAllStockNews(stocks, prefix='qj') {
-  stocks.forEach((s,i) => setTimeout(()=>fetchStockNews(s.code,s.name,prefix), i*400));
-}
+// loadAllStockNews 已刪除（07-16）：它是全站唯一的個股新聞批次呼叫點，
+// 盤後追蹤頁一開就打 N檔×2發 Google RSS。現已改成點「📰 看新聞」才查。
 
 // 指標股 chip 展開/收起:點「+N ▼」露出全部、變「▲ 收起」，再點收回
 // 收起時顯示數依螢幕:桌機露6顆→+(總數-6)、手機露3顆→+(總數-3)
