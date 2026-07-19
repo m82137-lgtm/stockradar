@@ -1065,6 +1065,32 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
   display:flex; gap:10px; font-size:14px; color:var(--text2); line-height:1.6;
 }
 
+/* ── 盤後 tab：台股焦點＋日韓美 Top30（TradingView 統一源）── */
+.jk-tabs{ display:flex; gap:8px; margin:0 0 12px; flex-wrap:wrap; }
+.jk-tab{ padding:8px 16px; border-radius:10px; border:1px solid var(--border); background:var(--bg2); color:var(--text2); font-size:13px; cursor:pointer; }
+.jk-tab.on{ background:rgba(167,139,250,.14); border-color:rgba(167,139,250,.45); color:#a78bfa; font-weight:700; }
+.jk-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+.jk-stamp{ font-size:12px; color:#a78bfa; font-family:ui-monospace,Consolas,monospace; white-space:nowrap; }
+.jk-re{ display:flex; align-items:center; gap:6px; padding:7px 12px; border-radius:10px; border:1px solid var(--border); background:var(--bg2); color:var(--text); font-size:12px; cursor:pointer; }
+.jk-card{ display:flex; align-items:center; gap:10px; background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:12px 14px; margin-bottom:10px; }
+.jk-rank{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex:none; }
+.jk-r1{ background:rgba(245,158,11,.16); color:#f59e0b; }
+.jk-r2{ background:rgba(148,163,184,.16); color:#94a3b8; }
+.jk-r3{ background:rgba(249,115,22,.16); color:#f97316; }
+.jk-rn{ background:#52525b; color:#fff; }
+.jk-av{ width:40px; height:40px; border-radius:50%; background:#fff; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; flex:none; }
+.jk-mid{ flex:1; min-width:0; }
+.jk-nm{ display:flex; align-items:center; gap:7px; }
+.jk-nm b{ font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.jk-code{ background:var(--bg4); color:var(--text2); font-size:11px; padding:2px 7px; border-radius:6px; flex:none; }
+.jk-ind{ font-size:11px; color:var(--text3); margin-top:2px; white-space:nowrap; }
+.jk-px{ text-align:right; flex:none; }
+.jk-px .p{ font-size:14px; font-weight:700; font-family:ui-monospace,Consolas,monospace; }
+.jk-px .c{ font-size:12px; font-family:ui-monospace,Consolas,monospace; margin-left:8px; }
+.jk-ntd{ text-align:right; flex:none; width:150px; }
+.jk-ntd .n{ font-size:14px; font-weight:800; color:#a78bfa; font-family:ui-monospace,Consolas,monospace; white-space:nowrap; }
+.jk-ntd .r{ font-size:10px; color:var(--text3); font-family:ui-monospace,Consolas,monospace; margin-top:1px; white-space:nowrap; }
+
 /* ══ 美股 Top50 ══════════════════════════ */
 .us-status { display:flex; align-items:center; gap:14px; margin:2px 0 14px; font-size:14px; color:var(--text2); flex-wrap:wrap; }
 .us-status b { color:var(--text); font-weight:600; }
@@ -1201,7 +1227,7 @@ a.us-td-name:hover{ color:var(--accent) !important; border-bottom-color:var(--ac
 /* 日期章：內嵌於標題前（只有「即將到來」用），文字自然繞排 */
 .us-focus-item-date { display:inline-block; font-size:12.5px; font-weight:600; color:var(--accent); background:var(--bg4); padding:1px 7px; border-radius:5px; white-space:nowrap; margin-right:6px; }
 .us-focus-empty { font-size:14.5px; color:var(--text3); padding:8px 0; }
-@media (max-width:639px){ .us-focus-cols { grid-template-columns:1fr; gap:12px; } }
+@media (max-width:639px){ .us-focus-cols { grid-template-columns:1fr; gap:12px; } .jk-av{ display:none; } .jk-ntd{ width:auto; } .jk-ntd .r{ display:none; } .jk-px .c{ display:block; margin:2px 0 0; } .jk-tab{ padding:7px 11px; font-size:12px; } }
 
 .after-card {
   background:var(--bg2); border:1px solid var(--border);
@@ -2310,6 +2336,61 @@ async function fetchAfterHours() {
     // （間隔 400ms → 20 檔＝40 發/8 秒）。改成跟 Top50／盤中／美股三頁一樣：點了才查。
   } catch(err) {
     if (listEl) listEl.innerHTML = `<div class="loading-card">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchAfterHours()">重試</button></div>`;
+  }
+}
+
+// ── 日韓美 Top30（TradingView 統一源；讀 Render /api/tv-top30，重新整理只重讀 KV 零外呼）──
+let _tvData = null, _jkTab = 'tw';
+const JK_AV_COLORS = ['#4c3fa8','#0a6b52','#8a3a1c','#0d5590','#8f2b52','#7a4b06'];
+function jkSwitch(t){ _jkTab = t; jkRender(); }
+function jkCard(s){
+  const disp = s.zh || s.name || s.code;
+  const chg = Number.isFinite(+s.chg) ? +s.chg : 0;
+  const cc = chg > 0 ? 'var(--red)' : chg < 0 ? 'var(--green)' : 'var(--text2)';
+  const rk = s.rank === 1 ? 'jk-r1' : s.rank === 2 ? 'jk-r2' : s.rank === 3 ? 'jk-r3' : 'jk-rn';
+  const av = JK_AV_COLORS[(s.rank - 1) % JK_AV_COLORS.length];
+  const px = Number.isFinite(+s.close) ? (+s.close).toLocaleString('en-US', { maximumFractionDigits: 2 }) : '—';
+  const ntd = Number.isFinite(+s.ntd) ? `NT$ ${(+s.ntd).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <span style="font-size:11px">億</span>` : '—';
+  const val = Number.isFinite(+s.val) ? (+s.val).toLocaleString('en-US') : '—';
+  return `<div class="jk-card">
+  <div class="jk-rank ${rk}">${s.rank}</div>
+  <div class="jk-av" style="color:${av}">${String(disp).charAt(0)}</div>
+  <div class="jk-mid"><div class="jk-nm"><b>${disp}</b><span class="jk-code">${s.code}</span></div><div class="jk-ind">${s.ind || '—'}</div></div>
+  <div class="jk-px"><span class="p">${px}</span><span class="c" style="color:${cc}">${chg > 0 ? '+' : ''}${chg}%</span></div>
+  <div class="jk-ntd"><div class="n">${ntd}</div><div class="r">原幣 ${val}</div></div>
+</div>`;
+}
+function jkRender(){
+  const bar = document.getElementById('jk-tabs'); if (!bar) return;
+  bar.querySelectorAll('.jk-tab').forEach(b => b.classList.toggle('on', b.dataset.t === _jkTab));
+  const tw = document.getElementById('jk-tw'), intl = document.getElementById('jk-intl');
+  if (!tw || !intl) return;
+  if (_jkTab === 'tw') { tw.style.display = ''; intl.style.display = 'none'; return; }
+  tw.style.display = 'none'; intl.style.display = '';
+  if (!_tvData) { intl.innerHTML = '<div class="loading-card">載入中，請稍候…</div>'; return; }
+  const d = _tvData[_jkTab];
+  if (!d || !d.ok || !Array.isArray(d.list) || !d.list.length) {
+    intl.innerHTML = '<div class="loading-card">此市場資料尚未產生<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">日韓 8:45／15:00、美股 7:30 自動更新；急用可到說明頁一鍵重建</span></div>';
+    return;
+  }
+  const t = new Date(d.asOf).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Taipei' });
+  const ph = d.phase === 'live' ? '早盤' : d.phase === 'final' ? '收盤' : '手動';
+  const mkName = { jp: '日股', kr: '韓股', us: '美股' }[_jkTab] || '';
+  intl.innerHTML =
+    `<div class="jk-head"><span class="jk-stamp">📅 ${mkName} ${ph} ${t}${d.fx && Number.isFinite(+d.fx.rate) ? `｜匯率 ${d.fx.rate}` : ''}</span><button class="jk-re" onclick="fetchTvTop30(true)">⟳ 重新整理</button></div>`
+    + d.list.map(jkCard).join('')
+    + `<div style="text-align:center;font-size:11px;color:var(--text3);padding:6px 0;">全市場成交值排行前 30${d.fx && d.fx.rate == null ? '｜匯率暫缺，僅顯示原幣' : ''}</div>`;
+}
+async function fetchTvTop30(force){
+  if (_tvData && !force) { jkRender(); return; }
+  try {
+    const res = await fetch(`${NEWS_API}/api/tv-top30`);
+    const j = await res.json();
+    _tvData = { jp: j.jp, kr: j.kr, us: j.us };
+    jkRender();
+  } catch (err) {
+    const intl = document.getElementById('jk-intl');
+    if (intl && _jkTab !== 'tw') intl.innerHTML = `<div class="loading-card">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchTvTop30(true)">重試</button></div>`;
   }
 }
 
@@ -3507,13 +3588,23 @@ const pages = {
 
   after() {
     setTimeout(fetchAfterHours, 0);
+    setTimeout(fetchTvTop30, 0);
+    setTimeout(jkRender, 0);
     return `<div class="page-wrap">
 <div class="page-header">
   <div class="page-title">盤後追蹤</div>
-  <div class="page-desc">成交值前 60 名 ｜ 篩選漲幅 ≥ 7%</div>
+  <div class="page-desc">台股漲幅焦點 ｜ 日韓美 成交值 Top30</div>
   <span class="head-clock"></span>
 </div>
 
+<div class="jk-tabs" id="jk-tabs">
+  <button class="jk-tab" data-t="tw" onclick="jkSwitch('tw')">台股焦點</button>
+  <button class="jk-tab" data-t="jp" onclick="jkSwitch('jp')">日股成交值</button>
+  <button class="jk-tab" data-t="kr" onclick="jkSwitch('kr')">韓股成交值</button>
+  <button class="jk-tab" data-t="us" onclick="jkSwitch('us')">美股成交值</button>
+</div>
+
+<div id="jk-tw">
 <div class="after-info-box">
   <span style="font-size:14px;flex-shrink:0;">ℹ️</span>
   <span style="font-size:12px;">查看成交值前 60 名，篩選漲幅大於 7% 的股票，盤後回顧今日資金焦點，17:00 後盤後資料更新。</span>
@@ -3522,6 +3613,8 @@ const pages = {
 <div id="after-list">
   <div class="loading-card">載入中，請稍候…</div>
 </div>
+</div>
+<div id="jk-intl" style="display:none"></div>
 </div>`;
   },
 
@@ -3786,6 +3879,7 @@ const pages = {
     <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">台股 Top50、120 檔掃描名單、盤後追蹤——任何一個沒更新，都按這一顆就好，會一鍵全部重建（看到 <b>otcCount</b> 有數字就成功）。</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
       <a href="${NEWS_API}/api/tw-rebuild" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;padding:13px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:14px;">🔄 一鍵重建台股資料<div style="font-size:11px;font-weight:500;opacity:.85;margin-top:2px;">Top50＋掃描池＋盤後追蹤</div></a>
+      <a href="${NEWS_API}/api/tv-rebuild" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;padding:13px;border-radius:10px;background:#7c5ce0;color:#fff;text-decoration:none;font-weight:700;font-size:14px;">🌏 重建日韓美 Top30<div style="font-size:11px;font-weight:500;opacity:.85;margin-top:2px;">TradingView 三市場一鍵重抓</div></a>
     </div>
   </div>
 
