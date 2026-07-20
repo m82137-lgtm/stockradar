@@ -1081,7 +1081,9 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 .jk-av{ width:40px; height:40px; border-radius:50%; background:#fff; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; flex:none; }
 .jk-mid{ flex:1; min-width:0; }
 .jk-nm{ display:flex; align-items:center; gap:7px; }
-.jk-nm b{ font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.jk-lnk{ color:inherit; text-decoration:none; min-width:0; overflow:hidden; }
+.jk-lnk:hover b{ text-decoration:underline; }
+.jk-nm b{ font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
 .jk-code{ background:var(--bg4); color:var(--text2); font-size:11px; padding:2px 7px; border-radius:6px; flex:none; }
 .jk-ind{ font-size:11px; color:var(--text3); margin-top:2px; white-space:nowrap; }
 .jk-px{ text-align:right; flex:none; }
@@ -1337,10 +1339,6 @@ a.us-td-name:hover{ color:var(--accent) !important; border-bottom-color:var(--ac
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     盤中警示
   </div>
-  <div class="sidebar-link" onclick="goto('after',this)">
-    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    盤後追蹤
-  </div>
   <div class="sidebar-link" onclick="goto('tw',this)">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
     台股 Top50
@@ -1354,7 +1352,11 @@ a.us-td-name:hover{ color:var(--accent) !important; border-bottom-color:var(--ac
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8z"/></svg>
     台股新聞
   </div>
-  <div class="sidebar-section-label" style="margin-top:8px;">美股市場</div>
+  <div class="sidebar-section-label" style="margin-top:8px;">國際市場</div>
+  <div class="sidebar-link" onclick="goto('after',this)">
+    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="7.5 14.5 10.5 10.5 13 13 16.5 8.5"/></svg>
+    國際市值
+  </div>
   <div class="sidebar-link" onclick="goto('us',this)">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
     美股 Top50
@@ -1391,14 +1393,14 @@ a.us-td-name:hover{ color:var(--accent) !important; border-bottom-color:var(--ac
 
 <!-- 手機版底部 Tab -->
 <div class="bottom-nav">
+  <div class="nav-link" onclick="goto('after',this)">
+    <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="7.5 14.5 10.5 10.5 13 13 16.5 8.5"/></svg></span><span class="tab-label">國際</span>
+  </div>
   <div class="nav-link active" onclick="goto('wind',this)">
     <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg></span><span class="tab-label">風度</span>
   </div>
   <div class="nav-link" onclick="goto('intraday',this)">
     <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span class="tab-label">盤中</span>
-  </div>
-  <div class="nav-link" onclick="goto('after',this)">
-    <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span><span class="tab-label">盤後</span>
   </div>
   <div class="nav-link" onclick="goto('tw',this)">
     <span class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span><span class="tab-label">台股</span>
@@ -2339,8 +2341,8 @@ async function fetchAfterHours() {
   }
 }
 
-// ── 日韓美 Top30（TradingView 統一源；讀 Render /api/tv-top30，重新整理只重讀 KV 零外呼）──
-let _tvData = null, _jkTab = 'tw';
+// ── 國際市值：日韓美 Top30（TradingView 統一源；讀 Render /api/tv-top30，重新整理只重讀 KV 零外呼）──
+let _tvData = null, _jkTab = 'jp';
 const JK_AV_COLORS = ['#4c3fa8','#0a6b52','#8a3a1c','#0d5590','#8f2b52','#7a4b06'];
 function jkSwitch(t){ _jkTab = t; jkRender(); }
 function jkCard(s){
@@ -2352,10 +2354,11 @@ function jkCard(s){
   const px = Number.isFinite(+s.close) ? (+s.close).toLocaleString('en-US', { maximumFractionDigits: 2 }) : '—';
   const ntd = Number.isFinite(+s.ntd) ? `NT$ ${(+s.ntd).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <span style="font-size:11px">億</span>` : '—';
   const val = Number.isFinite(+s.val) ? (+s.val).toLocaleString('en-US') : '—';
+  const tvUrl = `https://www.tradingview.com/chart/?symbol=${encodeURIComponent((s.ex || '') + ':' + s.code)}`;
   return `<div class="jk-card">
   <div class="jk-rank ${rk}">${s.rank}</div>
   <div class="jk-av" style="color:${av}">${String(disp).charAt(0)}</div>
-  <div class="jk-mid"><div class="jk-nm"><b>${disp}</b><span class="jk-code">${s.code}</span></div><div class="jk-ind">${s.ind || '—'}</div></div>
+  <div class="jk-mid"><div class="jk-nm"><a class="jk-lnk" href="${tvUrl}" target="_blank" rel="noopener" title="看 TradingView 線圖"><b>${disp}</b></a><span class="jk-code">${s.code}</span></div><div class="jk-ind">${s.ind || '—'}</div></div>
   <div class="jk-px"><span class="p">${px}</span><span class="c" style="color:${cc}">${chg > 0 ? '+' : ''}${chg}%</span></div>
   <div class="jk-ntd"><div class="n">${ntd}</div><div class="r">原幣 ${val}</div></div>
 </div>`;
@@ -2363,18 +2366,16 @@ function jkCard(s){
 function jkRender(){
   const bar = document.getElementById('jk-tabs'); if (!bar) return;
   bar.querySelectorAll('.jk-tab').forEach(b => b.classList.toggle('on', b.dataset.t === _jkTab));
-  const tw = document.getElementById('jk-tw'), intl = document.getElementById('jk-intl');
-  if (!tw || !intl) return;
-  if (_jkTab === 'tw') { tw.style.display = ''; intl.style.display = 'none'; return; }
-  tw.style.display = 'none'; intl.style.display = '';
+  const intl = document.getElementById('jk-intl');
+  if (!intl) return;
   if (!_tvData) { intl.innerHTML = '<div class="loading-card">載入中，請稍候…</div>'; return; }
   const d = _tvData[_jkTab];
   if (!d || !d.ok || !Array.isArray(d.list) || !d.list.length) {
-    intl.innerHTML = '<div class="loading-card">此市場資料尚未產生<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">日韓 8:45／15:00、美股 7:30 自動更新；急用可到說明頁一鍵重建</span></div>';
+    intl.innerHTML = '<div class="loading-card">此市場資料尚未產生<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">日韓盤中每小時、美股 7:30 自動更新；急用可到說明頁一鍵重建</span></div>';
     return;
   }
   const t = new Date(d.asOf).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Taipei' });
-  const ph = d.phase === 'live' ? '早盤' : d.phase === 'final' ? '收盤' : '手動';
+  const ph = d.phase === 'live' ? '盤中' : d.phase === 'final' ? '收盤' : '手動';
   const mkName = { jp: '日股', kr: '韓股', us: '美股' }[_jkTab] || '';
   intl.innerHTML =
     `<div class="jk-head"><span class="jk-stamp">📅 ${mkName} ${ph} ${t}${d.fx && Number.isFinite(+d.fx.rate) ? `｜匯率 ${d.fx.rate}` : ''}</span><button class="jk-re" onclick="fetchTvTop30(true)">⟳ 重新整理</button></div>`
@@ -2390,7 +2391,7 @@ async function fetchTvTop30(force){
     jkRender();
   } catch (err) {
     const intl = document.getElementById('jk-intl');
-    if (intl && _jkTab !== 'tw') intl.innerHTML = `<div class="loading-card">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchTvTop30(true)">重試</button></div>`;
+    if (intl) intl.innerHTML = `<div class="loading-card">⚠️ ${err.message}<br><button class="btn btn-primary" style="margin-top:12px;" onclick="fetchTvTop30(true)">重試</button></div>`;
   }
 }
 
@@ -3131,7 +3132,7 @@ async function fetchUsNews(code) {
 
 // ── Pages ──────────────────────────────────────
 const PAGE_TITLES = {
-  wind:'風度', intraday:'盤中警示', after:'盤後追蹤', tw:'台股 Top50', us:'美股 Top50', sectors:'熱門族群', news:'台股新聞', guide:'網站說明'
+  wind:'風度', intraday:'盤中警示', after:'國際市值', tw:'台股 Top50', us:'美股 Top50', sectors:'熱門族群', news:'台股新聞', guide:'網站說明'
 };
 
 // ── 風度頁：指數雙K＋籌碼四卡（六卡並排一屏版；FinMind → Render 產 KV → Worker 供讀）──
@@ -3587,34 +3588,22 @@ const pages = {
   },
 
   after() {
-    setTimeout(fetchAfterHours, 0);
     setTimeout(fetchTvTop30, 0);
     setTimeout(jkRender, 0);
     return `<div class="page-wrap">
 <div class="page-header">
-  <div class="page-title">盤後追蹤</div>
-  <div class="page-desc">台股漲幅焦點 ｜ 日韓美 成交值 Top30</div>
+  <div class="page-title">國際市值</div>
+  <div class="page-desc">日韓美 成交值 Top30 ｜ 全市場排行 ｜ 點股名看 TradingView 線圖</div>
   <span class="head-clock"></span>
 </div>
 
 <div class="jk-tabs" id="jk-tabs">
-  <button class="jk-tab" data-t="tw" onclick="jkSwitch('tw')">台股焦點</button>
   <button class="jk-tab" data-t="jp" onclick="jkSwitch('jp')">日股成交值</button>
   <button class="jk-tab" data-t="kr" onclick="jkSwitch('kr')">韓股成交值</button>
   <button class="jk-tab" data-t="us" onclick="jkSwitch('us')">美股成交值</button>
 </div>
 
-<div id="jk-tw">
-<div class="after-info-box">
-  <span style="font-size:14px;flex-shrink:0;">ℹ️</span>
-  <span style="font-size:12px;">查看成交值前 60 名，篩選漲幅大於 7% 的股票，盤後回顧今日資金焦點，17:00 後盤後資料更新。</span>
-</div>
-
-<div id="after-list">
-  <div class="loading-card">載入中，請稍候…</div>
-</div>
-</div>
-<div id="jk-intl" style="display:none"></div>
+<div id="jk-intl"></div>
 </div>`;
   },
 
