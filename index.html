@@ -3066,7 +3066,7 @@ function renderUsTable() {
     const tag = (_usTags && _usTags[s.code]) ? _usTags[s.code] : '—';
     return `<tr onclick="openUsNews('${s.code}')">
       <td class="us-td-rank">${s.rank||i+1}${rankMark}</td>
-      <td class="us-td-code">${newBadge}${s.code}<a class="us-td-name" href="https://tw.tradingview.com/chart/?symbol=${encodeURIComponent(s.code)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name||''}</a></td>
+      <td class="us-td-code">${newBadge}${s.code}<a class="us-td-name" href="https://tw.tradingview.com/chart/?symbol=${encodeURIComponent(s.code)}" target="_blank" rel="noopener" title="${(s.name||'').replace(/"/g,'')}" onclick="event.stopPropagation()">${s.zh || s.name || ''}</a></td>
       <td class="us-td-price">$${(s.price ?? 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td class="us-td-chg ${chgCls}">${chgTxt}</td>
       <td class="us-td-days">${s.days||1}<span class="us-days-unit">天</span></td>
