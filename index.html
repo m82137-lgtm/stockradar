@@ -1042,6 +1042,28 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 .ts-hb .nm span{ font-size:10px; color:var(--text3); display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ts-hb .tr{ flex:1; background:rgba(59,130,246,.12); border-radius:999px; height:20px; position:relative; }
 .ts-hb .tr i{ position:absolute; left:0; top:0; bottom:0; background:#3b82f6; border-radius:999px; display:flex; align-items:center; justify-content:flex-end; padding-right:8px; color:#fff; font-size:11px; font-weight:700; font-style:normal; min-width:24px; }
+.ts-full{ font-size:11px; color:#3b82f6; background:rgba(59,130,246,.1); border:1px solid rgba(59,130,246,.35); border-radius:8px; padding:3px 10px; cursor:pointer; white-space:nowrap; }
+.ts-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
+.ts-gc{ background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:9px 11px; cursor:pointer; min-width:0; }
+.ts-gc .gh{ display:flex; align-items:center; gap:6px; }
+.ts-gc .gh b{ font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ts-gc .ga{ margin-left:auto; color:#3b82f6; font-size:13px; }
+.ts-gc .gl{ font-size:10px; color:var(--text3); margin-top:3px; }
+.ts-gc .gl .c{ color:#8c5cf6; font-weight:800; }
+.ts-gc .gt{ font-size:11px; color:var(--text2); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ts-gc .gs{ display:flex; gap:4px; flex-wrap:wrap; margin-top:6px; }
+.ts-nb{ background:rgba(59,130,246,.14); color:#3b82f6; font-size:9px; font-weight:800; padding:1px 6px; border-radius:5px; margin-right:5px; vertical-align:1px; }
+.ts-chip{ display:inline-flex; align-items:center; gap:3px; background:var(--bg2); border:1px solid var(--border); color:var(--text2); font-size:10px; padding:1px 7px; border-radius:6px; white-space:nowrap; }
+.ts-chip u{ text-decoration:none; color:#8c5cf6; font-family:'JetBrains Mono',monospace; font-size:9px; }
+.ts-chipsbox{ background:rgba(59,130,246,.06); border:1px solid rgba(59,130,246,.25); border-radius:11px; padding:9px 12px; margin-bottom:10px; display:flex; gap:5px; flex-wrap:wrap; align-items:center; }
+.ts-chipsbox .cb-t{ font-size:11px; color:#3b82f6; font-weight:700; width:100%; margin-bottom:2px; }
+.ts-ncard{ background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:11px 13px; margin-bottom:9px; cursor:pointer; }
+.ts-ncard .nc-tags{ display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+.ts-stag{ background:rgba(59,130,246,.12); color:#3b82f6; font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px; }
+.ts-ftag{ background:rgba(245,158,11,.12); color:#d97706; font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px; }
+.nc-open{ margin-left:auto; color:var(--text3); font-size:13px; }
+.ts-ncard .nc-title{ font-size:14px; font-weight:700; line-height:1.5; margin-bottom:7px; }
+.ts-ncard .nc-meta{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:11px; color:var(--text3); font-family:'JetBrains Mono',monospace; }
 /* 指標股 chip 折疊:手機露前3顆、桌機露前6顆；展開時全露 */
 .sector-chips .sec-chip-x6{ display:none; }   /* 第4~6顆:手機預設收 */
 .sector-chips .sec-chip-x7{ display:none; }   /* 第7顆起:預設收 */
@@ -3780,6 +3802,7 @@ const pages = {
   <div class="ts-strip">
     <div class="ts-strip-h">📈 子產業提及排行<small id="ts-strip-note">近三個月 Top 5</small>
       <span class="ts-pills"><span class="ts-pd" data-d="7" onclick="tsSetDays(7)">一週</span><span class="ts-pd" data-d="30" onclick="tsSetDays(30)">一個月</span><span class="ts-pd on" data-d="90" onclick="tsSetDays(90)">三個月</span></span>
+      <span class="ts-full" onclick="tsOpen('subs')">完整排行 →</span>
     </div>
     <div class="ts-sub5" id="ts-top5"></div>
   </div>
@@ -4228,7 +4251,9 @@ const TS_SUB_DICT = {
   "ETF": ["ETF"],
   "虛擬貨幣": ["虛擬貨幣","比特幣","加密貨幣"],
 };
-let _tsDays = 90, _tsView = null;   // null | 'stocks' | 'subs'
+let _tsDays = 90, _tsView = null, _tsSub = null, _tsNewMore = false;   // _tsView: null|'stocks'|'subs'|'sub1'；_tsSub=第三層題材名
+function tsOpenSub(name){ _tsSub = name; tsOpen('sub1'); }
+function tsNewMoreToggle(){ _tsNewMore = !_tsNewMore; tsRenderView(); }
 function tsKwHit(title, kw) {
   if (/^[A-Za-z0-9 ]+$/.test(kw)) return new RegExp('(?<![A-Za-z0-9])' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![A-Za-z0-9])', 'i').test(title);
   return title.includes(kw);
@@ -4259,10 +4284,15 @@ function tsAggSubs(days) {
     const hit = eff.filter(n => kws.some(k => tsKwHit(String(n.title || ''), k)));
     if (!hit.length) continue;
     const sc = {};
-    for (const n of hit) for (const s of (n.stocks || [])) { if (s && s.name) sc[s.name] = (sc[s.name] || 0) + 1; }
-    const reps = Object.entries(sc).sort((a, b) => b[1] - a[1]).slice(0, 4).map(x => x[0]);
+    for (const n of hit) for (const s of (n.stocks || [])) {
+      if (!s || !s.code) continue;
+      if (!sc[s.code]) sc[s.code] = { code: s.code, name: s.name || s.code, count: 0 };
+      sc[s.code].count++;
+    }
+    const stocksAgg = Object.values(sc).sort((a, b) => b.count - a.count);
+    const reps = stocksAgg.slice(0, 4).map(x => x.name);
     const latest = hit.reduce((m, n) => Math.max(m, new Date(n.time).getTime() || 0), 0);
-    out.push({ name, count: hit.length, reps, latest, items: hit.slice().sort((a, b) => new Date(b.time) - new Date(a.time)) });
+    out.push({ name, count: hit.length, reps, stocksAgg, latest, items: hit.slice().sort((a, b) => new Date(b.time) - new Date(a.time)) });
   }
   return out.sort((a, b) => b.count - a.count || b.latest - a.latest);
 }
@@ -4277,7 +4307,7 @@ function renderTsEntry() {
   const box = document.getElementById('ts-top5'); if (!box) return;
   const subs = tsAggSubs(_tsDays).slice(0, 5);
   box.innerHTML = subs.length
-    ? subs.map(s => `<div class="ts-sc" onclick="tsOpen('subs')"><b>${s.name}</b><span>最新 ${tsFmtD(s.latest)} · <span class="c">${s.count}</span> 次</span></div>`).join('')
+    ? subs.map(s => `<div class="ts-sc" onclick="tsOpenSub('${s.name}')"><b>${s.name}</b><span>最新 ${tsFmtD(s.latest)} · <span class="c">${s.count}</span> 次</span></div>`).join('')
     : `<div style="font-size:12px;color:var(--text3);padding:4px 2px;">⚡有效題材累積中（每交易日 10:15 起標記，統計會自己長大）</div>`;
   if (_tsView) tsRenderView();   // 重新整理時若視圖開著，同步刷新
 }
@@ -4287,6 +4317,8 @@ function tsBack(){ _tsView = null; const vw = document.getElementById('ts-view')
 function tsPills(){ return `<span class="ts-pills"><span class="ts-pd${_tsDays===7?' on':''}" data-d="7" onclick="tsSetDays(7)">一週</span><span class="ts-pd${_tsDays===30?' on':''}" data-d="30" onclick="tsSetDays(30)">一個月</span><span class="ts-pd${_tsDays===90?' on':''}" data-d="90" onclick="tsSetDays(90)">三個月</span></span>`; }
 function tsRenderView() {
   const vw = document.getElementById('ts-view'); if (!vw || !_tsView) return;
+  const empty = `<div class="loading-card">⚡有效題材累積中（每交易日 10:15 起標記）<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">有第一則有效新聞後，這裡就會開始長排行</span></div>`;
+  // ── 第二層 A：主流指標股提及排行 ──
   if (_tsView === 'stocks') {
     const { effCount, stocks } = tsAggStocks(_tsDays);
     const top = stocks.slice(0, 20);
@@ -4305,24 +4337,55 @@ ${stocks.length ? `
 </div>
 <div class="ts-card"><div class="ts-card-t">被提及次數排名 <small>點列展開該股的有效新聞</small></div>
 ${stocks.map((s, i) => `<div class="ts-row" onclick="tsToggleRow(this)"><span class="ts-rn${i < 3 ? ' g' : ''}">${i + 1}</span><b>${s.name}</b><span class="ts-code">${s.code}</span><span class="ts-x"><span class="ts-cnt">${s.count} 次</span><span class="ts-exp">展開 ▼</span></span></div>${s.items.slice().sort((a, b) => new Date(b.time) - new Date(a.time)).map(n => tsNewsLine(n).replace('class="ts-news"', 'class="ts-news" style="display:none"')).join('')}`).join('')}
-</div>` : `<div class="loading-card">⚡有效題材累積中（每交易日 10:15 起標記）<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">有第一則有效新聞後，這裡就會開始長排行</span></div>`}`;
-  } else {
-    const subs = tsAggSubs(_tsDays);
-    const max = subs.length ? subs[0].count : 1;
-    const news3 = subs.slice().sort((a, b) => b.latest - a.latest).slice(0, 3);
-    vw.innerHTML = `
-<span class="ts-back" onclick="tsBack()">← 返回族群新聞</span>
-<div class="ts-strip-h" style="margin-bottom:10px;">📈 子產業提及排行<small>母體＝⚡有效題材</small>${tsPills()}</div>
-${subs.length ? `
-<div class="ts-card"><div class="ts-card-t">最新出現題材 <small>依最新有效新聞時間</small></div>
-  <div class="ts-sub5">${news3.map(s => `<div class="ts-sc" style="flex-basis:170px;"><b><span style="background:rgba(59,130,246,.14);color:#3b82f6;font-size:9px;font-weight:800;padding:1px 6px;border-radius:5px;margin-right:5px;">NEW</span>${s.name}</b><span>${tsFmtD(s.latest)} · <span class="c">${s.count}</span> 次</span></div>`).join('')}</div>
-</div>
-<div class="ts-card"><div class="ts-card-t">子產業提及排行 <small>點列展開該題材的有效新聞</small></div>
-${subs.map((s, i) => `<div class="ts-hb" onclick="tsToggleRow(this)"><div class="nm"><b>${i + 1} ${s.name}</b><span>${s.reps.join('、') || '—'}</span></div><div class="tr"><i style="width:${Math.max(12, Math.round(s.count / max * 100))}%">${s.count}</i></div></div>${s.items.map(n => tsNewsLine(n).replace('class="ts-news"', 'class="ts-news" style="display:none"')).join('')}`).join('')}
-</div>` : `<div class="loading-card">⚡有效題材累積中（每交易日 10:15 起標記）<br><span style="font-size:12px;color:var(--text3);display:block;margin-top:8px;">有第一則有效新聞後，這裡就會開始長排行</span></div>`}`;
+</div>` : empty}`;
+    return;
   }
+  // ── 第三層：單一子產業新聞頁 ──
+  if (_tsView === 'sub1') {
+    const sub = tsAggSubs(_tsDays).find(x => x.name === _tsSub);
+    vw.innerHTML = `
+<span class="ts-back" onclick="tsOpen('subs')">← 返回子產業排行</span>
+<div class="ts-strip-h" style="margin-bottom:10px;">🔥 ${_tsSub} 新聞<small>${tsDayLabel(_tsDays)}有效題材中，歸類到此子產業的新聞</small>${tsPills()}</div>
+${sub ? `
+<div class="ts-stat3">
+  <div class="ts-st"><div class="l">📰 相關新聞</div><div class="v">${sub.count}</div></div>
+  <div class="ts-st"><div class="l">🏷️ 相關股票</div><div class="v">${sub.stocksAgg.length}</div></div>
+  <div class="ts-st"><div class="l">📅 統計區間</div><div class="v" style="font-size:15px;padding-top:3px;">${tsDayLabel(_tsDays)}</div></div>
+</div>
+<div class="ts-chipsbox"><div class="cb-t">此子產業相關指標股</div>${sub.stocksAgg.slice(0, 10).map(x => `<span class="ts-chip">${x.name} <u>${x.code}</u></span>`).join('')}</div>
+${sub.items.map(n => `
+<div class="ts-ncard" onclick="window.open('${n.url}','_blank')">
+  <div class="nc-tags"><span class="ts-stag">${_tsSub}</span><span class="ts-ftag">🔥 熱門族群焦點</span><span class="nc-open">↗</span></div>
+  <div class="nc-title">${hlHotKw(n.title)}</div>
+  <div class="nc-meta"><span>${tsFmtD(n.time)}</span>${(n.stocks || []).slice(0, 6).map(s => `<span class="ts-chip">${s.name} <u>${s.code}</u></span>`).join('')}</div>
+</div>`).join('')}` : empty}`;
+    return;
+  }
+  // ── 第二層 B：子產業提及排行（三段式：最新九宮格＋橫條前20＋題材新聞入口）──
+  const subs = tsAggSubs(_tsDays);
+  const max = subs.length ? subs[0].count : 1;
+  const byNew = subs.slice().sort((a, b) => b.latest - a.latest);
+  const newShow = _tsNewMore ? byNew.slice(0, 15) : byNew.slice(0, 3);
+  const gc = (s, showNew) => `
+<div class="ts-gc" onclick="tsOpenSub('${s.name}')">
+  <div class="gh"><b>${showNew ? '<span class="ts-nb">NEW</span>' : ''}${s.name}</b><span class="ga">→</span></div>
+  ${showNew ? `<div class="gl">最新 ${tsFmtD(s.latest)} · <span class="c">${s.count}</span> 次</div><div class="gt">${s.items[0] ? s.items[0].title : ''}</div>` : `<div class="gl"><span class="c" style="font-size:15px;">${s.count}</span> 次提及</div>`}
+  <div class="gs">${s.stocksAgg.slice(0, showNew ? 3 : 6).map(x => `<span class="ts-chip">${x.name}</span>`).join('')}${!showNew && s.stocksAgg.length > 6 ? `<span class="ts-chip">+${s.stocksAgg.length - 6}</span>` : ''}</div>
+</div>`;
+  vw.innerHTML = `
+<span class="ts-back" onclick="tsBack()">← 返回族群新聞</span>
+<div class="ts-strip-h" style="margin-bottom:10px;">📈 子產業提及排行<small>${tsDayLabel(_tsDays)}有效題材中，指標主流股反推的子產業熱度</small>${tsPills()}</div>
+${subs.length ? `
+<div class="ts-card"><div class="ts-card-t" style="display:flex;align-items:center;">最新出現題材 <small style="margin-left:6px;">依最新有效題材新聞時間排序</small><span class="ts-full" style="margin-left:auto;" onclick="tsNewMoreToggle()">${_tsNewMore ? '收合' : '看更多'}</span></div>
+  <div class="ts-grid">${newShow.map(s => gc(s, true)).join('')}</div>
+</div>
+<div class="ts-card"><div class="ts-card-t">子產業提及排行前 ${Math.min(20, subs.length)} <small>由多到少排列；點列可查看該子產業新聞</small><span style="float:right;font-weight:400;font-size:10px;color:var(--text3);">單位：有效題材新聞篇數</span></div>
+${subs.slice(0, 20).map((s, i) => `<div class="ts-hb" onclick="tsOpenSub('${s.name}')"><div class="nm"><b>${i + 1} ${s.name}</b><span>${s.reps.join('、') || '—'}</span></div><div class="tr"><i style="width:${Math.max(12, Math.round(s.count / max * 100))}%">${s.count}</i></div></div>`).join('')}
+</div>
+<div class="ts-card"><div class="ts-card-t">題材新聞入口 <small>點擊卡片查看該題材相關熱門族群新聞</small><span style="float:right;font-weight:400;font-size:10px;color:var(--text3);">Top 20</span></div>
+  <div class="ts-grid">${subs.slice(0, 20).map(s => gc(s, false)).join('')}</div>
+</div>` : empty}`;
 }
-
 // ── 新聞頁雙 tab（鉅亨網 / 個股新聞）──────────────
 let codeNameMap = null;   // 股號→股名對照表（從 Worker 抓，本地快取）
 // 對照表相容新舊格式：舊 = {code:"股名"}；新 = {code:{name,market}}
