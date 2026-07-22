@@ -642,6 +642,8 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:400px; }   /* 抽屜開啟：表�
   .iv2-table .c-chg{ width:14vw; } .iv2-table .c-vol{ width:23vw; } .iv2-table .c-k15{ width:12vw; }
   .iv2-table .c-mo{ width:64px; } .iv2-table .c-rs{ width:72px; }
   .iv2-table .c-kbar{ width:44px; } .iv2-table .c-spark{ width:104px; } .iv2-table .c-k5{ width:76px; }
+  .ts-strip-h > small{ width:100%; order:3; margin-top:3px; }   /* 手機：週期說明擠到最下不佔膠囊行 */
+  .ts-strip-h .ts-pills{ margin-left:0; width:100%; }           /* 膠囊整排佔滿寬，完整排行靠右同排 */
 }
 /* 桌機：固定像素欄寬＋整表 min-width，超出畫面時整區橫向滑動（根治欄位擠壓字疊字）*/
 @media (min-width:640px){
@@ -1042,7 +1044,7 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 .ts-hb .nm span{ font-size:10px; color:var(--text3); display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ts-hb .tr{ flex:1; background:rgba(59,130,246,.12); border-radius:999px; height:20px; position:relative; }
 .ts-hb .tr i{ position:absolute; left:0; top:0; bottom:0; background:#3b82f6; border-radius:999px; display:flex; align-items:center; justify-content:flex-end; padding-right:8px; color:#fff; font-size:11px; font-weight:700; font-style:normal; min-width:24px; }
-.ts-full{ font-size:11px; color:#3b82f6; background:rgba(59,130,246,.1); border:1px solid rgba(59,130,246,.35); border-radius:8px; padding:3px 10px; cursor:pointer; white-space:nowrap; }
+.ts-full{ font-size:11px; color:#3b82f6; background:rgba(59,130,246,.1); border:1px solid rgba(59,130,246,.35); border-radius:8px; padding:3px 10px; cursor:pointer; white-space:nowrap; margin-left:auto; }
 .ts-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
 .ts-gc{ background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:9px 11px; cursor:pointer; min-width:0; }
 .ts-gc .gh{ display:flex; align-items:center; gap:6px; }
@@ -3800,9 +3802,8 @@ const pages = {
 <div id="ts-entry" style="display:none">
   <div class="ts-enter" onclick="tsOpen('stocks')">📊 主流指標股提及排行<span>查看排行 →</span></div>
   <div class="ts-strip">
-    <div class="ts-strip-h">📈 子產業提及排行<small id="ts-strip-note">近三個月 Top 5</small>
-      <span class="ts-pills"><span class="ts-pd" data-d="7" onclick="tsSetDays(7)">一週</span><span class="ts-pd" data-d="30" onclick="tsSetDays(30)">一個月</span><span class="ts-pd on" data-d="90" onclick="tsSetDays(90)">三個月</span></span>
-      <span class="ts-full" onclick="tsOpen('subs')">完整排行 →</span>
+    <div class="ts-strip-h">📈 子產業提及排行<small id="ts-strip-note">近一週 Top 5</small>
+      <span class="ts-pills"><span class="ts-pd on" data-d="7" onclick="tsSetDays(7)">一週</span><span class="ts-pd" data-d="30" onclick="tsSetDays(30)">一個月</span><span class="ts-pd" data-d="90" onclick="tsSetDays(90)">三個月</span><span class="ts-full" onclick="tsOpen('subs')">完整排行 →</span></span>
     </div>
     <div class="ts-sub5" id="ts-top5"></div>
   </div>
@@ -4251,7 +4252,7 @@ const TS_SUB_DICT = {
   "ETF": ["ETF"],
   "虛擬貨幣": ["虛擬貨幣","比特幣","加密貨幣"],
 };
-let _tsDays = 90, _tsView = null, _tsSub = null, _tsNewMore = false;   // _tsView: null|'stocks'|'subs'|'sub1'；_tsSub=第三層題材名
+let _tsDays = 7, _tsView = null, _tsSub = null, _tsNewMore = false;   // _tsView: null|'stocks'|'subs'|'sub1'；_tsSub=第三層題材名（預設一週）
 function tsOpenSub(name){ _tsSub = name; tsOpen('sub1'); }
 function tsNewMoreToggle(){ _tsNewMore = !_tsNewMore; tsRenderView(); }
 function tsKwHit(title, kw) {
