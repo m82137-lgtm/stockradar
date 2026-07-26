@@ -3587,7 +3587,7 @@ async function loadChipIndicators() {
       rows.push(`<div class="chip-grid2">${balC}${retC}</div>`);
     }
     if (!rows.length) return;
-    box.innerHTML = rows.join('') + `<div class="chip-src">指數/期貨籌碼：FinMind（證交所＋期交所彙整）· 台指VIX：期交所TAIFEX · 融資餘額/熱度：證交所＋櫃買自算（上市＋上櫃合併／反向指標，高=融資擁擠）· 每交易日 17:45／21:45／22:10 更新 · 按住圖表左右滑可看各日</div>`;
+    box.innerHTML = rows.join('') + `<div class="chip-src">指數/期貨籌碼：FinMind（證交所＋期交所彙整）· 台指VIX：期交所TAIFEX · 融資餘額/熱度：證交所＋櫃買自算（上市＋上櫃合併·維持率分子不含ETF／反向指標，高=融資擁擠）· 每交易日 17:45／21:45／22:10 更新 · 按住圖表左右滑可看各日</div>`;
     box.style.display = '';
     chipSet(false, 0);
     chipBindScrub();
