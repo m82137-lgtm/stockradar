@@ -383,6 +383,7 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
   padding:8px 2px;
   -webkit-tap-highlight-color:transparent;
   user-select:none;
+  touch-action:manipulation;   /* 砍掉 iOS 300ms 雙擊縮放等待（導航 lag 主因） */
   transition:color 0.15s;
 }
 
@@ -4270,7 +4271,7 @@ function tsNewMoreToggle(){ _tsNewMore = !_tsNewMore; tsRenderView(); }
 (function () {
   let sx = 0, sy = 0, st = 0, tgt = null;
   document.addEventListener('touchstart', (e) => {
-    const card = e.target && e.target.closest ? e.target.closest('.ts-sc,.ts-enter,.ts-pd,.ts-full,.ts-back,.ts-gc,.ts-hb,.ts-row,.ts-ncard,.ts-news') : null;
+    const card = e.target && e.target.closest ? e.target.closest('.ts-sc,.ts-enter,.ts-pd,.ts-full,.ts-back,.ts-gc,.ts-hb,.ts-row,.ts-ncard,.ts-news,.nav-link') : null;
     if (!card) { tgt = null; return; }
     tgt = card; sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
   }, { passive: true });
