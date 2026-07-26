@@ -4261,6 +4261,23 @@ const TS_SUB_DICT = {
 let _tsDays = 7, _tsView = null, _tsSub = null, _tsNewMore = false, _tsSubFrom = 'list';   // _tsSubFrom：第三層從哪進來（list=族群首頁直達／subs=排行頁），返回鍵照這個走
 function tsOpenSub(name){ _tsSubFrom = (_tsView === 'subs') ? 'subs' : 'list'; _tsSub = name; tsOpen('sub1'); }
 function tsNewMoreToggle(){ _tsNewMore = !_tsNewMore; tsRenderView(); }
+// iOS 橫滑容器快速輕點：Safari 在可滑區域只要手指微動就取消 click（Top5 卡「有時點不進」的真兇）。
+// 自己判定：位移 <10px 且 <500ms ＝點擊 → 手動觸發；位移大＝滑動照舊。preventDefault 擋掉合成 click 防重複開頁。
+(function () {
+  let sx = 0, sy = 0, st = 0, tgt = null;
+  document.addEventListener('touchstart', (e) => {
+    const card = e.target && e.target.closest ? e.target.closest('.ts-sub5 .ts-sc') : null;
+    if (!card) { tgt = null; return; }
+    tgt = card; sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
+  }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    if (!tgt) return;
+    const t = e.changedTouches[0];
+    const moved = Math.hypot(t.clientX - sx, t.clientY - sy);
+    const card = tgt; tgt = null;
+    if (moved < 10 && Date.now() - st < 500) { e.preventDefault(); card.click(); }
+  }, { passive: false });
+})();
 function tsKwHit(title, kw) {
   if (/^[A-Za-z0-9 ]+$/.test(kw)) return new RegExp('(?<![A-Za-z0-9])' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![A-Za-z0-9])', 'i').test(title);
   return title.includes(kw);
