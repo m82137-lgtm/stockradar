@@ -1013,7 +1013,8 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 .ts-pd{ font-size:11px; padding:3px 9px; border-radius:8px; border:1px solid var(--border); background:var(--bg2); color:var(--text2); cursor:pointer; }
 .ts-pd.on{ background:rgba(140,92,246,.14); border-color:rgba(140,92,246,.5); color:#8c5cf6; font-weight:700; }
 .ts-sub5{ display:flex; gap:8px; overflow-x:auto; padding-bottom:3px; }
-.ts-sc{ flex:0 0 128px; background:var(--bg3); border:1px solid var(--border); border-radius:9px; padding:8px 10px; cursor:pointer; }
+.ts-sc{ flex:0 0 128px; background:var(--bg3); border:1px solid var(--border); border-radius:9px; padding:8px 10px; cursor:pointer; position:relative; }
+.ts-go{ position:absolute; top:7px; right:9px; color:#3b82f6; font-style:normal; font-size:12px; }
 .ts-sc b{ font-size:13px; display:block; margin-bottom:2px; }
 .ts-sc span{ font-size:10px; color:var(--text3); }
 .ts-sc .c{ color:#8c5cf6; font-weight:800; }
@@ -1050,6 +1051,9 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 .ts-full{ font-size:11px; color:#3b82f6; background:rgba(59,130,246,.1); border:1px solid rgba(59,130,246,.35); border-radius:8px; padding:3px 10px; cursor:pointer; white-space:nowrap; margin-left:auto; }
 /* iOS 觸控修復：取消 300ms 縮放等待，點擊立即生效（Top5 卡「要按很多下」的解） */
 .ts-enter,.ts-sc,.ts-gc,.ts-hb,.ts-row,.ts-news,.ts-ncard,.ts-pd,.ts-full,.ts-back{ touch-action:manipulation; -webkit-tap-highlight-color:rgba(140,92,246,.12); }
+/* 隱形擴大點擊區：膠囊視覺小但可點範圍上下各+10px（iPhone 44px 舒適標準），左右+3px 不跨到鄰居 */
+.ts-pd,.ts-full{ position:relative; }
+.ts-pd::after,.ts-full::after{ content:''; position:absolute; inset:-10px -3px; }
 .ts-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
 .ts-gc{ background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:9px 11px; cursor:pointer; min-width:0; }
 .ts-gc .gh{ display:flex; align-items:center; gap:6px; }
@@ -4266,7 +4270,7 @@ function tsNewMoreToggle(){ _tsNewMore = !_tsNewMore; tsRenderView(); }
 (function () {
   let sx = 0, sy = 0, st = 0, tgt = null;
   document.addEventListener('touchstart', (e) => {
-    const card = e.target && e.target.closest ? e.target.closest('.ts-sub5 .ts-sc') : null;
+    const card = e.target && e.target.closest ? e.target.closest('.ts-sc,.ts-enter,.ts-pd,.ts-full,.ts-back,.ts-gc,.ts-hb,.ts-row,.ts-ncard,.ts-news') : null;
     if (!card) { tgt = null; return; }
     tgt = card; sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
   }, { passive: true });
@@ -4331,7 +4335,7 @@ function renderTsEntry() {
   const box = document.getElementById('ts-top5'); if (!box) return;
   const subs = tsAggSubs(_tsDays).slice(0, 5);
   box.innerHTML = subs.length
-    ? subs.map(s => `<div class="ts-sc" onclick="tsOpenSub('${s.name}')"><b>${s.name}</b><span>最新 ${tsFmtD(s.latest)} · <span class="c">${s.count}</span> 次</span></div>`).join('')
+    ? subs.map(s => `<div class="ts-sc" onclick="tsOpenSub('${s.name}')"><i class="ts-go">→</i><b>${s.name}</b><span>最新 ${tsFmtD(s.latest)} · <span class="c">${s.count}</span> 次</span></div>`).join('')
     : `<div style="font-size:12px;color:var(--text3);padding:4px 2px;">⚡有效題材累積中（每交易日 10:15 起標記，統計會自己長大）</div>`;
   if (_tsView) tsRenderView();   // 重新整理時若視圖開著，同步刷新
 }
