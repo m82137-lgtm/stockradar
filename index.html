@@ -88,7 +88,7 @@ body {
   font-family:'Noto Sans TC',sans-serif;
   background:var(--bg);
   color:var(--text);
-  min-height:100vh;
+  min-height:100dvh;   /* iOS：100vh 比 100dvh 高一條 Safari 工具列，會多出可捲空白 */
   font-size:15px;
   line-height:1.6;
   transition: background 0.2s, color 0.2s;
@@ -636,6 +636,9 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:440px; }   /* 抽屜開啟：表�
 @media (max-width:639px){
   /* 手機橫向滑動（使用者授權）：原六欄用 vw 精準佔滿一個螢幕寬（15MK 右緣＝畫面右緣，同改版前），
      新欄位（月K/RS動能/當日K/走勢/近五日K）在畫面外，左右滑看。月K=64px、RS=72px，故 +360px（224+64+72） */
+  /* 滿版校正（07-27）：底部導航實際 = 72px + 安全區（body padding-bottom 同值），頂部 .top-bar=36px。
+     原式扣 60px 少扣，文件比可視區高約 46px＝手指上下滑出現空白再彈回。此處按實際佔位重算。 */
+  .iv2{ height:calc(100dvh - 36px - 72px - env(safe-area-inset-bottom,0px)); }
   .iv2-tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:none; }
   body.iv2-has-sel .iv2-tablewrap{ margin-right:0; }   /* 手機維持底部30vh面板，不讓位 */
   .iv2-table{ min-width:calc(100vw + 360px); }
@@ -781,7 +784,7 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 @media (max-width:639px){
   .iv2-ws{ flex-direction:column; }
   .iv2-news{ position:static; transform:none; transition:none; box-shadow:none; z-index:auto; max-width:none; flex:0 0 auto; width:auto; height:0; border-left:none; border-top:1px solid var(--border); overflow:hidden; }
-  body.iv2-has-sel .iv2-news{ height:32vh; }
+  body.iv2-has-sel .iv2-news{ height:32dvh; }
   .iv2-nd-x{ display:block; }
   /* 工具列壓成一排：即時偵測 + 排序同列、字縮小、不換行 */
   .iv2-tools{ flex-wrap:nowrap; gap:6px; padding:6px 12px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
@@ -2258,10 +2261,22 @@ async function klLoad(){
     KL.rows=j.rows; klRender();
   }catch(e){ if(KL.code===myCode) kb.innerHTML=`<div class="kl-load">K線載入失敗（${String(e.message||'').slice(0,40)}）</div>`; }
 }
+// 報價新鮮度守門員（07-27 殘影根治）：Worker 只在 isTrading 時改寫 alert，故 s.ts 就是報價的產生時刻。
+// ts 的台北日期 ≠ 今天 ⇒ 這份報價是舊榜殘留（如週一開盤前仍掛著上週五的榜），一律禁止組今日活棒。
+// 無 ts（舊資料）才退回粗略時段判斷。klLive 與 ivK5 共用。
+function klTwDate(ms){ return new Date(ms+8*3600e3).toISOString().slice(0,10); }
+function quoteFresh(s){
+  if(!s) return false;
+  const today=klTwDate(Date.now());
+  if(s.ts) return klTwDate(+s.ts)===today;
+  const n=new Date(Date.now()+8*3600e3), hh=n.getUTCHours(), dow=n.getUTCDay();
+  return !(dow===0||dow===6||hh<9||hh>=17);
+}
 function klLive(rows){   // 今日活棒：盤中每5分鐘跟著面板報價長；FinMind 已含今日則覆蓋
   const s=KL.s; if(!s) return rows;
+  if(!quoteFresh(s)) return rows;   // 第一道：報價不是今天的（舊榜殘留）→ 不組活棒
   const now=new Date(Date.now()+8*3600e3), hh=now.getUTCHours(), dow=now.getUTCDay();
-  if(dow===0||dow===6||hh<9||hh>=17) return rows;   // 非交易時段（清晨/晚間/週末）：面板是舊榜，不組活棒（防殘影）
+  if(dow===0||dow===6||hh<9||hh>=17) return rows;   // 第二道：非交易時段（清晨/晚間/週末）不組活棒
   const o=+(s.openPrice||0), c=+(s.price||0); if(!o||!c) return rows;
   const h=Math.max(+(s.h||0)||c,o,c), l=Math.min((+(s.l||0)||Infinity),o,c);
   const v=Math.round(+(s.vol||0));
@@ -2428,10 +2443,16 @@ function ivK5(s) {
       if (arr[i]) hist.push(arr[i]);
     }
   }
-  const past = hist.slice(-4);
   const o = +(s.openPrice || 0), c = +(s.price || 0);
   let h = +(s.h || 0), l = +(s.l || 0);
-  const today = (o && c) ? [o, h || Math.max(o, c), l || Math.min(o, c), c] : null;
+  // 殘影根治（07-27）：報價不新鮮就不畫今日棒——否則週一開盤前，庫裡的上週五真棒
+  // 已不再被 twToday 排除，而舊榜凍結報價又組出同一根，末兩根四價全同＝多一根。
+  let today = (quoteFresh(s) && o && c) ? [o, h || Math.max(o, c), l || Math.min(o, c), c] : null;
+  const past = hist.slice(today ? -4 : -5);   // 無活棒時補滿 5 根真棒，避免少一根
+  if (today && past.length) {                 // 第二道保險：與前一根四價全同＝重複，撤掉
+    const pv = past[past.length - 1];
+    if (pv[0] === today[0] && pv[1] === today[1] && pv[2] === today[2] && pv[3] === today[3]) today = null;
+  }
   const cs = today ? [...past, today] : past;
   if (!cs.length) return '<span style="color:var(--text3)">—</span>';
   let lo = Infinity, hi = -Infinity;
@@ -2441,7 +2462,9 @@ function ivK5(s) {
   const y = v => (H - 3 - (v - lo) / rng * (H - 6));
   let g = '';
   // 昨收基準灰虛線（與走勢欄同款）：today 在時取最後一根歷史K的收盤
-  const prevC = (today && past.length) ? past[past.length - 1][3] : null;
+  const refBar = today ? (past.length ? past[past.length - 1] : null)
+                       : (past.length > 1 ? past[past.length - 2] : null);
+  const prevC = refBar ? refBar[3] : null;
   if (prevC != null) g += `<line x1="0" y1="${y(prevC).toFixed(1)}" x2="${W}" y2="${y(prevC).toFixed(1)}" stroke="var(--text3)" stroke-dasharray="3 3" opacity=".55"/>`;
   cs.forEach((d, i) => {
     const x = (off + i) * slot, cx = x + slot / 2;
