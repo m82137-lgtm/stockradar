@@ -642,8 +642,11 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:400px; }   /* 抽屜開啟：表�
   .iv2-table .c-chg{ width:14vw; } .iv2-table .c-vol{ width:23vw; } .iv2-table .c-k15{ width:12vw; }
   .iv2-table .c-mo{ width:64px; } .iv2-table .c-rs{ width:72px; }
   .iv2-table .c-kbar{ width:44px; } .iv2-table .c-spark{ width:104px; } .iv2-table .c-k5{ width:76px; }
-  .ts-strip-h > small{ width:100%; order:3; margin-top:3px; }   /* 手機：週期說明擠到最下不佔膠囊行 */
-  .ts-strip-h .ts-pills{ margin-left:0; width:100%; }           /* 膠囊整排佔滿寬，完整排行靠右同排 */
+  .ts-strip-h{ gap:4px 5px; font-size:12.5px; }
+  .ts-strip-h > small{ width:100%; order:3; margin-top:2px; }   /* 週期說明獨立掉到下行 */
+  .ts-strip-h .ts-pills{ gap:3px; }                              /* 標題＋膠囊＋完整排行同一排（縮字級塞進393px） */
+  .ts-pd{ font-size:10px; padding:3px 7px; }
+  .ts-full{ font-size:10px; padding:3px 7px; }
 }
 /* 桌機：固定像素欄寬＋整表 min-width，超出畫面時整區橫向滑動（根治欄位擠壓字疊字）*/
 @media (min-width:640px){
@@ -1045,6 +1048,8 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 .ts-hb .tr{ flex:1; background:rgba(59,130,246,.12); border-radius:999px; height:20px; position:relative; }
 .ts-hb .tr i{ position:absolute; left:0; top:0; bottom:0; background:#3b82f6; border-radius:999px; display:flex; align-items:center; justify-content:flex-end; padding-right:8px; color:#fff; font-size:11px; font-weight:700; font-style:normal; min-width:24px; }
 .ts-full{ font-size:11px; color:#3b82f6; background:rgba(59,130,246,.1); border:1px solid rgba(59,130,246,.35); border-radius:8px; padding:3px 10px; cursor:pointer; white-space:nowrap; margin-left:auto; }
+/* iOS 觸控修復：取消 300ms 縮放等待，點擊立即生效（Top5 卡「要按很多下」的解） */
+.ts-enter,.ts-sc,.ts-gc,.ts-hb,.ts-row,.ts-news,.ts-ncard,.ts-pd,.ts-full,.ts-back{ touch-action:manipulation; -webkit-tap-highlight-color:rgba(140,92,246,.12); }
 .ts-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
 .ts-gc{ background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:9px 11px; cursor:pointer; min-width:0; }
 .ts-gc .gh{ display:flex; align-items:center; gap:6px; }
@@ -4177,7 +4182,8 @@ function renderSectors(contentEl, items) {
         let extra = '';
         if (idx >= 3 && idx < 6) extra = ' sec-chip-x6';   // 第4~6顆:桌機露、手機收
         else if (idx >= 6)       extra = ' sec-chip-x7';   // 第7顆起:展開才露
-        return `<span class="sector-chip${extra}" onclick="event.stopPropagation();window.open('${ivTvUrl(s)}','_blank')"><span class="sc-name">${s.name}</span><span class="sc-code">${s.code}</span></span>`;
+        const isEff = Array.isArray(n.eff) && n.eff.map(String).includes(String(s.code));   // 有效題材觸發股（兩邊轉字串防型別誤殺）
+        return `<span class="sector-chip${isEff?' chip-eff':''}${extra}" onclick="event.stopPropagation();window.open('${ivTvUrl(s)}','_blank')">${isEff?'<span class="sc-bolt">⚡</span>':''}<span class="sc-name">${s.name}</span><span class="sc-code">${s.code}</span></span>`;
       }).join('');
       // +N 鈕:手機基準(超過3顆就有)。桌機已露6顆，若總數≤6 用 class 讓桌機隱藏此鈕
       const moreBtn = n.stocks.length > 3
@@ -4252,8 +4258,8 @@ const TS_SUB_DICT = {
   "ETF": ["ETF"],
   "虛擬貨幣": ["虛擬貨幣","比特幣","加密貨幣"],
 };
-let _tsDays = 7, _tsView = null, _tsSub = null, _tsNewMore = false;   // _tsView: null|'stocks'|'subs'|'sub1'；_tsSub=第三層題材名（預設一週）
-function tsOpenSub(name){ _tsSub = name; tsOpen('sub1'); }
+let _tsDays = 7, _tsView = null, _tsSub = null, _tsNewMore = false, _tsSubFrom = 'list';   // _tsSubFrom：第三層從哪進來（list=族群首頁直達／subs=排行頁），返回鍵照這個走
+function tsOpenSub(name){ _tsSubFrom = (_tsView === 'subs') ? 'subs' : 'list'; _tsSub = name; tsOpen('sub1'); }
 function tsNewMoreToggle(){ _tsNewMore = !_tsNewMore; tsRenderView(); }
 function tsKwHit(title, kw) {
   if (/^[A-Za-z0-9 ]+$/.test(kw)) return new RegExp('(?<![A-Za-z0-9])' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![A-Za-z0-9])', 'i').test(title);
@@ -4345,7 +4351,7 @@ ${stocks.map((s, i) => `<div class="ts-row" onclick="tsToggleRow(this)"><span cl
   if (_tsView === 'sub1') {
     const sub = tsAggSubs(_tsDays).find(x => x.name === _tsSub);
     vw.innerHTML = `
-<span class="ts-back" onclick="tsOpen('subs')">← 返回子產業排行</span>
+<span class="ts-back" onclick="${_tsSubFrom === 'subs' ? "tsOpen('subs')" : "tsBack()"}">← ${_tsSubFrom === 'subs' ? '返回子產業排行' : '返回族群新聞'}</span>
 <div class="ts-strip-h" style="margin-bottom:10px;">🔥 ${_tsSub} 新聞<small>${tsDayLabel(_tsDays)}有效題材中，歸類到此子產業的新聞</small>${tsPills()}</div>
 ${sub ? `
 <div class="ts-stat3">
