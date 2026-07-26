@@ -750,6 +750,7 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:440px; }   /* 抽屜開啟：表�
 /* 新聞區：Web 右欄 / 手機下方 */
 /* 桌機新聞抽屜（07-13 改版）：常駐右欄→滑出式；平常表格吃滿全寬，點列才滑入 */
 .iv2-news{ position:fixed; top:0; right:0; bottom:0; width:440px; max-width:92vw; border-left:1px solid var(--border); background:var(--bg2); display:flex; flex-direction:column; min-height:0; z-index:60; box-shadow:-12px 0 32px rgba(0,0,0,.28); transform:translateX(105%); transition:transform .28s cubic-bezier(.2,.8,.25,1); }
+html,body{ overscroll-behavior-y:none; }   /* 手機頂部下拉出大空白（iOS 橡皮筋回彈）圍堵 */
 /* ══ 自製K線（K線案 2026-07-26）══ */
 .iv2-kline{ flex:0 0 auto; padding:8px 12px 4px; border-bottom:1px solid var(--border); }
 .kl-pills{ display:flex; gap:4px; align-items:center; }
@@ -2230,9 +2231,9 @@ const KL = { code:null, rows:null, tf:'D', view:'news', cache:new Map(), s:null,
 function klMob(){ return window.matchMedia('(max-width:639px)').matches; }
 function klOnSelect(s){
   KL.s=s; KL.code=s.code; KL.tf=KL.tf||'D';
-  const sw=document.getElementById('iv2-kswipe'), kb=document.getElementById('iv2-kline');
-  if(klMob()){ if(sw)sw.style.display='flex'; KL.view='news'; klApplyView(); }
-  else { if(sw)sw.style.display='none'; if(kb)kb.style.display='block'; }
+  const kb=document.getElementById('iv2-kline');
+  if(klMob()){ KL.view='news'; klApplyView(); }
+  else { if(kb)kb.style.display='block'; }
   klLoad();
 }
 function klHide(){ const sw=document.getElementById('iv2-kswipe'), kb=document.getElementById('iv2-kline'); if(sw)sw.style.display='none'; if(kb)kb.style.display='none'; KL.code=null; }
@@ -2241,11 +2242,6 @@ function klApplyView(){
   const k=KL.view==='kline';
   if(kb)kb.style.display=k?'block':'none';
   if(nl)nl.style.display=k?'none':'block';
-  const d1=document.getElementById('kl-d1'), d2=document.getElementById('kl-d2');
-  if(d1)d1.classList.toggle('on',!k); if(d2)d2.classList.toggle('on',k);
-  const L=document.getElementById('kl-sw-l'), R=document.getElementById('kl-sw-r');
-  if(L)L.innerHTML=k?'<span class="hint">◀ 左滑回新聞</span>':'新聞';
-  if(R)R.innerHTML=k?'K線圖':'<span class="hint">K線圖 ▶ 右滑</span>';
 }
 function klToggleView(){ if(!klMob())return; KL.view=KL.view==='kline'?'news':'kline'; klApplyView(); }
 async function klLoad(){
@@ -2295,11 +2291,10 @@ function klRender(){
   const mob=klMob();
   const all=klAgg(klLive(KL.rows),KL.tf);
   if(!all.length){ kb.innerHTML='<div class="kl-load">無K線資料</div>'; return; }
-  const N=mob?50:100, win=all.slice(-N), off=all.length-win.length, n=win.length;
+  const N=mob?40:100, win=all.slice(-N), off=all.length-win.length, n=win.length;
   const closes=all.map(r=>r[4]);
   const mas={5:klMAs(closes,5),10:klMAs(closes,10),20:klMAs(closes,20),60:klMAs(closes,60)};
-  const e12=klEMA(closes,12), e26=klEMA(closes,26), dif=e12.map((v,i)=>v-e26[i]), dea=klEMA(dif,9), hist=dif.map((v,i)=>v-dea[i]);
-  const W=mob?352:412, hP=mob?80:220, hV=mob?16:34, hM=mob?26:52;
+  const W=mob?352:412, hP=mob?100:220, hV=mob?16:34;
   const min=Math.min(...win.map(r=>r[3])), max=Math.max(...win.map(r=>r[2]));
   const X=i=>6+i*((W-12)/n), Y=v=>4+(max-v)/((max-min)||1)*(hP-8), bw=Math.max(2,(W-12)/n*0.62);
   let o1='';
@@ -2312,12 +2307,6 @@ function klRender(){
     if(pts) o1+=`<polyline points="${pts}" fill="none" stroke="${maCol[p]}" stroke-width="1.2"/>`; }
   const maxV=Math.max(...win.map(r=>r[5]))||1;
   let o2=''; win.forEach((r,i)=>{ o2+=`<rect x="${X(i).toFixed(1)}" y="${((1-r[5]/maxV)*hV).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1,r[5]/maxV*hV).toFixed(1)}" fill="${r[4]>=r[1]?'rgba(220,38,38,.5)':'rgba(22,163,74,.5)'}"/>`; });
-  const mm=Math.max(1e-9,...win.map((_,i)=>Math.max(Math.abs(dif[off+i]),Math.abs(hist[off+i]))));
-  const MY=v=>hM/2-(v/mm)*(hM/2-2);
-  let o3=`<line x1="0" y1="${hM/2}" x2="${W}" y2="${hM/2}" stroke="var(--border)"/>`;
-  win.forEach((_,i)=>{ const v=hist[off+i]; o3+=`<rect x="${X(i).toFixed(1)}" y="${Math.min(MY(v),hM/2).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1,Math.abs(MY(v)-hM/2)).toFixed(1)}" fill="${v>=0?'rgba(220,38,38,.55)':'rgba(22,163,74,.55)'}"/>`; });
-  const ln=(arr,c)=>{ let pts=''; for(let i=0;i<n;i++) pts+=(pts?' ':'')+(X(i)+bw/2).toFixed(1)+','+MY(arr[off+i]).toFixed(1); return `<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.1"/>`; };
-  o3+=ln(dif,'#3b82f6')+ln(dea,'#b45309');
   const lm=p=>{ const v=mas[p][off+n-1]; return v==null?'—':v.toFixed(1); };
   kb.innerHTML=`
 <div class="kl-pills">
@@ -2330,8 +2319,6 @@ function klRender(){
   <svg id="kl-p" width="100%" height="${hP}" viewBox="0 0 ${W} ${hP}" preserveAspectRatio="none">${o1}<g id="kl-cx"></g></svg>
   <div class="kl-lab">量</div>
   <svg width="100%" height="${hV}" viewBox="0 0 ${W} ${hV}" preserveAspectRatio="none">${o2}</svg>
-  <div class="kl-lab">MACD</div>
-  <svg width="100%" height="${hM}" viewBox="0 0 ${W} ${hM}" preserveAspectRatio="none">${o3}</svg>
   <div class="kl-tip" id="kl-tip"></div>
 </div>`;
   KL._geo={win,n,W,hP,bw,X,Y};
@@ -3834,7 +3821,6 @@ const pages = {
         <div class="t" id="iv2-nd-title">相關新聞</div>
         <div class="iv2-nd-meta"><span class="iv2-nd-time" id="iv2-nd-time"></span><button class="iv2-nd-x" onclick="clearSel()">✕</button></div>
       </div>
-      <div class="iv2-kswipe" id="iv2-kswipe" onclick="klToggleView()"><span id="kl-sw-l">新聞</span><i class="d on" id="kl-d1"></i><i class="d" id="kl-d2"></i><span class="hint" id="kl-sw-r">K線圖 ▶ 右滑</span></div>
       <div class="iv2-kline" id="iv2-kline" style="display:none"></div>
       <div class="iv2-nd-list" id="iv2-nd-list" style="display:none"></div>
       <div class="iv2-nd-empty" id="iv2-nd-empty">點一檔股票<br>這裡顯示它的相關新聞</div>
