@@ -3811,7 +3811,7 @@ const pages = {
 <div id="ts-entry" style="display:none">
   <div class="ts-enter" onclick="tsOpen('stocks')">📊 主流指標股提及排行<span>查看排行 →</span></div>
   <div class="ts-strip">
-    <div class="ts-strip-h">📈 子產業提及排行<small id="ts-strip-note">近一週 Top 5</small>
+    <div class="ts-strip-h">📈 子產業提及排行
       <span class="ts-pills"><span class="ts-pd on" data-d="7" onclick="tsSetDays(7)">一週</span><span class="ts-pd" data-d="30" onclick="tsSetDays(30)">一個月</span><span class="ts-pd" data-d="90" onclick="tsSetDays(90)">三個月</span><span class="ts-full" onclick="tsOpen('subs')">完整排行 →</span></span>
     </div>
     <div class="ts-sub5" id="ts-top5"></div>
@@ -4331,7 +4331,6 @@ function renderTsEntry() {
   const entry = document.getElementById('ts-entry'); if (!entry) return;
   entry.style.display = _tsView ? 'none' : '';
   document.querySelectorAll('.ts-pd').forEach(p => p.classList.toggle('on', +p.dataset.d === _tsDays));
-  const note = document.getElementById('ts-strip-note'); if (note) note.textContent = `${tsDayLabel(_tsDays)} Top 5`;
   const box = document.getElementById('ts-top5'); if (!box) return;
   const subs = tsAggSubs(_tsDays).slice(0, 5);
   box.innerHTML = subs.length
