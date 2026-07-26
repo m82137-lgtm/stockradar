@@ -2260,13 +2260,17 @@ async function klLoad(){
 }
 function klLive(rows){   // 今日活棒：盤中每5分鐘跟著面板報價長；FinMind 已含今日則覆蓋
   const s=KL.s; if(!s) return rows;
+  const now=new Date(Date.now()+8*3600e3), hh=now.getUTCHours(), dow=now.getUTCDay();
+  if(dow===0||dow===6||hh<9||hh>=17) return rows;   // 非交易時段（清晨/晚間/週末）：面板是舊榜，不組活棒（防殘影）
   const o=+(s.openPrice||0), c=+(s.price||0); if(!o||!c) return rows;
   const h=Math.max(+(s.h||0)||c,o,c), l=Math.min((+(s.l||0)||Infinity),o,c);
   const v=Math.round(+(s.vol||0));
   const d=new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
   const out=rows.slice();
   const bar=[d,+o.toFixed(2),+h.toFixed(2),+l.toFixed(2),+c.toFixed(2),v];
-  if(out.length&&out[out.length-1][0]===d) out[out.length-1]=bar; else out.push(bar);
+  const last=out[out.length-1];
+  if(last&&last[0]!==d&&last[1]===bar[1]&&last[2]===bar[2]&&last[3]===bar[3]&&last[4]===bar[4]) return rows;   // 與前一根四價全同＝舊榜殘影，不追加
+  if(last&&last[0]===d) out[out.length-1]=bar; else out.push(bar);
   return out;
 }
 function klAgg(rows,tf){   // 週=週一分組、月=YYYY-MM；o首/h max/l min/c末/v加總，日期取組末
@@ -2290,7 +2294,7 @@ function klRender(){
   const mob=klMob();
   const all=klAgg(klLive(KL.rows),KL.tf);
   if(!all.length){ kb.innerHTML='<div class="kl-load">無K線資料</div>'; return; }
-  const N=mob?40:100, win=all.slice(-N), off=all.length-win.length, n=win.length;
+  const N=mob?40:80, win=all.slice(-N), off=all.length-win.length, n=win.length;
   const closes=all.map(r=>r[4]);
   const mas={5:klMAs(closes,5),10:klMAs(closes,10),20:klMAs(closes,20),60:klMAs(closes,60)};
   const W=mob?352:412, hP=mob?100:220, hV=mob?16:34;
