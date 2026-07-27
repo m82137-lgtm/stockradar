@@ -1180,6 +1180,13 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 .jk-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
 .jk-stamp{ font-size:12px; color:#a78bfa; font-family:ui-monospace,Consolas,monospace; white-space:nowrap; }
 .jk-re{ display:flex; align-items:center; gap:6px; padding:7px 12px; border-radius:10px; border:1px solid var(--border); background:var(--bg2); color:var(--text); font-size:12px; cursor:pointer; }
+/* 國際市值排序膠囊(甲案 07-27):成交值/漲幅,點同顆翻升降冪;.jk-head 已 flex-wrap,手機自動換行 */
+.jk-sorts{ display:flex; gap:5px; align-items:center; margin-left:auto; }
+.jk-slab{ font-size:11px; color:var(--text3); }
+.jk-sp{ display:flex; align-items:center; gap:3px; padding:6px 10px; border-radius:9px; border:1px solid var(--border); background:var(--bg2); color:var(--text2); font-size:12px; cursor:pointer; user-select:none; }
+.jk-sp.on{ background:var(--accent-bg,#ede9fe); border-color:#ddd6fe; color:#6d28d9; font-weight:700; }
+.jk-sp .ar{ font-family:ui-monospace,Consolas,monospace; font-size:11px; opacity:.55; }
+.jk-sp.on .ar{ opacity:1; }
 .jk-card{ display:flex; align-items:center; gap:10px; background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:12px 14px; margin-bottom:10px; }
 .jk-rank{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex:none; }
 .jk-r1{ background:rgba(245,158,11,.16); color:#f59e0b; }
@@ -2641,20 +2648,23 @@ async function fetchAfterHours() {
 
 // ── 國際市值：日韓美 Top30（TradingView 統一源；讀 Render /api/tv-top30，重新整理只重讀 KV 零外呼）──
 let _tvData = null, _jkTab = 'jp';
+let _jkSort = 'val', _jkAsc = false;   // 排序鈕(甲案):val=成交值/chg=漲幅;切 tab 狀態保留
+function jkSetSort(k){ if(_jkSort===k){ _jkAsc=!_jkAsc; } else { _jkSort=k; _jkAsc=false; } jkRender(); }
 const JK_AV_COLORS = ['#4c3fa8','#0a6b52','#8a3a1c','#0d5590','#8f2b52','#7a4b06'];
 function jkSwitch(t){ _jkTab = t; jkRender(); }
-function jkCard(s){
+function jkCard(s, dispRank){
+  const rkNo = dispRank || s.rank;
   const disp = s.zh || s.name || s.code;
   const chg = Number.isFinite(+s.chg) ? +s.chg : 0;
   const cc = chg > 0 ? 'var(--red)' : chg < 0 ? 'var(--green)' : 'var(--text2)';
-  const rk = s.rank === 1 ? 'jk-r1' : s.rank === 2 ? 'jk-r2' : s.rank === 3 ? 'jk-r3' : 'jk-rn';
-  const av = JK_AV_COLORS[(s.rank - 1) % JK_AV_COLORS.length];
+  const rk = rkNo === 1 ? 'jk-r1' : rkNo === 2 ? 'jk-r2' : rkNo === 3 ? 'jk-r3' : 'jk-rn';
+  const av = JK_AV_COLORS[(rkNo - 1) % JK_AV_COLORS.length];
   const px = Number.isFinite(+s.close) ? (+s.close).toLocaleString('en-US', { maximumFractionDigits: 2 }) : '—';
   const ntd = Number.isFinite(+s.ntd) ? `NT$ ${(+s.ntd).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <span style="font-size:11px">億</span>` : '—';
   const val = Number.isFinite(+s.val) ? (+s.val).toLocaleString('en-US') : '—';
   const tvUrl = `https://www.tradingview.com/chart/?symbol=${encodeURIComponent((s.ex || '') + ':' + s.code)}`;
   return `<div class="jk-card">
-  <div class="jk-rank ${rk}">${s.rank}</div>
+  <div class="jk-rank ${rk}">${rkNo}</div>
   <div class="jk-av" style="color:${av}">${String(disp).charAt(0)}</div>
   <div class="jk-mid"><div class="jk-nm"><a class="jk-lnk" href="${tvUrl}" target="_blank" rel="noopener" title="看 TradingView 線圖"><b>${disp}</b></a><span class="jk-code">${s.code}</span></div><div class="jk-ind">${s.ind || '—'}</div></div>
   <div class="jk-px"><span class="p">${px}</span><span class="c" style="color:${cc}">${chg > 0 ? '+' : ''}${chg}%</span></div>
@@ -2675,9 +2685,13 @@ function jkRender(){
   const t = new Date(d.asOf).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Taipei' });
   const ph = d.phase === 'live' ? '盤中' : d.phase === 'final' ? '收盤' : '手動';
   const mkName = { jp: '日股', kr: '韓股', us: '美股' }[_jkTab] || '';
+  const jv = s => _jkSort === 'chg' ? (+s.chg || 0) : (+s.ntd || 0);   // 缺值當 0,與卡片顯示同口徑
+  const rows = [...d.list].sort((a, b) => _jkAsc ? jv(a) - jv(b) : jv(b) - jv(a));
+  const ar = k => _jkSort === k ? (_jkAsc ? '↑' : '↓') : '↓';
+  const on = k => _jkSort === k ? ' on' : '';
   intl.innerHTML =
-    `<div class="jk-head"><span class="jk-stamp">📅 ${mkName} ${ph} ${t}${d.fx && Number.isFinite(+d.fx.rate) ? `｜匯率 ${d.fx.rate}` : ''}</span><button class="jk-re" onclick="fetchTvTop30(true)">⟳ 重新整理</button></div>`
-    + d.list.map(jkCard).join('')
+    `<div class="jk-head"><span class="jk-stamp">📅 ${mkName} ${ph} ${t}${d.fx && Number.isFinite(+d.fx.rate) ? `｜匯率 ${d.fx.rate}` : ''}</span><span class="jk-sorts"><span class="jk-slab">排序</span><span class="jk-sp${on('val')}" onclick="jkSetSort('val')">成交值 <span class="ar">${ar('val')}</span></span><span class="jk-sp${on('chg')}" onclick="jkSetSort('chg')">漲幅 <span class="ar">${ar('chg')}</span></span></span><button class="jk-re" onclick="fetchTvTop30(true)">⟳ 重新整理</button></div>`
+    + rows.map((s, i) => jkCard(s, i + 1)).join('')
     + `<div style="text-align:center;font-size:11px;color:var(--text3);padding:6px 0;">全市場成交值排行前 30${d.fx && d.fx.rate == null ? '｜匯率暫缺，僅顯示原幣' : ''}</div>`;
 }
 async function fetchTvTop30(force){
