@@ -2285,9 +2285,10 @@ function quoteFresh(s){
 }
 function klLive(rows){   // 今日活棒：盤中每5分鐘跟著面板報價長；FinMind 已含今日則覆蓋
   const s=KL.s; if(!s) return rows;
-  if(!quoteFresh(s)) return rows;   // 第一道：報價不是今天的（舊榜殘留）→ 不組活棒
-  const now=new Date(Date.now()+8*3600e3), hh=now.getUTCHours(), dow=now.getUTCDay();
-  if(dow===0||dow===6||hh<9||hh>=17) return rows;   // 第二道：非交易時段（清晨/晚間/週末）不組活棒
+  // 07-27 傍晚修：撤時段擋（hh>=17 會誤殺「當天收盤後」的正當活棒——ts=今天13:30 本該放行，
+  // 且 server klineCache 當日快取不含今日，收盤後活棒是今日K唯一來源）。
+  // 舊榜殘影全交 quoteFresh（ts 台北日期＝今天才放行；無 ts 才退回時段判斷）＋下方四價全同防線。
+  if(!quoteFresh(s)) return rows;
   const o=+(s.openPrice||0), c=+(s.price||0); if(!o||!c) return rows;
   const h=Math.max(+(s.h||0)||c,o,c), l=Math.min((+(s.l||0)||Infinity),o,c);
   const v=Math.round(+(s.vol||0));
