@@ -636,9 +636,12 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:440px; }   /* 抽屜開啟：表�
 @media (max-width:639px){
   /* 手機橫向滑動（使用者授權）：原六欄用 vw 精準佔滿一個螢幕寬（15MK 右緣＝畫面右緣，同改版前），
      新欄位（月K/RS動能/當日K/走勢/近五日K）在畫面外，左右滑看。月K=64px、RS=72px，故 +360px（224+64+72） */
-  /* 滿版校正（07-27）：底部導航實際 = 72px + 安全區（body padding-bottom 同值），頂部 .top-bar=36px。
-     原式扣 60px 少扣，文件比可視區高約 46px＝手指上下滑出現空白再彈回。此處按實際佔位重算。 */
-  .iv2{ height:calc(100dvh - 36px - 72px - env(safe-area-inset-bottom,0px)); }
+  /* 滿版鎖死（07-27 二修）：本站 viewport 未設 viewport-fit=cover，env(safe-area-*) 一律回 0，
+     高度算式追不上（實測仍多出約 111px 可捲空白）。改為結構鎖死：盤中頁的 body 不可捲，
+     .iv2 直接釘在 .top-bar(36px) 與底部導航(72px) 之間，不依賴任何加減法。
+     副作用（好的）：盤中頁連 iOS 頂部下拉回彈也一併消失。表格內層仍可捲（.iv2-tablewrap）。 */
+  body:has(.iv2){ height:100dvh; overflow:hidden; padding-bottom:0; }
+  .iv2{ position:fixed; top:36px; left:0; right:0; bottom:calc(72px + env(safe-area-inset-bottom,0px)); height:auto; }
   .iv2-tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:none; }
   body.iv2-has-sel .iv2-tablewrap{ margin-right:0; }   /* 手機維持底部30vh面板，不讓位 */
   .iv2-table{ min-width:calc(100vw + 360px); }
@@ -2244,6 +2247,7 @@ function klApplyView(){
   const k=KL.view==='kline';
   if(kb)kb.style.display=k?'block':'none';
   if(nl)nl.style.display=k?'none':'block';
+  if(k) klFitVol();   // 剛顯示出來才量得到高度
 }
 function klToggleView(){ if(!klMob())return; KL.view=KL.view==='kline'?'news':'kline'; klApplyView(); }
 async function klLoad(){
@@ -2336,11 +2340,25 @@ function klRender(){
 <div class="kl-box">
   <svg id="kl-p" width="100%" height="${hP}" viewBox="0 0 ${W} ${hP}" preserveAspectRatio="none">${o1}<g id="kl-cx"></g></svg>
   <div class="kl-lab">量</div>
-  <svg width="100%" height="${hV}" viewBox="0 0 ${W} ${hV}" preserveAspectRatio="none">${o2}</svg>
+  <svg id="kl-v" width="100%" height="${hV}" viewBox="0 0 ${W} ${hV}" preserveAspectRatio="none">${o2}</svg>
   <div class="kl-tip" id="kl-tip"></div>
 </div>`;
   KL._geo={win,n,W,hP,bw,X,Y};
   klBindCursor();
+  klFitVol();
+}
+// 手機量列補滿（07-27）：面板固定 32dvh，但 K圖(hP=100)＋量圖(hV=16) 加起來吃不滿，
+// 底下留一條空白。此處量測「面板底緣 − 量圖底緣」把量圖拉高填滿；面板總高不動。
+// 量圖 svg 用 preserveAspectRatio="none"，改 CSS 高度即整體縱向拉伸，柱狀比例不變。
+function klFitVol(){
+  if(!klMob()) return;
+  const vs=document.getElementById('kl-v'); if(!vs) return;
+  const panel=document.getElementById('iv2-news'); if(!panel) return;
+  vs.style.height='';                                    // 先還原，避免重複疊加
+  const pr=panel.getBoundingClientRect(), vr=vs.getBoundingClientRect();
+  if(pr.height<=0||vr.height<=0) return;                 // 面板未顯示（display:none）→ 等 klApplyView 再算
+  const grow=pr.bottom-vr.bottom-6;                      // 6px 底部呼吸
+  if(grow>0) vs.style.height=(vr.height+grow)+'px';
 }
 function klCursorAt(clientX,svg){
   const g=KL._geo; if(!g)return;
