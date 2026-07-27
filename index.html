@@ -758,7 +758,22 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:440px; }   /* 抽屜開啟：表�
 .iv2-news{ position:fixed; top:0; right:0; bottom:0; width:440px; max-width:92vw; border-left:1px solid var(--border); background:var(--bg2); display:flex; flex-direction:column; min-height:0; z-index:60; box-shadow:-12px 0 32px rgba(0,0,0,.28); transform:translateX(105%); transition:transform .28s cubic-bezier(.2,.8,.25,1); }
 /* ══ 自製K線（K線案 2026-07-26）══ */
 .iv2-kline{ flex:0 0 auto; padding:8px 12px 4px; border-bottom:1px solid var(--border); }
-.kl-pills{ display:flex; gap:4px; align-items:center; }
+.kl-pills{ display:flex; gap:4px; align-items:center; flex-wrap:wrap; }   /* 量·RS:手機塞入價位後允許換行(高度由 klFitVol 吸收) */
+/* ── 量·RS(07-27):K圖右上價位、副圖標籤行、RS徽章色階(沿用RS動能欄)、手機量/RS切換膠囊 ── */
+.kl-px{ font-family:'JetBrains Mono',monospace; margin-left:2px; display:inline-flex; align-items:baseline; gap:3px; }
+.kl-px b{ font-size:13px; font-weight:700; }
+.kl-px i{ font-style:normal; font-size:10.5px; font-weight:600; }
+.kl-labrow{ display:flex; align-items:center; gap:6px; font-size:8.5px; color:var(--text3); font-family:'JetBrains Mono',monospace; margin:2px 0 0; }
+.kl-labrow .rv{ margin-left:auto; display:inline-flex; gap:7px; align-items:center; }
+.kl-vnow{ font-weight:700; color:var(--text2); }
+.kl-mavnow{ font-weight:700; color:#f59e0b; }
+.kl-rsb{ font-weight:700; padding:0 6px; border-radius:5px; font-size:9px; line-height:1.7; font-family:'JetBrains Mono',monospace; }
+.klrs1{ background:linear-gradient(160deg,#b3273a,#d9364a); color:#fff; }
+.klrs2{ background:var(--red-bg); color:var(--red); }
+.klrs3{ background:var(--bg3); color:var(--text2); }
+.klrs4{ background:rgba(91,116,153,.22); color:#7d93b8; }
+.kl-sp2{ border:1px solid var(--border); background:var(--bg2); border-radius:5px; padding:0 8px; cursor:pointer; font-size:9px; line-height:1.8; color:var(--text3); font-family:-apple-system,'PingFang TC',sans-serif; touch-action:manipulation; user-select:none; }
+.kl-sp2.on{ background:rgba(124,92,224,.12); border-color:rgba(124,92,224,.45); color:var(--accent); font-weight:700; }
 .kl-p{ font-size:10px; padding:3px 11px; border-radius:7px; border:1px solid var(--border); background:var(--bg2); color:var(--text2); cursor:pointer; touch-action:manipulation; }
 .kl-p.on{ background:rgba(140,92,246,.14); border-color:rgba(140,92,246,.5); color:#8c5cf6; font-weight:700; }
 .kl-ma{ margin-left:auto; font-size:8.5px; font-family:'JetBrains Mono',monospace; display:flex; gap:6px; }
@@ -2240,13 +2255,16 @@ function ivKbar(s) {
   return `<svg width="20" height="38" viewBox="0 0 20 38"><line x1="10" y1="${y(hi).toFixed(1)}" x2="10" y2="${y(lo).toFixed(1)}" stroke="${col}" stroke-width="1.2"/><rect x="5.5" y="${t.toFixed(1)}" width="9" height="${Math.max(1.5, b - t).toFixed(1)}" fill="${col}"/></svg>`;
 }
 // ══ 自製K線模組 KL（K線案 2026-07-26）：日/週/月K＋MA四條＋量＋MACD＋游標；今日活棒=面板即時報價現組 ══
-const KL = { code:null, rows:null, tf:'D', view:'news', cache:new Map(), s:null, holdT:null, mode:null, sx:0, sy:0, _geo:null };
+const KL = { code:null, rows:null, tf:'D', view:'kline', sub:'vol', mktMap:null, mktStat:'idle', cache:new Map(), s:null, holdT:null, mode:null, sx:0, sy:0, _geo:null };
+// 量·RS(07-27):view 預設='kline'(手機開面板先看K線);view/sub/tf 皆跨個股記憶——
+// 切到新聞後點別檔仍新聞、K線狀態點別檔仍K線,除非使用者自己切換。
 function klMob(){ return window.matchMedia('(max-width:639px)').matches; }
 function klOnSelect(s){
   KL.s=s; KL.code=s.code; KL.tf=KL.tf||'D';
   const kb=document.getElementById('iv2-kline');
-  if(klMob()){ KL.view='news'; klApplyView(); }
+  if(klMob()){ klApplyView(); }        // 視圖跨檔記憶:不重設 KL.view
   else { if(kb)kb.style.display='block'; }
+  klLoadMkt();                          // 大盤日K(RS 分母),全站共用一份、失敗寧缺勿假
   klLoad();
 }
 function klHide(){ const sw=document.getElementById('iv2-kswipe'), kb=document.getElementById('iv2-kline'); if(sw)sw.style.display='none'; if(kb)kb.style.display='none'; KL.code=null; }
@@ -2316,16 +2334,51 @@ function klAgg(rows,tf){   // 週=週一分組、月=YYYY-MM；o首/h max/l min/
 }
 function klEMA(a,p){ const k=2/(p+1); let e=a[0]; const o=[e]; for(let i=1;i<a.length;i++){ e=a[i]*k+e*(1-k); o.push(e);} return o; }
 function klMAs(cl,p){ const o=new Array(cl.length).fill(null); let s=0; for(let i=0;i<cl.length;i++){ s+=cl[i]; if(i>=p)s-=cl[i-p]; if(i>=p-1)o[i]=s/p; } return o; }
+// ── 量·RS(07-27):大盤日K載入(TAIEX 走既有 /api/stock-kline,server regex [0-9A-Z]{4,6} 天然放行,後端零改) ──
+async function klLoadMkt(){
+  if(KL.mktStat==='ok'||KL.mktStat==='loading') return;
+  KL.mktStat='loading';
+  try{
+    const r=await fetch(`${NEWS_API}/api/stock-kline?code=TAIEX`);
+    const j=await r.json();
+    if(!j.ok||!Array.isArray(j.rows)||j.rows.length<21) throw new Error('mkt short');
+    KL.mktMap=new Map(j.rows.map(x=>[x[0],x[4]]));
+    KL.mktStat='ok';
+    if(KL.code&&KL.rows) klRender();   // RS 補畫
+  }catch(e){ KL.mktStat='fail'; }      // 寧缺勿假:失敗 RS 顯「—」不裝死
+}
+// RS(近20交易日 vs 加權超額%,同表格 RS動能欄口徑):對「日線」算;個股交易日⊆大盤交易日故直查 map,
+// 缺值(今天大盤未收/資料洞)=null 不畫。週/月由聚合棒組末日期查同一張 map=取組末值,三週期同一把尺。
+function klRS(rows,mktMap){
+  const m=new Map();
+  for(let i=0;i<rows.length;i++){
+    if(i<20){ m.set(rows[i][0],null); continue; }
+    const c1=rows[i][4], c0=rows[i-20][4];
+    const g1=mktMap.get(rows[i][0]), g0=mktMap.get(rows[i-20][0]);
+    m.set(rows[i][0], (g1==null||g0==null||!c0||!g0)?null:+(((c1/c0)-(g1/g0))*100).toFixed(1));
+  }
+  return m;
+}
+function klRsCls(v){ return v==null?'klrs3':v>=15?'klrs1':v>=5?'klrs2':v>-5?'klrs3':'klrs4'; }
+function klRsTxt(v){ return v==null?'—':(v>=0?'+':'')+v.toFixed(1); }
+function klVolTxt(v){ return v>=10000?(v/10000).toFixed(1)+'萬':String(v); }
+function klRsBarCol(v){ return v>=15?'#b3273a':v>=5?'#ef7d8c':v>-5?'#9aa3b2':'#7d93b8'; }
+function klSubSet(m){ KL.sub=m; klRender(); }   // 手機副圖切換,跨個股/週期記憶
 function klSetTf(tf){ KL.tf=tf; klRender(); }
 function klRender(){
   const kb=document.getElementById('iv2-kline'); if(!kb||!KL.rows)return;
   const mob=klMob();
-  const all=klAgg(klLive(KL.rows),KL.tf);
+  const daily=klLive(KL.rows);
+  const rsMap=(KL.mktMap&&KL.mktMap.size)?klRS(daily,KL.mktMap):null;   // 量·RS:RS 對日線算
+  const all=klAgg(daily,KL.tf);
   if(!all.length){ kb.innerHTML='<div class="kl-load">無K線資料</div>'; return; }
   const N=mob?40:80, win=all.slice(-N), off=all.length-win.length, n=win.length;
   const closes=all.map(r=>r[4]);
   const mas={5:klMAs(closes,5),10:klMAs(closes,10),20:klMAs(closes,20),60:klMAs(closes,60)};
-  const W=mob?352:412, hP=mob?100:220, hV=mob?16:34;
+  const mavAll=klMAs(all.map(r=>r[5]),5);                                // 量·RS:MAV5 對完整序列算再切窗
+  const mavWin=win.map((_,i)=>mavAll[off+i]);
+  const rsWin=win.map(r=>rsMap?(rsMap.get(r[0])??null):null);            // 週/月=組末日期查日RS
+  const W=mob?352:412, hP=mob?100:220, hV=mob?38:34, hR=mob?38:34;
   const min=Math.min(...win.map(r=>r[3])), max=Math.max(...win.map(r=>r[2]));
   const X=i=>6+i*((W-12)/n), Y=v=>4+(max-v)/((max-min)||1)*(hP-8), bw=Math.max(2,(W-12)/n*0.62);
   let o1='';
@@ -2336,25 +2389,55 @@ function klRender(){
   for(const p of [5,10,20,60]){ let pts='';
     for(let i=0;i<n;i++){ const v=mas[p][off+i]; if(v==null)continue; pts+=(pts?' ':'')+(X(i)+bw/2).toFixed(1)+','+Y(v).toFixed(1); }
     if(pts) o1+=`<polyline points="${pts}" fill="none" stroke="${maCol[p]}" stroke-width="1.2"/>`; }
+  // 量副圖:柱+MAV5 橘線(preserveAspectRatio=none 縱向拉伸,線跟柱同座標系一起伸,比例關係不變)
   const maxV=Math.max(...win.map(r=>r[5]))||1;
   let o2=''; win.forEach((r,i)=>{ o2+=`<rect x="${X(i).toFixed(1)}" y="${((1-r[5]/maxV)*hV).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1,r[5]/maxV*hV).toFixed(1)}" fill="${r[4]>=r[1]?'rgba(220,38,38,.5)':'rgba(22,163,74,.5)'}"/>`; });
+  { let mp=''; for(let i=0;i<n;i++){ const v=mavWin[i]; if(v==null)continue; mp+=(mp?' ':'')+(X(i)+bw/2).toFixed(1)+','+((1-v/maxV)*hV).toFixed(1); }
+    if(mp) o2+=`<polyline points="${mp}" fill="none" stroke="#f59e0b" stroke-width="1.2"/>`; }
+  o2+='<g id="kl-cv"></g>';
+  // RS 副圖:0 軸虛線+色階柱(同 RS動能欄:≥15深紅/5~15紅/±5灰/<-5灰藍,弱不用綠)
+  const rAbs=Math.max(...rsWin.map(v=>v==null?0:Math.abs(v)),1), mid=hR/2;
+  let o3=`<line x1="0" y1="${mid}" x2="${W}" y2="${mid}" stroke="var(--border)" stroke-dasharray="3 3"/>`;
+  rsWin.forEach((v,i)=>{ if(v==null)return; const h=Math.abs(v)/rAbs*(mid-2);
+    o3+=`<rect x="${X(i).toFixed(1)}" y="${(v>=0?mid-h:mid).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1,h).toFixed(1)}" fill="${klRsBarCol(v)}"/>`; });
+  o3+='<g id="kl-cr"></g>';
   const lm=p=>{ const v=mas[p][off+n-1]; return v==null?'—':v.toFixed(1); };
+  const rsFailNote=(!rsMap&&KL.mktStat==='fail')?'(大盤資料缺)':'';
+  // 副圖區:桌機兩排並存;手機一排由 KL.sub 切換(量/RS 膠囊),面板 32dvh 不變、高度差由 klFitVol 吸收
+  const volRow=`<div class="kl-labrow"><span>量</span><span class="rv"><span class="kl-vnow" id="kl-vnow"></span><span class="kl-mavnow" id="kl-mavnow"></span></span></div>
+  <svg id="kl-v" width="100%" height="${hV}" viewBox="0 0 ${W} ${hV}" preserveAspectRatio="none">${o2}</svg>`;
+  const rsRow=`<div class="kl-labrow"><span>RS動能(vs 加權)${rsFailNote}</span><span class="rv"><span class="kl-rsb klrs3" id="kl-rsnow">—</span></span></div>
+  <svg id="${mob?'kl-v':'kl-r'}" width="100%" height="${hR}" viewBox="0 0 ${W} ${hR}" preserveAspectRatio="none">${o3}</svg>`;
+  const subMob=`<div class="kl-labrow"><span class="kl-sp2${KL.sub!=='rs'?' on':''}" onclick="klSubSet('vol')">量</span><span class="kl-sp2${KL.sub==='rs'?' on':''}" onclick="klSubSet('rs')">RS</span><span class="rv">${KL.sub==='rs'?'<span class="kl-rsb klrs3" id="kl-rsnow">—</span>':'<span class="kl-vnow" id="kl-vnow"></span><span class="kl-mavnow" id="kl-mavnow"></span>'}</span></div>
+  <svg id="kl-v" width="100%" height="${KL.sub==='rs'?hR:hV}" viewBox="0 0 ${W} ${KL.sub==='rs'?hR:hV}" preserveAspectRatio="none">${KL.sub==='rs'?o3:o2}</svg>`;
   kb.innerHTML=`
 <div class="kl-pills">
   <span class="kl-p${KL.tf==='D'?' on':''}" onclick="klSetTf('D')">日K</span>
   <span class="kl-p${KL.tf==='W'?' on':''}" onclick="klSetTf('W')">週K</span>
   <span class="kl-p${KL.tf==='M'?' on':''}" onclick="klSetTf('M')">月K</span>
+  <span class="kl-px" id="kl-px"></span>
   <span class="kl-ma"><i style="color:#f59e0b">5:${lm(5)}</i><i style="color:#3b82f6">10:${lm(10)}</i><i style="color:#8c5cf6">20:${lm(20)}</i><i style="color:#b45309">60:${lm(60)}</i><span class="kl-tv" onclick="window.open(ivTvUrl(KL.s),'_blank')">TV↗</span></span>
 </div>
 <div class="kl-box">
   <svg id="kl-p" width="100%" height="${hP}" viewBox="0 0 ${W} ${hP}" preserveAspectRatio="none">${o1}<g id="kl-cx"></g></svg>
-  <div class="kl-lab">量</div>
-  <svg id="kl-v" width="100%" height="${hV}" viewBox="0 0 ${W} ${hV}" preserveAspectRatio="none">${o2}</svg>
+  ${mob?subMob:volRow+rsRow}
   <div class="kl-tip" id="kl-tip"></div>
 </div>`;
-  KL._geo={win,n,W,hP,bw,X,Y};
+  KL._geo={win,n,W,hP,hV,hR,bw,X,Y,mavWin,rsWin,mob};
+  klSetNow(n-1);                        // 右上三值=最新一根
   klBindCursor();
   klFitVol();
+}
+// 右上當前值(價/量+MAV5/RS 徽章);游標移動時=游標根,離開=最新根
+function klSetNow(i){
+  const g=KL._geo; if(!g||!g.win[i])return;
+  const r=g.win[i], prevC=i>0?g.win[i-1][4]:r[1];
+  const pc=(r[4]-prevC)/(prevC||1)*100, up=pc>=0, col=up?'var(--red)':'var(--green)';
+  const px=document.getElementById('kl-px');
+  if(px)px.innerHTML=`<b style="color:${col}">${r[4]}</b><i style="color:${col}">${up?'+':''}${pc.toFixed(2)}%</i>`;
+  const vn=document.getElementById('kl-vnow'); if(vn)vn.textContent='量 '+klVolTxt(r[5])+'張';
+  const mn=document.getElementById('kl-mavnow'); if(mn){ const mv=g.mavWin[i]; mn.textContent=mv==null?'':'MAV5 '+klVolTxt(Math.round(mv)); }
+  const rn=document.getElementById('kl-rsnow'); if(rn){ const rs=g.rsWin[i]; rn.textContent='RS '+klRsTxt(rs); rn.className='kl-rsb '+klRsCls(rs); }
 }
 // 手機量列補滿（07-27）：面板固定 32dvh，但 K圖(hP=100)＋量圖(hV=16) 加起來吃不滿，
 // 底下留一條空白。此處量測「面板底緣 − 量圖底緣」把量圖拉高填滿；面板總高不動。
@@ -2377,14 +2460,24 @@ function klCursorAt(clientX,svg){
   const r=g.win[i], cx=(g.X(i)+g.bw/2).toFixed(1);
   const gEl=document.getElementById('kl-cx');
   if(gEl)gEl.innerHTML=`<line x1="${cx}" y1="0" x2="${cx}" y2="${g.hP}" stroke="var(--text3)" stroke-width="0.8" stroke-dasharray="3 2"/><line x1="0" y1="${g.Y(r[4]).toFixed(1)}" x2="${g.W}" y2="${g.Y(r[4]).toFixed(1)}" stroke="var(--text3)" stroke-width="0.8" stroke-dasharray="3 2"/>`;
+  // 量·RS:副圖同位置豎線聯動(桌機兩排 kl-cv+kl-cr;手機一排只有其一,存在才畫)
+  const cv=document.getElementById('kl-cv'); if(cv)cv.innerHTML=`<line x1="${cx}" y1="0" x2="${cx}" y2="${g.hV}" stroke="var(--text3)" stroke-width="0.8" stroke-dasharray="3 2"/>`;
+  const cr=document.getElementById('kl-cr'); if(cr)cr.innerHTML=`<line x1="${cx}" y1="0" x2="${cx}" y2="${g.hR}" stroke="var(--text3)" stroke-width="0.8" stroke-dasharray="3 2"/>`;
+  klSetNow(i);                          // 右上三值跟游標走
   const tip=document.getElementById('kl-tip'); if(!tip)return;
-  const pc=(r[4]-r[1])/r[1]*100, cls=pc>=0?'r':'g', sg=pc>=0?'+':'';
-  tip.innerHTML=`<b>${r[0]}</b><br>開 ${r[1]}　高 ${r[2]}<br>低 ${r[3]}　收 <span class="${cls}">${r[4]}</span><br><span class="${cls}">${sg}${pc.toFixed(2)}%</span>　量 ${r[5]>=10000?(r[5]/10000).toFixed(1)+'萬':r[5]}張`;
+  const prevC=i>0?g.win[i-1][4]:r[1];   // 07-27:漲跌%改 vs 前收(市場慣例;原 vs 開盤)
+  const pc=(r[4]-prevC)/(prevC||1)*100, cls=pc>=0?'r':'g', sg=pc>=0?'+':'';
+  const mv=g.mavWin[i], rs=g.rsWin[i];
+  tip.innerHTML=`<b>${r[0]}</b><br>開 ${r[1]}　高 ${r[2]}<br>低 ${r[3]}　收 <span class="${cls}">${r[4]}</span><br><span class="${cls}">${sg}${pc.toFixed(2)}%</span>　量 ${klVolTxt(r[5])}張<br><span style="color:#fbbf24">MAV5 ${mv==null?'—':klVolTxt(Math.round(mv))}</span>　RS ${klRsTxt(rs)}`;
   tip.style.display='block';
   const half=(clientX-rect.left)>rect.width/2;
   tip.style.left=half?'8px':'auto'; tip.style.right=half?'auto':'8px'; tip.style.top='2px';
 }
-function klCursorOff(){ const gEl=document.getElementById('kl-cx'); if(gEl)gEl.innerHTML=''; const t=document.getElementById('kl-tip'); if(t)t.style.display='none'; }
+function klCursorOff(){
+  for(const id of ['kl-cx','kl-cv','kl-cr']){ const el=document.getElementById(id); if(el)el.innerHTML=''; }
+  const t=document.getElementById('kl-tip'); if(t)t.style.display='none';
+  const g=KL._geo; if(g)klSetNow(g.n-1);   // 右上還原最新值
+}
 function klBindCursor(){
   const svg=document.getElementById('kl-p'); if(!svg)return;
   svg.addEventListener('mousemove',e=>klCursorAt(e.clientX,svg));
