@@ -803,6 +803,9 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
   .iv2-ws{ flex-direction:column; }
   .iv2-news{ position:static; transform:none; transition:none; box-shadow:none; z-index:auto; max-width:none; flex:0 0 auto; width:auto; height:0; border-left:none; border-top:1px solid var(--border); overflow:hidden; }
   body.iv2-has-sel .iv2-news{ height:32dvh; }
+  /* K線區防切(07-27 晚):機型矮、32dvh 裝不下 K圖＋副圖時改區內垂直捲動;裝得下時 klFitVol 照舊補滿(grow>0 才拉,兩機制互不打架)。
+     游標按住拖有 preventDefault 不會誤捲;橫向快滑 passive 放行縱捲。 */
+  body.iv2-has-sel .iv2-kline{ overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; max-height:100%; overscroll-behavior:contain; }
   .iv2-nd-x{ display:block; }
   /* 工具列壓成一排：即時偵測 + 排序同列、字縮小、不換行 */
   .iv2-tools{ flex-wrap:nowrap; gap:6px; padding:6px 12px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
@@ -2372,7 +2375,7 @@ function klRender(){
   const rsMap=(KL.mktMap&&KL.mktMap.size)?klRS(daily,KL.mktMap):null;   // 量·RS:RS 對日線算
   const all=klAgg(daily,KL.tf);
   if(!all.length){ kb.innerHTML='<div class="kl-load">無K線資料</div>'; return; }
-  const N=mob?40:80, win=all.slice(-N), off=all.length-win.length, n=win.length;
+  const N=mob?40:60, win=all.slice(-N), off=all.length-win.length, n=win.length;   // 07-27 晚:桌機 80→60(棒寬+33%)
   const closes=all.map(r=>r[4]);
   const mas={5:klMAs(closes,5),10:klMAs(closes,10),20:klMAs(closes,20),60:klMAs(closes,60)};
   const mavAll=klMAs(all.map(r=>r[5]),5);                                // 量·RS:MAV5 對完整序列算再切窗
