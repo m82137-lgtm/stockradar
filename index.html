@@ -2652,8 +2652,8 @@ let _jkSort = 'val', _jkAsc = false;   // 排序鈕(甲案):val=成交值/chg=�
 function jkSetSort(k){ if(_jkSort===k){ _jkAsc=!_jkAsc; } else { _jkSort=k; _jkAsc=false; } jkRender(); }
 const JK_AV_COLORS = ['#4c3fa8','#0a6b52','#8a3a1c','#0d5590','#8f2b52','#7a4b06'];
 function jkSwitch(t){ _jkTab = t; jkRender(); }
-function jkCard(s, dispRank){
-  const rkNo = dispRank || s.rank;
+function jkCard(s){
+  const rkNo = s.rank;   // 徽章固定=成交值原始排名,不隨排序鈕重編(07-27 拍板)
   const disp = s.zh || s.name || s.code;
   const chg = Number.isFinite(+s.chg) ? +s.chg : 0;
   const cc = chg > 0 ? 'var(--red)' : chg < 0 ? 'var(--green)' : 'var(--text2)';
@@ -2690,8 +2690,8 @@ function jkRender(){
   const ar = k => _jkSort === k ? (_jkAsc ? '↑' : '↓') : '↓';
   const on = k => _jkSort === k ? ' on' : '';
   intl.innerHTML =
-    `<div class="jk-head"><span class="jk-stamp">📅 ${mkName} ${ph} ${t}${d.fx && Number.isFinite(+d.fx.rate) ? `｜匯率 ${d.fx.rate}` : ''}</span><span class="jk-sorts"><span class="jk-slab">排序</span><span class="jk-sp${on('val')}" onclick="jkSetSort('val')">成交值 <span class="ar">${ar('val')}</span></span><span class="jk-sp${on('chg')}" onclick="jkSetSort('chg')">漲幅 <span class="ar">${ar('chg')}</span></span></span><button class="jk-re" onclick="fetchTvTop30(true)">⟳ 重新整理</button></div>`
-    + rows.map((s, i) => jkCard(s, i + 1)).join('')
+    `<div class="jk-head"><span class="jk-stamp">📅 ${mkName} ${ph} ${t}${d.fx && Number.isFinite(+d.fx.rate) ? `｜匯率 ${d.fx.rate}` : ''}</span><span class="jk-sorts"><span class="jk-slab">排序</span><span class="jk-sp${on('val')}" onclick="jkSetSort('val')">成交值 <span class="ar">${ar('val')}</span></span><span class="jk-sp${on('chg')}" onclick="jkSetSort('chg')">漲幅 <span class="ar">${ar('chg')}</span></span></span></div>`
+    + rows.map(jkCard).join('')
     + `<div style="text-align:center;font-size:11px;color:var(--text3);padding:6px 0;">全市場成交值排行前 30${d.fx && d.fx.rate == null ? '｜匯率暫缺，僅顯示原幣' : ''}</div>`;
 }
 async function fetchTvTop30(force){
@@ -3907,6 +3907,7 @@ const pages = {
 <div class="page-header">
   <div class="page-title">國際市值</div>
   <div class="page-desc">日韓美 成交值 Top30 ｜ 全市場排行 ｜ 點股名看 TradingView 線圖</div>
+  <button class="jk-re" style="margin-left:auto" onclick="fetchTvTop30(true)">⟳ 重新整理</button>
   <span class="head-clock"></span>
 </div>
 
