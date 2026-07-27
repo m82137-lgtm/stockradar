@@ -963,7 +963,7 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 }
 
 /* ══ 熱門族群內文閱讀器 ══════════════════════════ */
-.sec-read-btn{ margin-left:auto; display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:7px; cursor:pointer; flex-shrink:0; }
+.sec-read-btn{ position:absolute; right:0; top:50%; transform:translateY(-50%); margin-top:5px; display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:7px; cursor:pointer; flex-shrink:0; }   /* 留白修:絕對定位,不參與 wrap(margin-top 5px=補償 padding-top 使其對文字行置中) */
 .sec-read-btn svg{ width:17px; height:17px; stroke:var(--text3); }
 .sec-read-btn:hover{ background:var(--bg3); }
 .sec-read-btn:hover svg{ stroke:var(--accent); }
@@ -1159,6 +1159,7 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
   border-top:1px solid var(--border);
   font-size:13px; color:var(--text3);
   flex-wrap:wrap;
+  position:relative; padding-right:34px;   /* 留白修(07-27):騰出右側給絕對定位閱讀鈕 */
 }
 /* 族群標題強勢字眼：紅字+底線 */
 .sec-hot-kw { color:var(--red); text-decoration:underline; text-underline-offset:2px; text-decoration-thickness:1.5px; }
