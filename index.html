@@ -805,7 +805,9 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
   body.iv2-has-sel .iv2-news{ height:32dvh; }
   /* K線區防切(07-27 晚):機型矮、32dvh 裝不下 K圖＋副圖時改區內垂直捲動;裝得下時 klFitVol 照舊補滿(grow>0 才拉,兩機制互不打架)。
      游標按住拖有 preventDefault 不會誤捲;橫向快滑 passive 放行縱捲。 */
-  body.iv2-has-sel .iv2-kline{ overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; max-height:100%; overscroll-behavior:contain; }
+  body.iv2-has-sel .iv2-kline{ flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+  /* 二修:max-height:100% 算的是整面板高(未扣標題列),溢出的是面板而非K區自己,捲軸永不觸發、被面板 overflow:hidden 剪掉。
+     改照 .iv2-nd-list 配方(flex:1+min-height:0+overflow:auto):K區高=面板−標題列,內容超過即自己捲=「像新聞一樣」。 */
   .iv2-nd-x{ display:block; }
   /* 工具列壓成一排：即時偵測 + 排序同列、字縮小、不換行 */
   .iv2-tools{ flex-wrap:nowrap; gap:6px; padding:6px 12px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
