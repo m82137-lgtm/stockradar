@@ -2852,7 +2852,7 @@ async function fetchTvTop30(force){
   try {
     const res = await fetch(`${NEWS_API}/api/tv-top30`);
     const j = await res.json();
-    _tvData = { jp: j.jp, kr: j.kr, us: j.us };
+    _tvData = { jp: j.jp, kr: j.kr, us: j.us, indices: j.indices || null };   // 07-28 修:indices 先前被挑欄丟掉,指數卡讀不到
     jkRender();
   } catch (err) {
     const intl = document.getElementById('jk-intl');
