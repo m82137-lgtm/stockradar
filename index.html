@@ -445,6 +445,45 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
    整個 grid 就比螢幕寬 → 第二欄（櫃買）被擠出畫面。07-16 把風度章塞進 cp-h1 後中招過。 */
 .chip-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
 .chip-grid2 > * { min-width:0; }
+/* 桌機四卡制（07-28 漲跌分布案）：OI/VIX/融資/散戶 合一容器，桌機4欄、手機退回2欄=手機版面不變 */
+.chip-grid4 { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+.chip-grid4 > * { min-width:0; }
+@media (min-width:640px){ .chip-grid4 { grid-template-columns:repeat(4,1fr); } }
+/* ── 漲跌分布卡（07-28）：桌機恆展開 11 桶；手機丙=一條式，點卡展開/收合 ── */
+.dist-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:8px; cursor:default; }
+.dist-h { display:flex; align-items:baseline; gap:8px; }
+.dist-h b { font-size:13px; color:var(--text); }
+.dist-ext { font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700; }
+.dist-upd { margin-left:auto; font-size:10px; color:#2563eb; font-family:'JetBrains Mono',monospace; }
+.dist-ratio { display:flex; height:17px; border-radius:6px; overflow:hidden; margin-top:7px; font-size:10.5px; font-weight:700; color:#fff; font-family:'JetBrains Mono',monospace; }
+.dist-ratio .dr { background:#e63946; display:flex; align-items:center; justify-content:center; min-width:28px; }
+.dist-ratio .dg { background:#16a34a; display:flex; align-items:center; justify-content:center; min-width:28px; }
+.dist-bins { display:flex; gap:5px; margin-top:9px; }
+.dist-bin { flex:1; text-align:center; min-width:0; }
+.dist-lab { font-size:9px; color:var(--text2); font-weight:600; font-family:'JetBrains Mono',monospace; white-space:nowrap; margin-bottom:2px; }
+.dist-barbox { display:flex; align-items:flex-end; height:38px; }
+.dist-bar { width:100%; border-radius:3px; min-height:3px; }
+.dist-cnt { font-size:10px; font-weight:700; font-family:'JetBrains Mono',monospace; margin-top:2px; }
+.dist-tog { display:none; text-align:center; font-size:10px; color:#a78bfa; margin-top:4px; }
+@media (max-width:639px){
+  .dist-card { cursor:pointer; }
+  .dist-tog { display:block; }
+  .dist-card:not(.open) .dist-bins { display:none; }
+  .dist-bins { margin-top:8px; }
+  .dist-lab { font-size:8px; }
+  .dist-barbox { height:28px; }
+  .dist-bins { gap:2px; }
+}
+/* ── 國際市值指數卡（07-28 乙案）：雙卡並排、無排名；美股四指數 2×2 ── */
+.jk-idxrow { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+.jk-idx { display:flex; align-items:center; gap:10px; background:linear-gradient(135deg,rgba(124,92,224,.07),var(--bg2)); border:1px solid rgba(124,92,224,.28); border-radius:12px; padding:10px 14px; min-width:0; }
+.jk-idx .ic { font-size:17px; flex:none; }
+.jk-idx .nm { min-width:0; }
+.jk-idx .nm b { font-size:13px; display:block; color:var(--text); }
+.jk-idx .nm span { font-size:9.5px; color:var(--text3); font-family:'JetBrains Mono',monospace; }
+.jk-idx .px { margin-left:auto; text-align:right; font-family:'JetBrains Mono',monospace; }
+.jk-idx .px .v { font-size:15px; font-weight:800; color:var(--text); }
+.jk-idx .px .c { font-size:10.5px; font-weight:700; display:block; }
 .cp-card { background:var(--bg2); border:1px solid var(--border); border-radius:13px; padding:11px 13px 9px; position:relative; }
 .cp-h1 { display:flex; justify-content:space-between; align-items:baseline; gap:4px; min-width:0; }
 .cp-h1 .cp-v { min-width:0; overflow:hidden; text-overflow:clip; }
@@ -2789,11 +2828,21 @@ function jkRender(){
   const t = new Date(d.asOf).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Taipei' });
   const ph = d.phase === 'live' ? '盤中' : d.phase === 'final' ? '收盤' : '手動';
   const mkName = { jp: '日股', kr: '韓股', us: '美股' }[_jkTab] || '';
+  // 指數卡(07-28 乙案):第一排雙卡無排名;美股四指數 2×2。資料搭 /api/tv-top30 回包的 indices,缺=不顯示(寧缺勿假)
+  const IDX_ICON = { ni225:'🇯🇵', topix:'🗾', kospi:'🇰🇷', kosdaq:'📈', spx:'🇺🇸', ixic:'💻', dji:'🏛', sox:'🔬' };
+  let idxRows = '';
+  const idxAll = (_tvData && _tvData.indices && Array.isArray(_tvData.indices.list)) ? _tvData.indices.list : [];
+  const idxMk = idxAll.filter(x => x.mk === _jkTab);
+  if (idxMk.length) {
+    const cardOf = x => { const up=(x.chg==null)?null:(x.chg>=0); const col=up==null?'var(--text3)':up?'var(--red)':'var(--green)';
+      return `<div class="jk-idx"><span class="ic">${IDX_ICON[x.id]||'📊'}</span><span class="nm"><b>${x.zh}</b><span>${x.en}</span></span><span class="px"><span class="v">${(+x.close).toLocaleString()}</span><span class="c" style="color:${col}">${x.chg==null?'—':(up?'+':'')+x.chg.toFixed(2)+'%'}</span></span></div>`; };
+    idxRows = `<div class="jk-idxrow">${idxMk.map(cardOf).join('')}</div>`;   // us 四張=grid 自動 2×2
+  }
   const jv = s => _jkSort === 'chg' ? (+s.chg || 0) : (+s.ntd || 0);   // 缺值當 0,與卡片顯示同口徑
   const rows = [...d.list].sort((a, b) => _jkAsc ? jv(a) - jv(b) : jv(b) - jv(a));
   const ar = k => _jkSort === k ? (_jkAsc ? '↑' : '↓') : '↓';
   const on = k => _jkSort === k ? ' on' : '';
-  intl.innerHTML =
+  intl.innerHTML = idxRows +
     `<div class="jk-head"><span class="jk-stamp">📅 ${mkName} ${ph} ${t}${d.fx && Number.isFinite(+d.fx.rate) ? `｜匯率 ${d.fx.rate}` : ''}</span><span class="jk-sorts"><span class="jk-slab">排序</span><span class="jk-sp${on('val')}" onclick="jkSetSort('val')">成交值 <span class="ar">${ar('val')}</span></span><span class="jk-sp${on('chg')}" onclick="jkSetSort('chg')">漲幅 <span class="ar">${ar('chg')}</span></span></span></div>`
     + rows.map(jkCard).join('')
     + `<div style="text-align:center;font-size:11px;color:var(--text3);padding:6px 0;">全市場成交值排行前 30${d.fx && d.fx.rate == null ? '｜匯率暫缺，僅顯示原幣' : ''}</div>`;
@@ -3519,18 +3568,33 @@ function openUsNews(code) {
   ov.hidden = false;
   document.body.style.overflow = 'hidden';
   listEl.innerHTML = '<div class="twn-empty">📰 載入新聞中…</div>';
-  fetchUsNews(code);
+  fetchUsNews(code, s.zh || s.name);   // 07-28:優先中文慣用名(輝達/嬌生,台媒命中率遠勝英文);無 zh 退回英文名
 }
 
-async function fetchUsNews(code) {
+// 美股新聞關鍵字(07-28 修):原寫死「美股」→ server「美股」組把泛大盤新聞整條街撈進來(PLTR 點開全是油價/輝達,
+// NOW 連 Yahoo 體育都中)。改用英文公司名清理版:去 Inc/Corp 等尾綴取首詞(泛詞如 Taiwan 取兩詞),
+// 中文財經媒體寫美股個股用原名(Palantir/ServiceNow),精準度天差地遠。名太短/缺名退回代碼。
+function usNewsKeyword(name, code){
+  if(/[\u4e00-\u9fff]/.test(String(name||''))) return String(name).trim();   // 已是中文慣用名(s.zh)直接用
+  const raw=String(name||'').replace(/,/g,' ');
+  const STOP=/^(inc|corp|corporation|company|co|ltd|plc|holdings?|group|technologies|technology|platforms?|class|the)\.?$/i;
+  const GENERIC=/^(taiwan|american|united|us|china|chinese|national|general|first|global|international|digital|advanced)$/i;
+  const w=raw.split(/\s+/).filter(x=>x&&!STOP.test(x));
+  if(!w.length) return code;
+  let kw = GENERIC.test(w[0]) ? w.slice(0,2).join(' ') : w[0];
+  if(kw.replace(/\s/g,'').length<3 || kw.toLowerCase()===String(code).toLowerCase()) kw=w.slice(0,2).join(' ')||code;
+  return kw;
+}
+
+async function fetchUsNews(code, usName) {
   const listEl = document.getElementById('tw-news-list');
   if (!listEl) return;
-  const cacheKey = `us-${code}`;
+  const kw = usNewsKeyword(usName, code);
+  const cacheKey = `us-${code}-${kw}`;
   let base = newsCache[cacheKey];
   if (!base) {
     try {
-      // 中文模式：搜「美股 + 代號」，偏向台灣/中文媒體寫的美股新聞（短代號仍可能有雜訊）
-      const res  = await fetch(`${NEWS_API}/api/stock-news?name=${encodeURIComponent('美股')}&code=${encodeURIComponent(code)}`);
+      const res  = await fetch(`${NEWS_API}/api/stock-news?name=${encodeURIComponent(kw)}&code=${encodeURIComponent(code)}`);
       const rows = await res.json();
       base = normalizeRenderStockNews(rows, code, code);
       newsCache[cacheKey] = base;
@@ -3841,6 +3905,56 @@ function chipBindScrub() {
     z.addEventListener('touchend', () => chipSet(false, 0));
   });
 }
+// ── 盤中監控 120 檔漲跌分布(07-28):資料=Worker /api/dist(全池 {code:chg},盤後~隔日8:30=收盤快照) ──
+let _distOpen = false;   // 手機丙:預設收合;桌機 CSS 恆展開
+const DIST_BINS = [
+  { lab: '>5%',   t: v => v > 5,            u: 1 },
+  { lab: '3~5%',  t: v => v > 3 && v <= 5,  u: 1 },
+  { lab: '2~3%',  t: v => v > 2 && v <= 3,  u: 1 },
+  { lab: '1~2%',  t: v => v > 1 && v <= 2,  u: 1 },
+  { lab: '0~1%',  t: v => v > 0 && v <= 1,  u: 1 },
+  { lab: '0%',    t: v => v === 0,          u: 0 },
+  { lab: '0~-1%', t: v => v < 0 && v >= -1, u: -1 },
+  { lab: '-1~-2%',t: v => v < -1 && v >= -2,u: -1 },
+  { lab: '-2~-3%',t: v => v < -2 && v >= -3,u: -1 },
+  { lab: '-3~-5%',t: v => v < -3 && v >= -5,u: -1 },
+  { lab: '<-5%',  t: v => v < -5,           u: -1 },
+];
+function distToggle(ev){
+  if (!window.matchMedia('(max-width:639px)').matches) return;   // 桌機恆展開,點擊不動作
+  _distOpen = !_distOpen;
+  const c = document.getElementById('dist-card'); if (!c) return;
+  c.classList.toggle('open', _distOpen);
+  const t = document.getElementById('dist-tog'); if (t) t.textContent = _distOpen ? '▴' : '▾';
+}
+async function loadDist(){
+  const card = document.getElementById('dist-card'); if (!card) return;   // 不在風度頁就跳過
+  try {
+    const r = await fetch(`${WORKER}/api/dist`);
+    const j = await r.json();
+    if (!j.ok || !j.dist) { const u=document.getElementById('dist-upd'); if(u)u.textContent='盤中提供'; return; }
+    const vals = Object.values(j.dist).map(Number).filter(Number.isFinite);
+    const cnt = DIST_BINS.map(b => vals.filter(b.t).length);
+    const mx = Math.max(...cnt, 1);
+    const shade = (b,n) => b.u===0 ? 'var(--border2)' : b.u>0
+      ? `rgba(230,57,70,${Math.min(1,n/mx*0.85+0.25)})` : `rgba(22,163,74,${Math.min(1,n/mx*0.85+0.25)})`;
+    const bins = document.getElementById('dist-bins');
+    if (bins) bins.innerHTML = DIST_BINS.map((b,i)=>`
+      <div class="dist-bin"><div class="dist-lab">${b.lab}</div>
+      <div class="dist-barbox"><div class="dist-bar" style="height:${Math.max(8,cnt[i]/mx*100)}%;background:${shade(b,cnt[i])}"></div></div>
+      <div class="dist-cnt" style="color:${b.u>0?'var(--red)':b.u<0?'var(--green)':'var(--text3)'}">${cnt[i]}</div></div>`).join('');
+    const up = cnt.slice(0,5).reduce((a,x)=>a+x,0), dn = cnt.slice(6).reduce((a,x)=>a+x,0);
+    const ratio = document.getElementById('dist-ratio');
+    if (ratio) ratio.innerHTML = `<div class="dr" style="flex:${Math.max(up,1)}">${up}</div><div class="dg" style="flex:${Math.max(dn,1)}">${dn}</div>`;
+    const hi=document.getElementById('dist-hi'), lo=document.getElementById('dist-lo');
+    if (hi) hi.textContent = `>5%:${cnt[0]}`;
+    if (lo) lo.textContent = `<-5%:${cnt[10]}`;
+    const upd=document.getElementById('dist-upd');
+    if (upd) { const t=j.ts?new Date(j.ts):null; upd.textContent = t?`↻ ${String((t.getUTCHours()+8)%24).padStart(2,'0')}:${String(t.getUTCMinutes()).padStart(2,'0')} 已更新`:`共 ${j.n} 檔`; }
+  } catch(e){ const u=document.getElementById('dist-upd'); if(u)u.textContent='載入失敗'; }
+}
+setInterval(loadDist, 60000);   // 60 秒同拍;不在風度頁時 loadDist 自行跳過(零成本)
+
 async function loadChipIndicators() {
   const box = document.getElementById('chip-cards');
   if (!box) return;
@@ -3883,8 +3997,17 @@ async function loadChipIndicators() {
       `<div class="cp-h2"><span></span><span id="cp${key}D" style="text-align:right"></span></div>` +
       chipZone(chipBars2(pack.series), pack.series.length) + `</div>`;
     const rows = [];
+    const _g4 = [];   // 四卡制收集籃(外資OI/VIX/融資/散戶)
     if (d.idx && (d.idx.tse || d.idx.otc)) {
       rows.push(`<div class="chip-grid2">${idxCard('kt', '加權', d.idx.tse)}${idxCard('ko', '櫃買', d.idx.otc)}</div>`);
+    }
+    { // 漲跌分布卡骨架（07-28）：資料由 loadDist() 60 秒輪填,插在加權/櫃買之上
+      rows.unshift(`<div class="dist-card${_distOpen?' open':''}" id="dist-card" onclick="distToggle(event)">
+        <div class="dist-h"><b>盤中監控 120 檔漲跌分布</b><span class="dist-ext" style="color:var(--red)" id="dist-hi"></span><span class="dist-ext" style="color:var(--green)" id="dist-lo"></span><span class="dist-upd" id="dist-upd">載入中…</span></div>
+        <div class="dist-ratio" id="dist-ratio"></div>
+        <div class="dist-bins" id="dist-bins"></div>
+        <div class="dist-tog" id="dist-tog">▾</div>
+      </div>`);
     }
     // 2026-07-15 六卡重排：VIX 上到排2、散戶卡下到排3
     //   排2＝外資OI(2層) | VIX(2層)          → 等高
@@ -3895,7 +4018,7 @@ async function loadChipIndicators() {
       chipZone(`<div>${chipVixSvg(d.vix.series)}</div>`, d.vix.series.length, true) + `</div>`
       : chipPh('台指 VIX');
     if (d.foreign || d.vix) {
-      rows.push(`<div class="chip-grid2">${barCard('f', '外資台指OI', d.foreign)}${vixC}</div>`);
+      _g4.push(`${barCard('f', '外資台指OI', d.foreign)}${vixC}`);   // 07-28 四卡制:先收集,最後一次包(防單邊 if 成立時 div 不閉合)
     }
     if (d.margin || d.retail) {
       // 融資卡：報價列＋變動柱＋融資熱度副圖（反向情緒指標：1.80過熱／1.67中位／1.40斷頭壓力／1.30地板＋10MA）
@@ -3916,9 +4039,11 @@ async function loadChipIndicators() {
             chipZone(chipBars2(d.retail2.series), d.retail2.series.length)
           : '') + `</div>`
         : chipPh('散戶OI');
-      rows.push(`<div class="chip-grid2">${balC}${retC}</div>`);
+      _g4.push(`${balC}${retC}`);
     }
+    if (_g4.length) rows.push(`<div class="chip-grid4">${_g4.join('')}</div>`);
     if (!rows.length) return;
+    setTimeout(loadDist, 0);   // 骨架就位後立刻填一次分布
     box.innerHTML = rows.join('') + `<div class="chip-src">指數/期貨籌碼：FinMind（證交所＋期交所彙整）· 台指VIX：期交所TAIFEX · 融資餘額/熱度：證交所＋櫃買自算（上市＋上櫃合併·維持率分子不含ETF／反向指標，高=融資擁擠）· 每交易日 17:45／21:45／22:10 更新 · 按住圖表左右滑可看各日</div>`;
     box.style.display = '';
     chipSet(false, 0);
