@@ -2425,7 +2425,7 @@ function klRS(rows,mktMap){
     if(i<20){ m.set(rows[i][0],null); continue; }
     const c1=rows[i][4], c0=rows[i-20][4];
     const g1=mktMap.get(rows[i][0]), g0=mktMap.get(rows[i-20][0]);
-    m.set(rows[i][0], (g1==null||g0==null||!c0||!g0)?null:+(((c1/c0)-(g1/g0))*100).toFixed(1));
+    m.set(rows[i][0], (g1==null||g0==null||!c0||!g0)?null:+((((c1/c0)/(g1/g0))-1)*100).toFixed(1));   // 07-29 修:改比值式(個股倍率÷加權倍率−1),對齊 server rs20 口徑;原差值式在大波動日與表格分歧
   }
   return m;
 }
