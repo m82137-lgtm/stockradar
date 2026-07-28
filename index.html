@@ -720,6 +720,28 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:440px; }   /* 抽屜開啟：表�
 .iv2-nm:hover{ color:var(--accent); border-bottom-color:var(--accent); }
 .iv2-tv{ font-size:10px; color:var(--text3); border:1px solid var(--border); border-radius:5px; padding:1px 5px; margin-left:6px; }
 .iv2-mkt{ font-size:10px; color:var(--text2); background:var(--bg3); border-radius:5px; padding:2px 6px; margin-left:5px; }
+/* ── 均線下拉案（07-29）：股名格兩欄 grid（左=股名，右上=TSE/OTC、右下=位階徽章，徽章正對市場標籤、零增列高） ── */
+.iv2-nmblk{ display:inline-grid; grid-template-columns:auto auto; column-gap:0; row-gap:2px; align-items:center; vertical-align:middle; }
+.iv2-nmblk .iv2-nm{ grid-column:1; grid-row:1; }
+.iv2-nmblk .iv2-tv{ grid-column:1; grid-row:2; justify-self:start; }
+.iv2-nmblk .iv2-mkt{ grid-column:2; grid-row:1; }
+.iv2-matag{ grid-column:2; grid-row:2; justify-self:center; font-size:9px; border-radius:5px; padding:1px 6px; font-weight:700; margin-left:5px; white-space:nowrap; }
+.iv2-ma-both{ background:linear-gradient(135deg,#b45309,#d9364a); color:#fff; }
+.iv2-ma-60{ background:#fef3c7; color:#b45309; }
+.iv2-ma-20{ background:rgba(67,56,202,.14); color:#6366f1; }
+.iv2-ma-0{ background:var(--bg3); color:var(--text3); }
+@media (max-width:639px){ .iv2-matag{ font-size:8px; padding:0 5px; } }
+/* 均線下拉鈕 */
+.iv2-madd{ position:relative; margin-left:auto; }
+.iv2-madd-btn{ display:flex; align-items:center; gap:5px; border:1px solid rgba(124,92,224,.4); background:rgba(124,92,224,.1); color:var(--accent); border-radius:10px; padding:6px 12px; font-size:12.5px; font-weight:700; cursor:pointer; user-select:none; touch-action:manipulation; }
+.iv2-madd-btn .ar{ font-size:10px; transition:.15s; }
+.iv2-madd.open .iv2-madd-btn .ar{ transform:rotate(180deg); }
+.iv2-madd-menu{ position:absolute; right:0; top:calc(100% + 6px); background:var(--bg2); border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.18); min-width:104px; z-index:80; overflow:hidden; display:none; }
+.iv2-madd.open .iv2-madd-menu{ display:block; }
+.iv2-madd-it{ padding:10px 15px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--text); touch-action:manipulation; }
+.iv2-madd-it:hover{ background:var(--bg3); }
+.iv2-madd-it.on{ color:var(--accent); font-weight:700; background:rgba(124,92,224,.08); }
+.iv2-madd-it .ck{ width:13px; font-family:'JetBrains Mono',monospace; }
 @media (max-width:639px){ .iv2-tv{ display:none; } .iv2-mkt{ font-size:9px; padding:1px 4px; margin-left:4px; } }
 .iv2-num{ font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; }
 .iv2-chg{ font-weight:800; }
@@ -2663,7 +2685,7 @@ function ivRow(s){
   const estInline = s.estVol ? `<span class="iv2-est-inline">${tagS} 估${ivFmtVolM(s.estVol)}張</span>` : '';
   return `<tr class="${lim?'limit':''} ${isFaded?'faded':''} ${s.code===ivSelCode?'sel':''}" data-code="${s.code}" onclick="ivRowClick('${s.code}')">
     <td class="l"><span class="iv2-code">${s.code}</span></td>
-    <td class="l"><a class="iv2-nm" href="${ivTvUrl(s)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a><span class="iv2-tv">TV</span>${s.market?`<span class="iv2-mkt">${s.market}</span>`:''}</td>
+    <td class="l"><span class="iv2-nmblk"><a class="iv2-nm" href="${ivTvUrl(s)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a><span class="iv2-tv">TV</span>${s.market?`<span class="iv2-mkt">${s.market}</span>`:''}${ivMaTag(s)}</span></td>
     <td class="iv2-pxcell">${pxCell}</td>
     <td class="iv2-num">${tvCell}</td>
     <td class="iv2-num"><span class="iv2-vol-full">${ivFmtVol(s.vol)}張</span><span class="iv2-vol-m">${ivFmtVolM(s.vol)}張</span>${estInline}</td>
@@ -2677,6 +2699,29 @@ function ivRow(s){
   </tr>`;
 }
 
+// ── 均線下拉（07-29）：純前端顯示篩選;Worker 已全入榜並帶 ma20Ok/ma60Ok 旗標 ──
+let _maFilter = 'all';   // all / ma20 / ma60;跨頁記憶(SPA 全域)
+function ivMaSet(v, el){
+  _maFilter = v;
+  document.querySelectorAll('.iv2-madd-it').forEach(x=>{ x.classList.remove('on'); const c=x.querySelector('.ck'); if(c)c.textContent=''; });
+  if (el){ el.classList.add('on'); const c=el.querySelector('.ck'); if(c)c.textContent='✓'; }
+  const lab=document.getElementById('iv2-madd-lab'); if(lab) lab.textContent = v==='all'?'All':v==='ma20'?'20均↑':'60均↑';
+  const dd=document.getElementById('iv2-madd'); if(dd) dd.classList.remove('open');
+  renderAlertsList();
+}
+document.addEventListener('click', e => { const dd=document.getElementById('iv2-madd'); if (dd && !e.target.closest('.iv2-madd')) dd.classList.remove('open'); });
+// 篩選語意:20均↑=ma20Ok(含雙均);60均↑=ma60Ok(含雙均)——獨立條件,雙均檔兩邊都出現
+function ivMaPass(s){
+  if (_maFilter === 'all') return true;
+  return _maFilter === 'ma20' ? s.ma20Ok !== false : s.ma60Ok !== false;   // 舊資料無旗標=放行(過渡期不誤殺)
+}
+// 位階徽章四態:雙均↑/60均↑/20均↑/均下;舊資料無旗標=不顯示
+function ivMaTag(s){
+  if (s.ma20Ok == null && s.ma60Ok == null) return '';
+  const m20 = s.ma20Ok !== false, m60 = s.ma60Ok !== false;
+  const [cls, txt] = (m20 && m60) ? ['iv2-ma-both','雙均↑'] : m60 ? ['iv2-ma-60','60均↑'] : m20 ? ['iv2-ma-20','20均↑'] : ['iv2-ma-0','均下'];
+  return `<span class="iv2-matag ${cls}">${txt}</span>`;
+}
 function renderAlertsList() {
   syncSortUI();   // 開頁/每輪渲染同步表頭箭頭（預設 chg → 「價格」亮▼）
   const listEl  = document.getElementById('strategy-list');
@@ -2684,7 +2729,7 @@ function renderAlertsList() {
   const limitEl = document.getElementById('alerts-limit');
   if (!listEl) return;
   const isQJ   = currentStrategy === 'qj';
-  const stocks = sortStocks(isQJ ? alertsData.qj : alertsData.lz);
+  const stocks = sortStocks((isQJ ? alertsData.qj : alertsData.lz).filter(ivMaPass));   // 均線下拉:符合N=當前篩選
   if (countEl) countEl.textContent = stocks.length;
   if (limitEl) limitEl.textContent = `漲停 ${stocks.filter(s=>(+(s.chg||0))>=9.5).length}`;
   if (!stocks.length) {
@@ -4101,10 +4146,15 @@ const pages = {
       <span>符合 <b id="alerts-count">…</b></span>
       <span><span class="iv2-dot amber"></span><span id="alerts-limit">漲停 0</span></span>
     </div>
-    <div class="iv2-sorts">
-      <span class="lbl">排序</span>
-      <button class="iv2-sb" id="sort-time" onclick="setSort('time')">入榜時間</button>
-      <button class="iv2-refresh" onclick="fetchAlerts()">↻ 更新</button>
+    <div class="iv2-madd" id="iv2-madd">
+      <div class="iv2-madd-btn" onclick="document.getElementById('iv2-madd').classList.toggle('open');event.stopPropagation()">
+        <span id="iv2-madd-lab">All</span><span class="ar">▾</span>
+      </div>
+      <div class="iv2-madd-menu">
+        <div class="iv2-madd-it on" data-v="all" onclick="ivMaSet('all',this)"><span class="ck">✓</span>All</div>
+        <div class="iv2-madd-it" data-v="ma20" onclick="ivMaSet('ma20',this)"><span class="ck"></span>20均↑</div>
+        <div class="iv2-madd-it" data-v="ma60" onclick="ivMaSet('ma60',this)"><span class="ck"></span>60均↑</div>
+      </div>
     </div>
   </div>
   <div class="iv2-ws">
