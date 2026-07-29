@@ -721,8 +721,9 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:440px; }   /* 抽屜開啟：表�
 .iv2-tv{ font-size:10px; color:var(--text3); border:1px solid var(--border); border-radius:5px; padding:1px 5px; margin-left:6px; }
 .iv2-mkt{ font-size:10px; color:var(--text2); background:var(--bg3); border-radius:5px; padding:2px 6px; margin-left:5px; }
 /* 熱漲跌底色（07-29）：|chg|≥9.5% 紅底/綠底白字,國際市值+台美Top50 共用 */
-.pct-hot-up{ background:#dc2626 !important; color:#fff !important; border-radius:6px; padding:1px 7px; }
-.pct-hot-dn{ background:#16a34a !important; color:#fff !important; border-radius:6px; padding:1px 7px; }
+.pct-hot-up,.pct-hot-dn{ display:inline-block; border-radius:6px; padding:1px 7px; color:#fff !important; font-weight:700; }
+.pct-hot-up{ background:#dc2626; }
+.pct-hot-dn{ background:#16a34a; }
 /* ── 均線下拉案（07-29）：股名格兩欄 grid（左=股名，右上=TSE/OTC、右下=位階徽章，徽章正對市場標籤、零增列高） ── */
 .iv2-nmblk{ display:inline-grid; grid-template-columns:auto auto; column-gap:5px; row-gap:2px; align-items:center; vertical-align:middle; }   /* 07-29 三修:二夾一——股名跨兩列垂直置中,右欄上=TSE/OTC(與價格同高)、下=位階徽章 */
 .iv2-nmblk .iv2-nm{ grid-column:1; grid-row:1 / span 2; align-self:center; }
@@ -1291,7 +1292,7 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 .jk-ind{ font-size:11px; color:var(--text3); margin-top:2px; white-space:nowrap; }
 .jk-px{ text-align:right; flex:none; }
 .jk-px .p{ font-size:14px; font-weight:700; font-family:ui-monospace,Consolas,monospace; }
-.jk-px .c{ font-size:14px; font-weight:700; font-family:ui-monospace,Consolas,monospace; margin-left:8px; }   /* 07-29:12→14 放大 */
+.jk-px .c{ font-size:13px; font-weight:700; font-family:ui-monospace,Consolas,monospace; margin-left:8px; }   /* 07-29:12→14→13(小一號) */
 .jk-ntd{ text-align:right; flex:none; width:150px; }
 .jk-ntd .n{ font-size:14px; font-weight:800; color:#a78bfa; font-family:ui-monospace,Consolas,monospace; white-space:nowrap; }
 .jk-ntd .r{ font-size:10px; color:var(--text3); font-family:ui-monospace,Consolas,monospace; margin-top:1px; white-space:nowrap; }
@@ -3066,8 +3067,10 @@ function renderTwNewcomers(cards) {
     return;
   }
   const cardsHtml = cards.map(s=>{
-    const chgCls = (Math.abs(+s.chg||0) >= 9.5) ? (s.chg > 0 ? 'us-up pct-hot-up' : 'us-down pct-hot-dn') : (s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : ''));   // 07-29:|chg|≥9.5 熱底色
+    const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
+    // 07-29 二修:熱底色原掛在 td 上→整格填滿;改成只包住文字的小框(比照價格漲幅膠囊)
+    const chgHtml = (Math.abs(+s.chg||0) >= 9.5) ? `<span class="pct-hot-${s.chg>0?'up':'dn'}">${chgTxt}</span>` : chgTxt;
     return `<div class="us-nc-card" onclick="openTwNews('${s.code}','${(s.name||'').replace(/'/g,'')}')">
       <div class="us-nc-top">
         <span class="us-nc-code">${s.code}</span>
@@ -3179,8 +3182,10 @@ function renderTwTable() {
     }
   });
   tbody.innerHTML = rows.map((s,i)=>{
-    const chgCls = (Math.abs(+s.chg||0) >= 9.5) ? (s.chg > 0 ? 'us-up pct-hot-up' : 'us-down pct-hot-dn') : (s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : ''));   // 07-29:|chg|≥9.5 熱底色
+    const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
+    // 07-29 二修:熱底色原掛在 td 上→整格填滿;改成只包住文字的小框(比照價格漲幅膠囊)
+    const chgHtml = (Math.abs(+s.chg||0) >= 9.5) ? `<span class="pct-hot-${s.chg>0?'up':'dn'}">${chgTxt}</span>` : chgTxt;
     const newBadge = s.isNew ? '<span class="us-new">NEW</span>' : '';
     let rankMark = '';
     if (!s.isNew && s.rankChange) {
@@ -3194,7 +3199,7 @@ function renderTwTable() {
       <td class="us-td-rank">${s.rank||i+1}${rankMark}</td>
       <td class="us-td-code">${newBadge}${s.code}${mktBadge}<a class="us-td-name" href="https://tw.tradingview.com/chart/?symbol=${encodeURIComponent((s.market==='OTC'?'TPEX:':'TWSE:')+s.code)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name||''}</a></td>
       <td class="us-td-price">${(s.price ?? 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td class="us-td-chg ${chgCls}">${chgTxt}</td>
+      <td class="us-td-chg ${chgCls}">${chgHtml}</td>
       <td class="us-td-val">${fmtTwVal(s.tradeValue)}</td>
       <td class="us-td-nh">${s.newHigh ? '<span class="us-hi"><b>🔥新高</b>' + (nhSpan(s.nhD) ? '<small>' + nhSpan(s.nhD) + '</small>' : '') + '</span>' : '<span style="color:var(--text3)">—</span>'}</td>
       <td class="us-td-days">${s.days||1}<span class="us-days-unit">天</span></td>
@@ -3498,8 +3503,10 @@ function renderNewcomers(cards) {
     return;
   }
   const cardsHtml = cards.map(s=>{
-    const chgCls = (Math.abs(+s.chg||0) >= 9.5) ? (s.chg > 0 ? 'us-up pct-hot-up' : 'us-down pct-hot-dn') : (s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : ''));   // 07-29:|chg|≥9.5 熱底色
+    const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
+    // 07-29 二修:熱底色原掛在 td 上→整格填滿;改成只包住文字的小框(比照價格漲幅膠囊)
+    const chgHtml = (Math.abs(+s.chg||0) >= 9.5) ? `<span class="pct-hot-${s.chg>0?'up':'dn'}">${chgTxt}</span>` : chgTxt;
     return `<div class="us-nc-card" onclick="openUsNews('${s.code}')">
       <div class="us-nc-top">
         <span class="us-nc-code">${s.code}</span>
@@ -3596,8 +3603,10 @@ function renderUsTable() {
     }
   });
   tbody.innerHTML = rows.map((s,i)=>{
-    const chgCls = (Math.abs(+s.chg||0) >= 9.5) ? (s.chg > 0 ? 'us-up pct-hot-up' : 'us-down pct-hot-dn') : (s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : ''));   // 07-29:|chg|≥9.5 熱底色
+    const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
+    // 07-29 二修:熱底色原掛在 td 上→整格填滿;改成只包住文字的小框(比照價格漲幅膠囊)
+    const chgHtml = (Math.abs(+s.chg||0) >= 9.5) ? `<span class="pct-hot-${s.chg>0?'up':'dn'}">${chgTxt}</span>` : chgTxt;
     const newBadge = s.isNew ? '<span class="us-new">NEW</span>' : '';
     let rankMark = '';
     if (!s.isNew && s.rankChange) {
@@ -3609,7 +3618,7 @@ function renderUsTable() {
       <td class="us-td-rank">${s.rank||i+1}${rankMark}</td>
       <td class="us-td-code">${newBadge}${s.code}<a class="us-td-name" href="https://tw.tradingview.com/chart/?symbol=${encodeURIComponent(s.code)}" target="_blank" rel="noopener" title="${(s.name||'').replace(/"/g,'')}" onclick="event.stopPropagation()">${s.zh || s.name || ''}</a></td>
       <td class="us-td-price">$${(s.price ?? 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td class="us-td-chg ${chgCls}">${chgTxt}</td>
+      <td class="us-td-chg ${chgCls}">${chgHtml}</td>
       <td class="us-td-days">${s.days||1}<span class="us-days-unit">天</span></td>
       <td class="us-td-val">${fmtDollarVol(s.dollarVol)}</td>
       <td class="us-td-theme">${tag}</td>
