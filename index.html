@@ -2691,7 +2691,7 @@ function ivRow(s){
   const estInline = s.estVol ? `<span class="iv2-est-inline">${tagS} 估${ivFmtVolM(s.estVol)}張</span>` : '';
   return `<tr class="${lim?'limit':''} ${isFaded?'faded':''} ${s.code===ivSelCode?'sel':''}" data-code="${s.code}" onclick="ivRowClick('${s.code}')">
     <td class="l"><span class="iv2-code">${s.code}</span></td>
-    <td class="l"><span class="iv2-nmblk"><a class="iv2-nm" href="${ivTvUrl(s)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a>${s.market?`<span class="iv2-mkt">${s.market}${ivMaTag(s)}</span>`:ivMaTag(s)}</span></td>
+    <td class="l"><span class="iv2-nmblk"><a class="iv2-nm" href="${ivTvUrl(s)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a>${s.market?`<span class="iv2-mkt">${s.market}</span>`:''}${ivMaTag(s)}</span></td>
     <td class="iv2-pxcell">${pxCell}</td>
     <td class="iv2-num">${tvCell}</td>
     <td class="iv2-num"><span class="iv2-vol-full">${ivFmtVol(s.vol)}張</span><span class="iv2-vol-m">${ivFmtVolM(s.vol)}張</span>${estInline}</td>
