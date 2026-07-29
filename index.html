@@ -724,9 +724,10 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:440px; }   /* 抽屜開啟：表�
 .pct-hot-up{ background:#dc2626 !important; color:#fff !important; border-radius:6px; padding:1px 7px; }
 .pct-hot-dn{ background:#16a34a !important; color:#fff !important; border-radius:6px; padding:1px 7px; }
 /* ── 均線下拉案（07-29）：股名格兩欄 grid（左=股名，右上=TSE/OTC、右下=位階徽章，徽章正對市場標籤、零增列高） ── */
-.iv2-nmblk{ display:inline; }   /* 07-29 二修:撤兩行grid(整塊置中害股名浮到中線上方、對不齊股號)——股名行恢復單行自然置中 */
-.iv2-mkt{ position:relative; }   /* 徽章錨點 */
-.iv2-matag{ position:absolute; top:calc(100% + 3px); left:50%; transform:translateX(-50%); font-size:9px; border-radius:5px; padding:1px 6px; font-weight:700; white-space:nowrap; }   /* 絕對定位掛 OTC 正下:零佔位、股名與股號同水平 */
+.iv2-nmblk{ display:inline-grid; grid-template-columns:auto auto; column-gap:5px; row-gap:2px; align-items:center; vertical-align:middle; }   /* 07-29 三修:二夾一——股名跨兩列垂直置中,右欄上=TSE/OTC(與價格同高)、下=位階徽章 */
+.iv2-nmblk .iv2-nm{ grid-column:1; grid-row:1 / span 2; align-self:center; }
+.iv2-nmblk .iv2-mkt{ grid-column:2; grid-row:1; position:static; margin-left:0; justify-self:center; }
+.iv2-nmblk .iv2-matag{ grid-column:2; grid-row:2; position:static; transform:none; justify-self:center; font-size:9px; border-radius:5px; padding:1px 6px; font-weight:700; white-space:nowrap; }
 .iv2-ma-both{ background:linear-gradient(135deg,#b45309,#d9364a); color:#fff; }
 .iv2-ma-60{ background:#fef3c7; color:#b45309; }
 .iv2-ma-20{ background:rgba(67,56,202,.14); color:#6366f1; }
@@ -738,7 +739,7 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:440px; }   /* 抽屜開啟：表�
 .iv2-madd-btn .ar{ font-size:10px; transition:.15s; }
 .iv2-madd.open .iv2-madd-btn .ar{ transform:rotate(180deg); }
 .iv2-madd-menu{ position:fixed; background:var(--bg2); border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.18); min-width:104px; z-index:300; overflow:hidden; display:none; }   /* 07-29 三修:absolute 被手機 .iv2-tools overflow-x:auto 連帶裁切(選單只露出 All)→ 改 fixed 免疫祖先 overflow,位置開啟時由 ivMaToggle 計算 */
-.iv2-madd.open .iv2-madd-menu{ display:block; }
+.iv2-madd-menu.open{ display:block; }   /* 07-29 四修:改由選單自身 class 控(它會被搬到 body) */
 .iv2-madd-it{ padding:10px 15px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--text); touch-action:manipulation; }
 .iv2-madd-it:hover{ background:var(--bg3); }
 .iv2-madd-it.on{ color:var(--accent); font-weight:700; background:rgba(124,92,224,.08); }
@@ -2705,26 +2706,41 @@ function ivRow(s){
 
 // ── 均線下拉（07-29）：純前端顯示篩選;Worker 已全入榜並帶 ma20Ok/ma60Ok 旗標 ──
 let _maFilter = 'all';   // all / ma20 / ma60;跨頁記憶(SPA 全域)
+// 07-29 四修:position:fixed 仍被夾住——手機 .iv2-tools 有 -webkit-overflow-scrolling:touch,
+// iOS Safari 會讓它成為 fixed 子元素的包含塊並裁切(結果只露出第一項 All)。
+// 根治:開啟時把選單搬到 <body> 底下,徹底脫離該容器;SPA 重繪留下的舊選單一併清掉。
+function ivMaMenu(dd){
+  let m = dd.querySelector('.iv2-madd-menu') || document.getElementById('iv2-madd-menu');
+  document.querySelectorAll('body > .iv2-madd-menu').forEach(x => { if (x !== m) x.remove(); });
+  return m;
+}
+function ivMaClose(){
+  const dd=document.getElementById('iv2-madd'); if(dd) dd.classList.remove('open');
+  const m=document.getElementById('iv2-madd-menu'); if(m) m.classList.remove('open');
+}
 function ivMaToggle(){
   const dd=document.getElementById('iv2-madd'); if(!dd)return;
-  const open=dd.classList.toggle('open');
+  const m=ivMaMenu(dd); if(!m)return;
+  const open=!dd.classList.contains('open');
+  dd.classList.toggle('open', open);
   if(open){
+    if(m.parentElement!==document.body) document.body.appendChild(m);
     const b=dd.querySelector('.iv2-madd-btn').getBoundingClientRect();
-    const m=dd.querySelector('.iv2-madd-menu');
     m.style.top=(b.bottom+6)+'px';
     m.style.right=(window.innerWidth-b.right)+'px';
     m.style.left='auto';
-  }
+    m.classList.add('open');
+  } else m.classList.remove('open');
 }
 function ivMaSet(v, el){
   _maFilter = v;
   document.querySelectorAll('.iv2-madd-it').forEach(x=>{ x.classList.remove('on'); const c=x.querySelector('.ck'); if(c)c.textContent=''; });
   if (el){ el.classList.add('on'); const c=el.querySelector('.ck'); if(c)c.textContent='✓'; }
   const lab=document.getElementById('iv2-madd-lab'); if(lab) lab.textContent = v==='all'?'All':v==='ma20'?'20均↑':'60均↑';
-  const dd=document.getElementById('iv2-madd'); if(dd) dd.classList.remove('open');
+  ivMaClose();
   renderAlertsList();
 }
-document.addEventListener('click', e => { const dd=document.getElementById('iv2-madd'); if (dd && !e.target.closest('.iv2-madd')) dd.classList.remove('open'); });
+document.addEventListener('click', e => { if (e.target.closest('.iv2-madd') || e.target.closest('.iv2-madd-menu')) return; ivMaClose(); });
 // 篩選語意:20均↑=ma20Ok(含雙均);60均↑=ma60Ok(含雙均)——獨立條件,雙均檔兩邊都出現
 function ivMaPass(s){
   if (_maFilter === 'all') return true;
@@ -4165,7 +4181,7 @@ const pages = {
       <div class="iv2-madd-btn" onclick="ivMaToggle();event.stopPropagation()">
         <span id="iv2-madd-lab">All</span><span class="ar">▾</span>
       </div>
-      <div class="iv2-madd-menu">
+      <div class="iv2-madd-menu" id="iv2-madd-menu">
         <div class="iv2-madd-it on" data-v="all" onclick="ivMaSet('all',this)"><span class="ck">✓</span>All</div>
         <div class="iv2-madd-it" data-v="ma20" onclick="ivMaSet('ma20',this)"><span class="ck"></span>20均↑</div>
         <div class="iv2-madd-it" data-v="ma60" onclick="ivMaSet('ma60',this)"><span class="ck"></span>60均↑</div>
