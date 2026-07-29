@@ -720,12 +720,13 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:440px; }   /* 抽屜開啟：表�
 .iv2-nm:hover{ color:var(--accent); border-bottom-color:var(--accent); }
 .iv2-tv{ font-size:10px; color:var(--text3); border:1px solid var(--border); border-radius:5px; padding:1px 5px; margin-left:6px; }
 .iv2-mkt{ font-size:10px; color:var(--text2); background:var(--bg3); border-radius:5px; padding:2px 6px; margin-left:5px; }
+/* 熱漲跌底色（07-29）：|chg|≥9.5% 紅底/綠底白字,國際市值+台美Top50 共用 */
+.pct-hot-up{ background:#dc2626 !important; color:#fff !important; border-radius:6px; padding:1px 7px; }
+.pct-hot-dn{ background:#16a34a !important; color:#fff !important; border-radius:6px; padding:1px 7px; }
 /* ── 均線下拉案（07-29）：股名格兩欄 grid（左=股名，右上=TSE/OTC、右下=位階徽章，徽章正對市場標籤、零增列高） ── */
-.iv2-nmblk{ display:inline-grid; grid-template-columns:auto auto; column-gap:0; row-gap:2px; align-items:center; vertical-align:middle; }
-.iv2-nmblk .iv2-nm{ grid-column:1; grid-row:1; }
-.iv2-nmblk .iv2-tv{ grid-column:1; grid-row:2; justify-self:start; }
-.iv2-nmblk .iv2-mkt{ grid-column:2; grid-row:1; }
-.iv2-matag{ grid-column:2; grid-row:2; justify-self:center; font-size:9px; border-radius:5px; padding:1px 6px; font-weight:700; margin-left:5px; white-space:nowrap; }
+.iv2-nmblk{ display:inline; }   /* 07-29 二修:撤兩行grid(整塊置中害股名浮到中線上方、對不齊股號)——股名行恢復單行自然置中 */
+.iv2-mkt{ position:relative; }   /* 徽章錨點 */
+.iv2-matag{ position:absolute; top:calc(100% + 3px); left:50%; transform:translateX(-50%); font-size:9px; border-radius:5px; padding:1px 6px; font-weight:700; white-space:nowrap; }   /* 絕對定位掛 OTC 正下:零佔位、股名與股號同水平 */
 .iv2-ma-both{ background:linear-gradient(135deg,#b45309,#d9364a); color:#fff; }
 .iv2-ma-60{ background:#fef3c7; color:#b45309; }
 .iv2-ma-20{ background:rgba(67,56,202,.14); color:#6366f1; }
@@ -736,7 +737,7 @@ body.iv2-has-sel .iv2-tablewrap{ margin-right:440px; }   /* 抽屜開啟：表�
 .iv2-madd-btn{ display:flex; align-items:center; gap:5px; border:1px solid rgba(124,92,224,.4); background:rgba(124,92,224,.1); color:var(--accent); border-radius:10px; padding:6px 12px; font-size:12.5px; font-weight:700; cursor:pointer; user-select:none; touch-action:manipulation; }
 .iv2-madd-btn .ar{ font-size:10px; transition:.15s; }
 .iv2-madd.open .iv2-madd-btn .ar{ transform:rotate(180deg); }
-.iv2-madd-menu{ position:absolute; right:0; top:calc(100% + 6px); background:var(--bg2); border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.18); min-width:104px; z-index:80; overflow:hidden; display:none; }
+.iv2-madd-menu{ position:fixed; background:var(--bg2); border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.18); min-width:104px; z-index:300; overflow:hidden; display:none; }   /* 07-29 三修:absolute 被手機 .iv2-tools overflow-x:auto 連帶裁切(選單只露出 All)→ 改 fixed 免疫祖先 overflow,位置開啟時由 ivMaToggle 計算 */
 .iv2-madd.open .iv2-madd-menu{ display:block; }
 .iv2-madd-it{ padding:10px 15px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--text); touch-action:manipulation; }
 .iv2-madd-it:hover{ background:var(--bg3); }
@@ -1289,7 +1290,7 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 .jk-ind{ font-size:11px; color:var(--text3); margin-top:2px; white-space:nowrap; }
 .jk-px{ text-align:right; flex:none; }
 .jk-px .p{ font-size:14px; font-weight:700; font-family:ui-monospace,Consolas,monospace; }
-.jk-px .c{ font-size:12px; font-family:ui-monospace,Consolas,monospace; margin-left:8px; }
+.jk-px .c{ font-size:14px; font-weight:700; font-family:ui-monospace,Consolas,monospace; margin-left:8px; }   /* 07-29:12→14 放大 */
 .jk-ntd{ text-align:right; flex:none; width:150px; }
 .jk-ntd .n{ font-size:14px; font-weight:800; color:#a78bfa; font-family:ui-monospace,Consolas,monospace; white-space:nowrap; }
 .jk-ntd .r{ font-size:10px; color:var(--text3); font-family:ui-monospace,Consolas,monospace; margin-top:1px; white-space:nowrap; }
@@ -2178,8 +2179,8 @@ function isMarketHours() {
 function startIntradayAutoRefresh() {
   clearInterval(intradayTimer);
   loadIvSeries(true).then(() => renderAlertsList());
-  loadOhlc5d(true).then(() => renderAlertsList());
-  intradayTimer = setInterval(() => { if (isMarketHours()) { fetchAlerts(); loadIvSeries(); loadOhlc5d(); } }, 60000);
+  // 07-29 近五日K欄移除(面板K線已足):loadOhlc5d/ivK5 保留備用不再呼叫
+  intradayTimer = setInterval(() => { if (isMarketHours()) { fetchAlerts(); loadIvSeries(); } }, 60000);
 }
 function stopIntradayAutoRefresh() { clearInterval(intradayTimer); intradayTimer = null; }
 
@@ -2507,7 +2508,11 @@ function klSetNow(i){
   if(px)px.innerHTML=`<b style="color:${col}">${r[4]}</b><i style="color:${col}">${up?'+':''}${pc.toFixed(2)}%</i>`;
   const vn=document.getElementById('kl-vnow'); if(vn)vn.textContent='量 '+klVolTxt(r[5])+'張';
   const mn=document.getElementById('kl-mavnow'); if(mn){ const mv=g.mavWin[i]; mn.textContent=mv==null?'':'MAV5 '+klVolTxt(Math.round(mv)); }
-  const rn=document.getElementById('kl-rsnow'); if(rn){ const rs=g.rsWin[i]; rn.textContent='RS '+klRsTxt(rs); rn.className='kl-rsb '+klRsCls(rs); }
+  const rn=document.getElementById('kl-rsnow'); if(rn){ let rs=g.rsWin[i];
+    // 07-29:最新根無RS(盤中大盤未收=今日棒null)→右上退回最後一根有值的RS(=昨收,與表格定版同值,一眼對帳);
+    // 游標指向歷史null根(前20根窗口)仍誠實顯「—」不退回
+    if(rs==null && i===g.n-1){ for(let k=i-1;k>=0;k--){ if(g.rsWin[k]!=null){ rs=g.rsWin[k]; break; } } }
+    rn.textContent='RS '+klRsTxt(rs); rn.className='kl-rsb '+klRsCls(rs); }
 }
 // 手機量列補滿（07-27）：面板固定 32dvh，但 K圖(hP=100)＋量圖(hV=16) 加起來吃不滿，
 // 底下留一條空白。此處量測「面板底緣 − 量圖底緣」把量圖拉高填滿；面板總高不動。
@@ -2685,7 +2690,7 @@ function ivRow(s){
   const estInline = s.estVol ? `<span class="iv2-est-inline">${tagS} 估${ivFmtVolM(s.estVol)}張</span>` : '';
   return `<tr class="${lim?'limit':''} ${isFaded?'faded':''} ${s.code===ivSelCode?'sel':''}" data-code="${s.code}" onclick="ivRowClick('${s.code}')">
     <td class="l"><span class="iv2-code">${s.code}</span></td>
-    <td class="l"><span class="iv2-nmblk"><a class="iv2-nm" href="${ivTvUrl(s)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a><span class="iv2-tv">TV</span>${s.market?`<span class="iv2-mkt">${s.market}</span>`:''}${ivMaTag(s)}</span></td>
+    <td class="l"><span class="iv2-nmblk"><a class="iv2-nm" href="${ivTvUrl(s)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${s.name}</a>${s.market?`<span class="iv2-mkt">${s.market}${ivMaTag(s)}</span>`:ivMaTag(s)}</span></td>
     <td class="iv2-pxcell">${pxCell}</td>
     <td class="iv2-num">${tvCell}</td>
     <td class="iv2-num"><span class="iv2-vol-full">${ivFmtVol(s.vol)}張</span><span class="iv2-vol-m">${ivFmtVolM(s.vol)}張</span>${estInline}</td>
@@ -2695,12 +2700,22 @@ function ivRow(s){
     <td class="iv2-rscell">${ivRs(s)}</td>
     <td class="iv2-kcell">${ivKbar(s)}</td>
     <td class="iv2-spcell">${ivSpark(s)}</td>
-    <td class="iv2-k5cell">${ivK5(s)}</td>
   </tr>`;
 }
 
 // ── 均線下拉（07-29）：純前端顯示篩選;Worker 已全入榜並帶 ma20Ok/ma60Ok 旗標 ──
 let _maFilter = 'all';   // all / ma20 / ma60;跨頁記憶(SPA 全域)
+function ivMaToggle(){
+  const dd=document.getElementById('iv2-madd'); if(!dd)return;
+  const open=dd.classList.toggle('open');
+  if(open){
+    const b=dd.querySelector('.iv2-madd-btn').getBoundingClientRect();
+    const m=dd.querySelector('.iv2-madd-menu');
+    m.style.top=(b.bottom+6)+'px';
+    m.style.right=(window.innerWidth-b.right)+'px';
+    m.style.left='auto';
+  }
+}
 function ivMaSet(v, el){
   _maFilter = v;
   document.querySelectorAll('.iv2-madd-it').forEach(x=>{ x.classList.remove('on'); const c=x.querySelector('.ck'); if(c)c.textContent=''; });
@@ -2855,7 +2870,7 @@ function jkCard(s){
   <div class="jk-rank ${rk}">${rkNo}</div>
   <div class="jk-av" style="color:${av}">${String(disp).charAt(0)}</div>
   <div class="jk-mid"><div class="jk-nm"><a class="jk-lnk" href="${tvUrl}" target="_blank" rel="noopener" title="看 TradingView 線圖"><b>${disp}</b></a><span class="jk-code">${s.code}</span></div><div class="jk-ind">${s.ind || '—'}</div></div>
-  <div class="jk-px"><span class="p">${px}</span><span class="c" style="color:${cc}">${chg > 0 ? '+' : ''}${chg}%</span></div>
+  <div class="jk-px"><span class="p">${px}</span><span class="c ${Math.abs(+chg)>=9.5?(+chg>0?'pct-hot-up':'pct-hot-dn'):''}" style="${Math.abs(+chg)>=9.5?'':'color:'+cc}">${chg > 0 ? '+' : ''}${chg}%</span></div>
   <div class="jk-ntd"><div class="n">${ntd}</div><div class="r">原幣 ${val}</div></div>
 </div>`;
 }
@@ -3035,7 +3050,7 @@ function renderTwNewcomers(cards) {
     return;
   }
   const cardsHtml = cards.map(s=>{
-    const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
+    const chgCls = (Math.abs(+s.chg||0) >= 9.5) ? (s.chg > 0 ? 'us-up pct-hot-up' : 'us-down pct-hot-dn') : (s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : ''));   // 07-29:|chg|≥9.5 熱底色
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
     return `<div class="us-nc-card" onclick="openTwNews('${s.code}','${(s.name||'').replace(/'/g,'')}')">
       <div class="us-nc-top">
@@ -3148,7 +3163,7 @@ function renderTwTable() {
     }
   });
   tbody.innerHTML = rows.map((s,i)=>{
-    const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
+    const chgCls = (Math.abs(+s.chg||0) >= 9.5) ? (s.chg > 0 ? 'us-up pct-hot-up' : 'us-down pct-hot-dn') : (s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : ''));   // 07-29:|chg|≥9.5 熱底色
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
     const newBadge = s.isNew ? '<span class="us-new">NEW</span>' : '';
     let rankMark = '';
@@ -3467,7 +3482,7 @@ function renderNewcomers(cards) {
     return;
   }
   const cardsHtml = cards.map(s=>{
-    const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
+    const chgCls = (Math.abs(+s.chg||0) >= 9.5) ? (s.chg > 0 ? 'us-up pct-hot-up' : 'us-down pct-hot-dn') : (s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : ''));   // 07-29:|chg|≥9.5 熱底色
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
     return `<div class="us-nc-card" onclick="openUsNews('${s.code}')">
       <div class="us-nc-top">
@@ -3565,7 +3580,7 @@ function renderUsTable() {
     }
   });
   tbody.innerHTML = rows.map((s,i)=>{
-    const chgCls = s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : '');
+    const chgCls = (Math.abs(+s.chg||0) >= 9.5) ? (s.chg > 0 ? 'us-up pct-hot-up' : 'us-down pct-hot-dn') : (s.chg > 0 ? 'us-up' : (s.chg < 0 ? 'us-down' : ''));   // 07-29:|chg|≥9.5 熱底色
     const chgTxt = (s.chg > 0 ? '+' : '') + (s.chg ?? 0).toFixed(2) + '%';
     const newBadge = s.isNew ? '<span class="us-new">NEW</span>' : '';
     let rankMark = '';
@@ -4147,7 +4162,7 @@ const pages = {
       <span><span class="iv2-dot amber"></span><span id="alerts-limit">漲停 0</span></span>
     </div>
     <div class="iv2-madd" id="iv2-madd">
-      <div class="iv2-madd-btn" onclick="document.getElementById('iv2-madd').classList.toggle('open');event.stopPropagation()">
+      <div class="iv2-madd-btn" onclick="ivMaToggle();event.stopPropagation()">
         <span id="iv2-madd-lab">All</span><span class="ar">▾</span>
       </div>
       <div class="iv2-madd-menu">
@@ -4161,7 +4176,7 @@ const pages = {
     <div class="iv2-tablewrap" id="iv2-tablewrap">
       <table class="iv2-table">
         <thead><tr>
-          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price sortable" data-sort="chg" onclick="setSort('chg',true)">價格<span class="ar">⇅</span></th><th class="c-chg sortable" data-sort="tv" onclick="setSort('tv',true)">成交值<span class="ar">⇅</span></th><th class="c-vol sortable" data-sort="vol" onclick="setSort('vol',true)">成交量<span class="ar">⇅</span></th><th class="iv2-est-col c-est">預估量</th><th class="c-k15 sortable" data-sort="k15" onclick="setSort('k15',true)">15MK<span class="ar">⇅</span></th><th class="c-mo sortable" data-sort="nh" onclick="setSort('nh',true)">月K<span class="ar">⇅</span></th><th class="c-rs sortable" data-sort="rs" onclick="setSort('rs',true)">RS動能<span class="ar">⇅</span></th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th><th class="c-k5">近五日K</th>
+          <th class="l c-code">代碼</th><th class="l c-name">名稱</th><th class="c-price sortable" data-sort="chg" onclick="setSort('chg',true)">價格<span class="ar">⇅</span></th><th class="c-chg sortable" data-sort="tv" onclick="setSort('tv',true)">成交值<span class="ar">⇅</span></th><th class="c-vol sortable" data-sort="vol" onclick="setSort('vol',true)">成交量<span class="ar">⇅</span></th><th class="iv2-est-col c-est">預估量</th><th class="c-k15 sortable" data-sort="k15" onclick="setSort('k15',true)">15MK<span class="ar">⇅</span></th><th class="c-mo sortable" data-sort="nh" onclick="setSort('nh',true)">月K<span class="ar">⇅</span></th><th class="c-rs sortable" data-sort="rs" onclick="setSort('rs',true)">RS動能<span class="ar">⇅</span></th><th class="c-kbar">當日K</th><th class="c-spark">走勢</th>
         </tr></thead>
         <tbody id="strategy-list"></tbody>
       </table>
