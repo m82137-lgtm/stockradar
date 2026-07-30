@@ -530,8 +530,16 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .cp-kwrap{ position:relative; touch-action:pan-y; }
 .cp-tip{ position:absolute; background:rgba(17,24,39,.94); color:#fff; font-size:9.5px; font-family:'JetBrains Mono',monospace; padding:5px 8px; border-radius:7px; line-height:1.6; z-index:6; pointer-events:none; display:none; white-space:nowrap; }
 .cp-tip b{ color:#fbbf24; font-weight:700; }
+.cp-tipmini{ display:none; }
+@media (max-width:639px){
+  /* 07-30 三修(C案):手機卡寬僅約170px,原多行黑框(兩欄)遮掉約85% → 改「垂直窄框」單欄五行
+     日期/開/高/低/收,寬僅約66px(遮約29%),且左右沿用桌機的自動避讓=永遠遮沒游標的那半邊。 */
+  .cp-tipfull{ display:none; }
+  .cp-tipmini{ display:block; }
+  .cp-tip{ top:2px !important; padding:3px 5px; font-size:8px; line-height:1.62; background:rgba(17,24,39,.9); }
+}
 .cp-tip .r{ color:#f87171; } .cp-tip .g{ color:#4ade80; } .cp-tip .o{ color:#fbbf24; }
-.cp-curbadge{ background:rgba(124,92,224,.14); color:var(--accent); font-size:9px; font-weight:800; padding:0 5px; border-radius:4px; margin-left:5px; }
+.cp-curbadge{ position:absolute; right:3px; bottom:2px; background:rgba(124,92,224,.16); color:var(--accent); font-size:8.5px; font-weight:800; padding:0 5px; border-radius:4px; pointer-events:none; z-index:5; }   /* 07-30 二修:原插在 cp-h3(收盤後為空高度0),一出現就把卡往下撐→改絕對定位零佔位 */
 .chip-ksvg2 { width:100%; height:116px; display:block; }
 /* 2026-07-16：88→70 與 .chip-mmsvg2 對齊（六卡每張圖矮 18px）；背景格線 22→18 同比縮 */
 .chip-chart2 { position:relative; height:70px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 18px; }
@@ -3745,11 +3753,10 @@ function idxCursorPaint(key, o, active) {
   const svg = wrap.querySelector('svg');
   let g = svg && svg.querySelector('#' + key + 'Cx');
   if (svg && !g) { svg.insertAdjacentHTML('beforeend', `<g id="${key}Cx"></g>`); g = svg.querySelector('#' + key + 'Cx'); }
-  const ts = document.getElementById(key + 'Ts');
   if (!active || !o || !o.p) {
     if (g) g.innerHTML = '';
     if (tip) tip.style.display = 'none';
-    if (ts) { const b = ts.querySelector('.cp-curbadge'); if (b) b.remove(); }
+    const b = wrap.querySelector('.cp-curbadge'); if (b) b.remove();
     return;
   }
   const p = o.p, series = (CHIP && CHIP.idx && CHIP.idx[key === 'kt' ? 'tse' : 'otc']) ? CHIP.idx[key === 'kt' ? 'tse' : 'otc'].series : null;
@@ -3767,16 +3774,18 @@ function idxCursorPaint(key, o, active) {
     const prevC = o.prev ? o.prev.c : p.o;
     const pc = prevC ? (p.c - prevC) / prevC * 100 : 0, up = pc >= 0, cl = up ? 'r' : 'g';
     const fM = v => v == null ? '—' : ((v >= 0 ? '+' : '') + (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(2)));
-    tip.innerHTML = `<b>${p.d || ''}</b><br>開 ${chipNum2(p.o)}　高 ${chipNum2(p.h)}<br>低 ${chipNum2(p.l)}　收 <span class="${cl}">${chipNum2(p.c)}</span><br>` +
+    tip.innerHTML =
+      `<span class="cp-tipfull"><b>${p.d || ''}</b><br>開 ${chipNum2(p.o)}　高 ${chipNum2(p.h)}<br>低 ${chipNum2(p.l)}　收 <span class="${cl}">${chipNum2(p.c)}</span><br>` +
       `<span class="${cl}">${up ? '+' : ''}${pc.toFixed(2)}%</span>` +
-      (p.dif == null ? '' : `<br><span class="o">DIF ${fM(p.dif)}　柱 ${fM(p.hist)}</span>`);
+      (p.dif == null ? '' : `<br><span class="o">DIF ${fM(p.dif)}　柱 ${fM(p.hist)}</span>`) + `</span>` +
+      `<span class="cp-tipmini"><b>${p.d || ''}</b><br>開 ${chipNum2(p.o)}<br>高 ${chipNum2(p.h)}<br>低 ${chipNum2(p.l)}<br>收 <span class="${cl}">${chipNum2(p.c)}</span></span>`;
     tip.style.display = 'block';
     const right = (o.k / n) > 0.5;
     tip.style.left = right ? '4px' : 'auto';
     tip.style.right = right ? 'auto' : '4px';
     tip.style.top = '2px';
   }
-  if (ts && !ts.querySelector('.cp-curbadge')) ts.insertAdjacentHTML('beforeend', '<span class="cp-curbadge">游標</span>');
+  if (!wrap.querySelector('.cp-curbadge')) wrap.insertAdjacentHTML('beforeend', '<span class="cp-curbadge">游標</span>');
 }
 function chipIdxSvg(series) {
   const W = 200, H = 96, n = series.length;
