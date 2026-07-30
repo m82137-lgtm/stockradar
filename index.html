@@ -526,6 +526,12 @@ body { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
 .chip-trend .trend-lbl{ font-size:9px; color:var(--text3); font-weight:700; white-space:nowrap; flex-shrink:0; }
 .chip-trend .trend-time{ font-size:9px; color:var(--text3); font-family:'JetBrains Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .cp-ohlc{ margin-top:5px; font-size:10.5px; color:var(--text3); font-family:'JetBrains Mono',monospace; min-height:13px; font-variant-numeric:tabular-nums; }
+/* ── 風度游標(07-30):加權/櫃買 K圖 hover(桌機)/按住0.2秒拖(手機) → 頂排數值＋風度徽章＋MACD 全部跟該根走 ── */
+.cp-kwrap{ position:relative; touch-action:pan-y; }
+.cp-tip{ position:absolute; background:rgba(17,24,39,.94); color:#fff; font-size:9.5px; font-family:'JetBrains Mono',monospace; padding:5px 8px; border-radius:7px; line-height:1.6; z-index:6; pointer-events:none; display:none; white-space:nowrap; }
+.cp-tip b{ color:#fbbf24; font-weight:700; }
+.cp-tip .r{ color:#f87171; } .cp-tip .g{ color:#4ade80; } .cp-tip .o{ color:#fbbf24; }
+.cp-curbadge{ background:rgba(124,92,224,.14); color:var(--accent); font-size:9px; font-weight:800; padding:0 5px; border-radius:4px; margin-left:5px; }
 .chip-ksvg2 { width:100%; height:116px; display:block; }
 /* 2026-07-16：88→70 與 .chip-mmsvg2 對齊（六卡每張圖矮 18px）；背景格線 22→18 同比縮 */
 .chip-chart2 { position:relative; height:70px; display:flex; gap:1px; border-radius:3px; overflow:hidden; background:linear-gradient(var(--bg3) 1px, transparent 1px) 0 0/100% 18px; }
@@ -1254,6 +1260,12 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
 /* 相對時間：加粗、純灰（不上色） */
 .sec-rel { font-weight:700; color:var(--text2); }
 .sec-abs { font-family:'JetBrains Mono',monospace; color:var(--text3); }
+.sec-abs-short { display:none; }
+@media (max-width:639px){
+  .sec-abs-full { display:none; }
+  .sec-abs-short { display:inline; }
+  .sector-meta-row { gap:6px; }
+}
 
 /* ══ 盤後追蹤 ═════════════════════════════════ */
 .after-info-box {
@@ -1839,8 +1851,8 @@ function renderIdxTrend(k) {
   const r = idxTrendSvg(k);
   if (!r) { wrap.style.display = 'none'; return; }
   const hh = String(9 + Math.floor(r.lastM / 60)).padStart(2, '0'), mm = String(r.lastM % 60).padStart(2, '0');
-  document.getElementById(IDXLIVE_KEYS[k] + 'TrL').textContent = `今日走勢 ${r.md}`;
-  document.getElementById(IDXLIVE_KEYS[k] + 'TrT').textContent = `最新 ${hh}:${mm}・昨收 ${chipNum2(r.base)}`;
+  { const e = document.getElementById(IDXLIVE_KEYS[k] + 'TrL'); if (e) e.textContent = `今日走勢 ${r.md}`; }   // 07-30 精簡後元素已撤,留守衛
+  { const e = document.getElementById(IDXLIVE_KEYS[k] + 'TrT'); if (e) e.textContent = `最新 ${hh}:${mm}・昨收 ${chipNum2(r.base)}`; }
   document.getElementById(IDXLIVE_KEYS[k] + 'TrSvg').innerHTML = r.svg;
   wrap.style.display = 'block';
 }
@@ -1910,10 +1922,7 @@ async function idxLiveTick() {
     idxLiveRepaint(k);
     if (k === 'tse') tseLbl = lw.label; else otcLbl = lw.label;
     idxLiveOn = true;
-    const tlEl = document.getElementById(IDXLIVE_KEYS[k] + 'Tl');
-    if (tlEl) tlEl.textContent = '← 今日即時';
-    const ohEl = document.getElementById(IDXLIVE_KEYS[k] + 'Ohlc');
-    if (ohEl) ohEl.textContent = `今日　開 ${chipNum2(bar.o)}　高 ${chipNum2(bar.h)}　低 ${chipNum2(bar.l)}`;
+    // 07-30 精簡:「← 今日即時」與 cp-ohlc 已撤(開高低改由游標小窗提供)
     if (phase === 'live') {   // 細點只在盤中累積（frozen 期骨架已定格）
       if (idxTrendFineDate !== t.date) { idxTrendFine = { tse: [], otc: [] }; idxTrendFineDate = t.date; }
       const fm = t.mins - 540, fa = idxTrendFine[k];
@@ -3727,6 +3736,48 @@ function chipBars2(series) {
   }).join('');
   return `<div class="chip-chart2"><div class="chip-zero" style="top:${zero.toFixed(2)}%"></div>${bars}</div>`;
 }
+// ── 風度游標(07-30):在 K圖 SVG 上疊豎線(該根)＋橫線(該根收盤)，並顯示小窗(日期/開高低收/漲跌%/DIF·柱)。
+// 幾何與 chipIdxSvg 同一套(W=200/H=96/slot=W/n)；資料連動沿用既有 chipSet(active,frac)，此處只補視覺。
+function idxCursorPaint(key, o, active) {
+  const wrap = document.getElementById(key + 'Chart');
+  const tip  = document.getElementById(key + 'Tip');
+  if (!wrap) return;
+  const svg = wrap.querySelector('svg');
+  let g = svg && svg.querySelector('#' + key + 'Cx');
+  if (svg && !g) { svg.insertAdjacentHTML('beforeend', `<g id="${key}Cx"></g>`); g = svg.querySelector('#' + key + 'Cx'); }
+  const ts = document.getElementById(key + 'Ts');
+  if (!active || !o || !o.p) {
+    if (g) g.innerHTML = '';
+    if (tip) tip.style.display = 'none';
+    if (ts) { const b = ts.querySelector('.cp-curbadge'); if (b) b.remove(); }
+    return;
+  }
+  const p = o.p, series = (CHIP && CHIP.idx && CHIP.idx[key === 'kt' ? 'tse' : 'otc']) ? CHIP.idx[key === 'kt' ? 'tse' : 'otc'].series : null;
+  if (!series || !series.length) return;
+  const W = 200, H = 96, n = series.length;
+  let lo = Infinity, hi = -Infinity;
+  series.forEach(q => { lo = Math.min(lo, q.l, q.m ?? q.l); hi = Math.max(hi, q.h, q.m ?? q.h); });
+  const pad = (hi - lo) * 0.04 || 1; lo -= pad; hi += pad;
+  const y = v => H - 1 - (v - lo) / (hi - lo) * (H - 2);
+  const cx = (W / n) * o.k + (W / n) / 2;
+  if (g) g.innerHTML =
+    `<line x1="${cx.toFixed(1)}" y1="0" x2="${cx.toFixed(1)}" y2="${H}" stroke="var(--text3)" stroke-width="0.8" stroke-dasharray="3 2"/>` +
+    `<line x1="0" y1="${y(p.c).toFixed(1)}" x2="${W}" y2="${y(p.c).toFixed(1)}" stroke="var(--text3)" stroke-width="0.8" stroke-dasharray="3 2"/>`;
+  if (tip) {
+    const prevC = o.prev ? o.prev.c : p.o;
+    const pc = prevC ? (p.c - prevC) / prevC * 100 : 0, up = pc >= 0, cl = up ? 'r' : 'g';
+    const fM = v => v == null ? '—' : ((v >= 0 ? '+' : '') + (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(2)));
+    tip.innerHTML = `<b>${p.d || ''}</b><br>開 ${chipNum2(p.o)}　高 ${chipNum2(p.h)}<br>低 ${chipNum2(p.l)}　收 <span class="${cl}">${chipNum2(p.c)}</span><br>` +
+      `<span class="${cl}">${up ? '+' : ''}${pc.toFixed(2)}%</span>` +
+      (p.dif == null ? '' : `<br><span class="o">DIF ${fM(p.dif)}　柱 ${fM(p.hist)}</span>`);
+    tip.style.display = 'block';
+    const right = (o.k / n) > 0.5;
+    tip.style.left = right ? '4px' : 'auto';
+    tip.style.right = right ? 'auto' : '4px';
+    tip.style.top = '2px';
+  }
+  if (ts && !ts.querySelector('.cp-curbadge')) ts.insertAdjacentHTML('beforeend', '<span class="cp-curbadge">游標</span>');
+}
 function chipIdxSvg(series) {
   const W = 200, H = 96, n = series.length;
   let lo = Infinity, hi = -Infinity;
@@ -3868,7 +3919,7 @@ function chipSet(active, frac) {
     return { k, p: s[k], prev: k > 0 ? s[k - 1] : null };
   };
   const cls = v => v >= 0 ? 'chip-up' : 'chip-dn';
-  const stamp = o => (active && o) ? `📅${o.p.d} ` : '';
+  const stamp = o => (active && o) ? `${o.p.d} ` : '';   // 07-30:拿掉 📅 emoji(手機會撐寬撞到數字)
   // 指數雙卡
   [['kt', D.idx && D.idx.tse], ['ko', D.idx && D.idx.otc]].forEach(([key, pack]) => {
     if (!pack || !el(key + 'C')) return;
@@ -3883,6 +3934,7 @@ function chipSet(active, frac) {
       if (p.w) { w.textContent = p.w; w.style.color = CHIP_WCOL[p.w]; w.style.opacity = 1; }
       else w.style.opacity = 0;
     }
+    idxCursorPaint(key, o, active);   // 07-30 風度游標:刮動時畫豎/橫線與小窗(數值連動本來就有,只是先前沒視覺回饋)
     const mv = el(key + 'Mv');
     if (mv) {
       if (p.dif == null || p.hist == null) mv.textContent = '';
@@ -4072,11 +4124,10 @@ async function loadChipIndicators() {
       `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="chip-windchip inrow" id="${key}W"></span><span class="cp-v cp-vbig" id="${key}C" style="margin-left:auto"></span></div>` +
       `<div class="cp-h2"><span id="${key}M"></span><span id="${key}D" style="text-align:right"></span></div>` +
       `<div class="cp-h3"><span class="chip-live-ts" id="${key}Ts"></span></div>` +
-      `<div class="chip-trend" id="${key}Trend" style="display:none;"><div class="trend-row"><span class="trend-lbl" id="${key}TrL"></span><span class="trend-time" id="${key}TrT"></span></div><div id="${key}TrSvg"></div></div>` +
-      chipZone(`<div id="${key}Chart">${chipIdxSvg(pack.series)}</div><span class="chip-today-lbl" id="${key}Tl"></span>` +
+      `<div class="chip-trend" id="${key}Trend" style="display:none;"><div id="${key}TrSvg"></div></div>` +   // 07-30 精簡:撤「今日走勢 MM/DD」「最新·昨收」標籤列
+      chipZone(`<div id="${key}Chart" class="cp-kwrap" data-idx="${key}">${chipIdxSvg(pack.series)}<div class="cp-tip" id="${key}Tip"></div></div>` +
         ((pack.series[pack.series.length - 1] || {}).dif != null ? `<div class="chip-macd"><div class="macd-row"><span class="macd-lbl">MACD</span><span class="macd-val" id="${key}Mv"></span></div><div id="${key}Macd">${chipMacdSvg(pack.series)}</div></div>` : ''),
-        pack.series.length) +
-      `<div class="cp-ohlc" id="${key}Ohlc"></div></div>`;
+        pack.series.length) + `</div>`;   // 07-30 精簡:撤 cp-ohlc(開高低移進游標小窗)、撤「← 今日即時」標籤
     const barCard = (key, title, pack) => !pack ? chipPh(title) :
       `<div class="cp-card"><div class="cp-h1"><span class="cp-t">${title}</span><span class="cp-v" id="cp${key}V"></span></div>` +
       `<div class="cp-h2"><span></span><span id="cp${key}D" style="text-align:right"></span></div>` +
@@ -4727,6 +4778,10 @@ function renderSectors(contentEl, items) {
     const dateStr = n.time && !isNaN(d.getTime())
       ? d.toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})
       : (n.time||'');
+    // 07-30:手機用短日期(去年份),配合拿掉「·」讓 ⚡有效 不再被擠到下一行
+    const dateShort = n.time && !isNaN(d.getTime())
+      ? d.toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})
+      : (n.time||'');
     const rel = relTimeAgo(n.time);
     const readClass  = isRead(n.url) ? 'read' : '';
     const chipsHtml = (n.stocks && n.stocks.length) ? (() => {
@@ -4757,7 +4812,7 @@ function renderSectors(contentEl, items) {
   onclick="markRead('${n.url}');this.classList.add('read');window.open('${n.url}','_blank')">
   <div class="sector-news-card-title">${hlHotKw(n.title)}</div>${chipsHtml}
   <div class="sector-meta-row">
-    <span>🕐</span>${rel ? `<span class="sec-rel">${rel}</span><span style="opacity:.55;">·</span>` : ''}<span class="sec-abs">${dateStr}</span>
+    <span>🕐</span>${rel ? `<span class="sec-rel">${rel}</span>` : ''}<span class="sec-abs sec-abs-full">${dateStr}</span><span class="sec-abs sec-abs-short">${dateShort}</span>
     <span>📋</span><span style="color:var(--accent);font-weight:500;">${n.src||'富聯網'}</span>${Array.isArray(n.eff)&&n.eff.length?'<span class="sec-eff">⚡有效</span>':''}
     <span class="sec-read-btn" onclick="event.stopPropagation();openSecReader(${i})" title="閱讀"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
   </div>
