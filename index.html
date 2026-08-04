@@ -3736,7 +3736,7 @@ function chipBars2(series) {
   const mx = Math.max(0, ...vals), mn = Math.min(0, ...vals);
   const rng = (mx - mn) || 1, zero = mx / rng * 100;
   const bars = series.map(p => {
-    if (p.v == null) return `<div class="chip-bcol"><div class="chip-ghost"></div></div>`;   // 未公布：虛線占位
+    if (p.v == null) return `<div class="chip-bcol"></div>`;   // 未公布：純留白佔位（08-04 拍板，原虛線 ghost 退場；游標刮到仍顯示未公布）
     const h = (Math.abs(p.v) / rng * 100).toFixed(2);
     return p.v >= 0
       ? `<div class="chip-bcol"><div class="chip-bar u" style="bottom:${(100 - zero).toFixed(2)}%;height:${h}%"></div></div>`
@@ -4116,6 +4116,15 @@ async function loadChipIndicators() {
     // ══ 六卡日期軸對齊（07-15）：主軸=加權（缺則櫃買）已切片日期序列；落後指標按日期入座、未公布=null（渲染成虛線空格、游標顯示未公布）══
     const mastSer = d.idx && ((d.idx.tse && d.idx.tse.series) || (d.idx.otc && d.idx.otc.series));
     const axis = Array.isArray(mastSer) ? mastSer.map(b => b.d) : null;
+    // ══ 今日空格（08-04）：盤中/暫定期定案序列只到前一交易日（今日棒是活棒、後掛），主軸缺今日
+    //    → 落後四卡最後一根被畫到「今日」的位置＝整排左移一格、游標上下卡對到不同日。
+    //    live/frozen 時軸尾補今日：四卡查無此日走既有 null 路線＝留白佔位、游標顯示未公布；
+    //    17:45 定案接手後今日進定案序列，此 push 條件不成立、補格自動退場，隔日循環。
+    //    已知極小誤差：平日休市日（颱風/國定假日）phase 仍報 live 會多補一空格，次日自癒。
+    if (axis && axis.length && idxLivePhase() !== 'off') {
+      const tdy = twNowParts().date;
+      if (axis[axis.length - 1] < tdy) axis.push(tdy);
+    }
     const alignByDate = ser => {
       if (!axis || !Array.isArray(ser)) return cut(ser);
       const mp = new Map(ser.map(pt => [pt.d, pt]));
