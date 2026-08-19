@@ -1763,7 +1763,8 @@ async function loadSectorStockData() {
       sl.forEach(s => { if (s.code) stockNameMap[s.code] = s.name || ''; });
     }
     // 從警示榜建漲停表：limit 為 true，或漲幅 ≥ 9.5 視為漲停
-    const al = await alRes.json();
+    const alRaw = await alRes.json();
+    const al = Array.isArray(alRaw) ? alRaw : (Array.isArray(alRaw && alRaw.list) ? alRaw.list : []);   // 相容 {scanAt,list}
     limitMap = {};
     if (Array.isArray(al)) {
       al.forEach(a => {
@@ -2243,6 +2244,26 @@ async function scanNow() {
   }
 }
 
+// ── 資料時間（08-19）：右上原本顯示「瀏覽器時鐘」，資料凍住它照樣跳＝看不出死活
+//    （8/14、8/18 兩次靜音停擺都是這樣被瞞過去的）。改顯示 Worker 的 _scanAt＝這份資料幾點掃的。
+//    盤中才判逾時：>5 分橘、>15 分紅；收盤後只顯示時間不上色。
+function paintScanAt(el, scanAt) {
+  if (!el) return;
+  el.style.color = ''; el.style.fontWeight = '';
+  if (!scanAt) { el.textContent = '—'; return; }
+  const d = new Date(scanAt);
+  if (isNaN(d)) { el.textContent = '—'; return; }
+  const tw = new Date(d.getTime() + 8 * 3600e3);
+  el.textContent = `${String(tw.getUTCHours()).padStart(2,'0')}:${String(tw.getUTCMinutes()).padStart(2,'0')} 更新`;
+  const n = new Date(Date.now() + 8 * 3600e3);
+  const mins = n.getUTCHours() * 60 + n.getUTCMinutes();
+  const trading = n.getUTCDay() >= 1 && n.getUTCDay() <= 5 && mins >= 540 && mins <= 810;   // 09:00-13:30
+  if (!trading) return;
+  const lagMin = (Date.now() - d.getTime()) / 60000;
+  if (lagMin > 15)     { el.style.color = 'var(--red)';  el.style.fontWeight = '700'; }
+  else if (lagMin > 5) { el.style.color = '#d97a1a';     el.style.fontWeight = '700'; }
+}
+
 async function fetchAlerts() {
   loadWindGauge();   // 順便更新頂部風度圖（不阻塞）
   const listEl = document.getElementById('strategy-list');
@@ -2251,11 +2272,15 @@ async function fetchAlerts() {
   try {
     const res  = await fetch(`${WORKER}/api/alerts`);
     const data = await res.json();
-    const all  = Array.isArray(data) ? data : [];
+    // 相容新舊回包：舊＝裸陣列 [...]；新＝{ scanAt, list }。前端先推、Worker 後推，這段是接縫。
+    const all    = Array.isArray(data) ? data : (Array.isArray(data && data.list) ? data.list : []);
+    const scanAt = (!Array.isArray(data) && data && data.scanAt) ? data.scanAt : null;
     alertsData.qj = all.filter(a => !a.strategy || a.strategy === 'qj');
     alertsData.lz = all.filter(a => a.strategy === 'lz');
-    const now = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    if (timeEl) timeEl.textContent = now;
+    if (timeEl) {
+      if (scanAt) paintScanAt(timeEl, scanAt);
+      else timeEl.textContent = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    }
     renderAlertsList();
   } catch(err) {
     if (listEl) listEl.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px 16px;color:var(--text3);">⚠️ ${err.message}<br><button class="iv2-refresh" style="margin-top:12px;" onclick="fetchAlerts()">重試</button></td></tr>`;
