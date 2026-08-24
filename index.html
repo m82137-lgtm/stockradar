@@ -1373,6 +1373,15 @@ body.iv2-has-sel .iv2-news{ transform:translateX(0); }
   .iv2-tablewrap::-webkit-scrollbar-track, .us-tbl-wrap::-webkit-scrollbar-track{ background:var(--bg3); }
   .iv2-tablewrap, .us-tbl-wrap{ scrollbar-width:auto; scrollbar-color:var(--text3) var(--bg3); }
 }
+/* 手機隱藏「在榜天數」（08-20）：小螢幕用不到，空出的欄寬讓給常被截斷的題材欄。
+   桌機（min-width:640）完全不受影響——欄位、排序、寬度照舊。B案：min-width:480 保留，
+   寧可小滑一下也不擠壞字（12 Pro Max 428px，7 欄仍略超出 52px＝刻意保守）。
+   HTML 零改動，想反悔刪掉本區塊即可。預設排序 _twSort/_usSort 皆為 'val'，非 days，不受影響。 */
+@media (max-width:639px){
+  .us-tbl th.us-th-days, .us-tbl td.us-td-days { display:none; }
+  .us-tbl:has(#tw-tbody) th.us-th-theme { width:27%; }   /* 原 16% ＋ days 騰出的 11% */
+  .us-tbl:has(#us-tbody) th.us-th-theme { width:29%; }   /* 原 16% ＋ days 騰出的 13% */
+}
 .us-sortable { cursor:pointer; user-select:none; transition:color 0.15s; }
 .us-sortable:hover { color:var(--text); }
 .us-sort-active { color:var(--accent); }
